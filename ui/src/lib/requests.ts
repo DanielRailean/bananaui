@@ -1,64 +1,61 @@
-import axios, {
-  type AxiosInstance,
-  type AxiosRequestConfig,
-} from 'axios'
+import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
-const adminApiUrl = "http://localhost:8001"
+const adminApiUrl = 'http://localhost:8001';
 
 class ApiService {
-  instance: AxiosInstance
+	instance: AxiosInstance;
 
-  constructor () {
-    this.instance = axios.create({
-      timeout: 30000,
-    })
-  }
+	constructor() {
+		this.instance = axios.create({
+			timeout: 30000
+		});
+	}
 
-  getInfo () {
-    return this.instance.get(`${adminApiUrl}`)
-  }
+	getInfo() {
+		return this.instance.get(`${adminApiUrl}`);
+	}
 
-  // entity-specific methods
-  findAll<T> (entity: string, params: Record<string, unknown>) {
-    return this.instance.get<T>(`${adminApiUrl}/${entity}`, { params })
-  }
+	// entity-specific methods
+	findAll<T>(entity: string, params: Record<string, unknown>) {
+		return this.instance.get<T>(`${adminApiUrl}/${entity}`, { params });
+	}
 
-  findRecord<T> (entity: string, id: string) {
-    return this.instance.get<T>(`${adminApiUrl}/${entity}/${id}`)
-  }
+	findRecord<T>(entity: string, id: string) {
+		return this.instance.get<T>(`${adminApiUrl}/${entity}/${id}`);
+	}
 
-  createRecord (entity: string, data: Record<string, unknown>) {
-    return this.instance.post(`${adminApiUrl}/${entity}`, data)
-  }
+	createRecord(entity: string, data: Record<string, unknown>) {
+		return this.instance.post(`${adminApiUrl}/${entity}`, data);
+	}
 
-  updateRecord (entity: string, id: string, data: Record<string, unknown>) {
-    return this.instance.patch(`${adminApiUrl}/${entity}/${id}`, data)
-  }
+	updateRecord(entity: string, id: string, data: Record<string, unknown>) {
+		return this.instance.patch(`${adminApiUrl}/${entity}/${id}`, data);
+	}
 
-  deleteRecord (entity: string, id: string) {
-    return this.instance.delete(`${adminApiUrl}/${entity}/${id}`)
-  }
+	deleteRecord(entity: string, id: string) {
+		return this.instance.delete(`${adminApiUrl}/${entity}/${id}`);
+	}
 
-  // generic methods
-  get<T> (url = '', config: AxiosRequestConfig = {}) {
-    return this.instance.get<T>(`${adminApiUrl}/${url}`, config)
-  }
+	// generic methods
+	get<T>(url = '', config: AxiosRequestConfig = {}) {
+		return this.instance.get<T>(`${adminApiUrl}/${url}`, config);
+	}
 
-  post (url = '', data?: Record<string, unknown>, config: AxiosRequestConfig = {}) {
-    return this.instance.post(`${adminApiUrl}/${url}`, data, config)
-  }
+	post(url = '', data?: Record<string, unknown>, config: AxiosRequestConfig = {}) {
+		return this.instance.post(`${adminApiUrl}/${url}`, data, config);
+	}
 
-  put (url = '', data?: Record<string, unknown>, config: AxiosRequestConfig = {}) {
-    return this.instance.put(`${adminApiUrl}/${url}`, data, config)
-  }
+	put(url = '', data?: Record<string, unknown>, config: AxiosRequestConfig = {}) {
+		return this.instance.put(`${adminApiUrl}/${url}`, data, config);
+	}
 
-  patch (url = '', data?: Record<string, unknown>, config: AxiosRequestConfig = {}) {
-    return this.instance.patch(`${adminApiUrl}/${url}`, data, config)
-  }
+	patch(url = '', data?: Record<string, unknown>, config: AxiosRequestConfig = {}) {
+		return this.instance.patch(`${adminApiUrl}/${url}`, data, config);
+	}
 
-  delete (url = '', config: AxiosRequestConfig = {}) {
-    return this.instance.delete(`${adminApiUrl}/${url}`, config)
-  }
+	delete(url = '', config: AxiosRequestConfig = {}) {
+		return this.instance.delete(`${adminApiUrl}/${url}`, config);
+	}
 }
 
-export const apiService = new ApiService()
+export const apiService = new ApiService();

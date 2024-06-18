@@ -11,8 +11,7 @@
 
 	page.subscribe((val) => {
 		entity = val.params.slug;
-		if(Object.keys(entityFields).includes(entity))
-		{
+		if (Object.keys(entityFields).includes(entity)) {
 			load();
 		}
 	});
@@ -32,7 +31,11 @@
 </script>
 
 {#if info && info.data && info.data.length > 0}
-	<ArrayWrap displayedFields={entityFields[entity]} data={info.data} pathField="id" itemPath="/{entity}/id"
+	<ArrayWrap
+		displayedFields={entityFields[entity]}
+		data={info.data}
+		pathField="id"
+		itemPath="/{entity}/id"
 	></ArrayWrap>
 {:else if info && info.data && info.data.length == 0}
 	<h2>{entity} list empty!</h2>

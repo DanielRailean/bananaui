@@ -1,17 +1,19 @@
 <script lang="ts">
 	export let data: any = {};
-	export let json: any = "";
+	export let json: any = '';
 	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import TreeWrapper from './treeWrapper.svelte';
 	import { apiService } from '$lib/requests';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 
 	let stateJson = '';
 
 	let isEdited = false;
 
-	export let id: string
-	export let entity: string
+	export let id: string;
+	export let entity: string;
 
 	onMount(() => {
 		stateJson = json;
@@ -20,13 +22,14 @@
 
 	async function save() {
 		try {
-			const res = await apiService.updateRecord(entity, id, JSON.parse(json))
-			
-			isEdited = !isEdited
-			isEdited = isEdited
+			const res = await apiService.updateRecord(entity, id, JSON.parse(json));
+
+			isEdited = !isEdited;
+			isEdited = isEdited;
+			data = JSON.parse(json);
 		} catch (error: any) {
-			const err = error.response.data as any as Error
-			alert(err.message)
+			const err = error.response.data as any as Error;
+			alert(err.message);
 		}
 	}
 </script>
@@ -42,7 +45,7 @@
 		>
 		{#if isEdited}
 			{#if stateJson != json}
-				<Button on:click={async ()=>await save()} color="green">save</Button>
+				<Button on:click={async () => await save()} color="green">save</Button>
 			{/if}
 		{/if}
 	</div>
@@ -50,7 +53,7 @@
 		{#if isEdited}
 			<textarea class="dark:bg-slate-900 w-full min-h-[70vh]" bind:value={json}></textarea>
 		{:else}
-			<TreeWrapper data={data}/>
+			<TreeWrapper {data} />
 		{/if}
 	{:else}
 		<h2 class="text-xl text-center">Loading ...</h2>

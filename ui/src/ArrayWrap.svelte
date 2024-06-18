@@ -3,8 +3,8 @@
 
 	export let data: any[];
 	export let displayedFields: string[] = [];
-	export let itemPath:string
-	export let pathField:string
+	export let itemPath: string;
+	export let pathField: string;
 
 	let copyText = 'copy';
 	function writeToClipboard(text: string, self: any) {
@@ -55,17 +55,17 @@
 						{#if Object.keys(item).includes(field)}
 							<!-- svelte-ignore a11y-click-events-have-key-events -->
 							<td class="px-6 py-3">
-								{item[field]}
+								{JSON.stringify(item[field], undefined, 2)}
 								<button
 									class="cursor-pointer text-green-500"
 									on:click={() => {
-										writeToClipboard(item[field], self);
+										writeToClipboard(JSON.stringify(item[field], undefined, 2), self);
 									}}>{copyText}</button
 								></td
 							>
 						{/if}
 					{/each}
-					<td><a href={itemPath.replace(pathField, item[pathField]) }>open</a></td>
+					<td><a href={itemPath.replace(pathField, item[pathField])}>open</a></td>
 				</tr>
 			{:else}
 				<p>empty list ...</p>

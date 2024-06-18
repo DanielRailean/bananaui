@@ -22,7 +22,7 @@
 				value = 0;
 			}
 		}
-    isDark.set(value)
+		isDark.set(value);
 	};
 
 	const handleClick = () => {

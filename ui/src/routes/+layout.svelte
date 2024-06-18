@@ -9,10 +9,7 @@
 	<main class="px-[10vw]">
 		<slot />
 	</main>
-
 </div>
 
 <style>
-
-	
 </style>
