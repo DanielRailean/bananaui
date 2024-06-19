@@ -14,7 +14,7 @@
 	<title>{staticConfig.name}</title>
 </svelte:head>
 
-<Toasts/>
+<Toasts />
 <Login />
 <ConfigLoader />
 <div class="flex flex-row min-h-[100vh]">

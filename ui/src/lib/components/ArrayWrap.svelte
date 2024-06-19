@@ -3,15 +3,13 @@
 	import { goto } from '$app/navigation';
 	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
-	import { 
-		FileCopyOutline } from 'flowbite-svelte-icons';
-
+	import { FileCopyOutline } from 'flowbite-svelte-icons';
 
 	export let data: any[];
 	export let displayedFields: any;
 	export let itemPath: string;
 	export let pathField: string;
-	export let kind: string
+	export let kind: string;
 
 	let copyText = 'copy';
 	function copy(data: any) {
@@ -32,7 +30,12 @@
 
 <div class="w-full">
 	<div class="flex flex-row m-4 h-8">
-		<Button color="alternative" on:click={()=>{goto(`/add/${kind}`)}}>Add</Button>
+		<Button
+			color="alternative"
+			on:click={() => {
+				goto(`/add/${kind}`);
+			}}>Add</Button
+		>
 	</div>
 	<table class="w-full text-sm text-left rtl:text-right text-slate-800 dark:text-slate-400">
 		<thead
@@ -51,10 +54,13 @@
 		</thead>
 		<tbody>
 			{#each data as item}
-			<tr class="even:dark:bg-slate-800 even:bg-slate-200">
-				<div class="h-full w-full cursor-pointer" on:click={()=>writeToClipboard(JSON.stringify(item, undefined, 2))}>
-					<FileCopyOutline class="m-2"/>
-				</div>
+				<tr class="even:dark:bg-slate-800 even:bg-slate-200">
+					<div
+						class="h-full w-full cursor-pointer"
+						on:click={() => writeToClipboard(JSON.stringify(item, undefined, 2))}
+					>
+						<FileCopyOutline class="m-2" />
+					</div>
 					<!-- content here -->
 					{#each displayedFields as field}
 						<!-- content here -->

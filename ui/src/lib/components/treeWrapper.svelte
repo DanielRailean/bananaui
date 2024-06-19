@@ -34,7 +34,15 @@
 							</th>
 							<td class="px-6 py-4 flex flex-row items-center">
 								<JSONTree value={data[key]} defaultExpandedLevel={expandLevel}></JSONTree>
-								<Button color="alternative" class="h-7 ml-5" on:click={()=>{writeToClipboard(typeof data[key] == "string" ? data[key]:  JSON.stringify(data[key]))}}>copy</Button>
+								<Button
+									color="alternative"
+									class="h-7 ml-5"
+									on:click={() => {
+										writeToClipboard(
+											typeof data[key] == 'string' ? data[key] : JSON.stringify(data[key])
+										);
+									}}>copy</Button
+								>
 							</td>
 						</tr>
 					{/each}

@@ -7,15 +7,15 @@ interface kongEntity {
 	name: string;
 	apiPath: string;
 	displayedFields: string[];
-	defaultJson?: string
+	defaultJson?: string;
 }
 
 export const kongEntities: kongEntity[] = [
 	{
 		name: 'services',
 		displayedFields: ['name', 'host', 'port', 'path', 'enabled', 'created_at'],
-		apiPath: 'services',
-		},
+		apiPath: 'services'
+	},
 	{
 		name: 'routes',
 		displayedFields: ['name', 'paths', 'methods', 'protocols', 'created_at'],

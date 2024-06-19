@@ -32,7 +32,7 @@
 			stateJson = json;
 		} catch (error: any) {
 			const err = error.response.data as any as Error;
-			addToast({message: err.message})
+			addToast({ message: err.message });
 		}
 	}
 </script>
@@ -49,7 +49,7 @@
 			color="alternative"
 			class="mr-2"
 			on:click={() => {
-				writeToClipboard(stateJson)
+				writeToClipboard(stateJson);
 			}}>copy</Button
 		>
 		{#if isEdited}
