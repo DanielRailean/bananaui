@@ -48,7 +48,7 @@
 			class="text-xs text-slate-800 uppercase dark:bg-gray-800 bg-gray-200 dark:text-slate-400"
 		>
 			<tr>
-				<th><p class="pl-4">copy</p></th>
+				<th><p class="pl-4">Actions</p></th>
 				{#each displayedFields as field}
 					<!-- content here -->
 					{#if Object.keys(data[0]).includes(field)}
