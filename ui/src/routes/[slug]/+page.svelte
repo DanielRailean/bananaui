@@ -38,6 +38,9 @@
 		itemPath="/{entity}/id"
 	></ArrayWrap>
 {:else if info && info.data && info.data.length == 0}
-	<h2>{entity} list empty!</h2>
+	<div class="flex min-h-[20vh] w-full justify-center items-center">
+	<h2 class="text-3xl text-center">{entity.toUpperCase()} list empty!</h2>
+
+	</div>
 {/if}
 <div class="text-column"></div>

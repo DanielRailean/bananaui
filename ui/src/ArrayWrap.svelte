@@ -33,9 +33,9 @@
 	});
 </script>
 
-<div class="w-full">
+<div class="w-full h-[100vh] bg-slate-800">
 	<table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-		<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+		<thead class="text-xs text-gray-700 uppercase bg-slate-700  dark:text-gray-400">
 			<tr>
 				{#each displayedFields as field}
 					<!-- content here -->
@@ -67,8 +67,6 @@
 					{/each}
 					<td><a href={itemPath.replace(pathField, item[pathField])}>open</a></td>
 				</tr>
-			{:else}
-				<p>empty list ...</p>
 			{/each}
 		</tbody>
 	</table>
