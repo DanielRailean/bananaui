@@ -1,14 +1,17 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
+import { config } from './stores';
 
 const adminApiUrl = 'http://localhost:8001';
 
 class ApiService {
 	instance: AxiosInstance;
+	endpoint: string;
 
-	constructor() {
+	constructor(endpoint: string, requestHeaders?: Record<string, string>) {
 		this.instance = axios.create({
-			timeout: 30000
+			timeout: 30000,
 		});
+		this.endpoint = endpoint
 	}
 
 	getInfo() {
@@ -58,4 +61,10 @@ class ApiService {
 	}
 }
 
-export const apiService = new ApiService();
+config.subscribe(v=> {
+	if(v) {
+		apiService = new ApiService(v.kongApi.endpoint, v.kongApi.requestHeaders)
+	}
+})
+
+export let apiService = new ApiService("");

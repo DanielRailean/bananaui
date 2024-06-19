@@ -7,22 +7,23 @@
 	export let pathField: string;
 
 	let copyText = 'copy';
-	function writeToClipboard(text: string, self: any) {
-		navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
-			if (result.state === 'granted' || result.state === 'prompt') {
-				navigator.clipboard.writeText(text).then(
-					() => {
-						copyText = 'ok';
-						setTimeout(() => {
-							copyText = 'copy';
-						}, 500);
-					},
-					() => {
-						/* clipboard write failed */
-					}
-				);
+	function writeToClipboard(data: any) {
+		let result = JSON.stringify(data, undefined, 2)
+		if(typeof data == "string")
+		{
+			result = data
+		}
+		navigator.clipboard.writeText(result).then(
+			() => {
+				copyText = 'ok';
+				setTimeout(() => {
+					copyText = 'copy';
+				}, 500);
+			},
+			() => {
+				/* clipboard write failed */
 			}
-		});
+		);
 	}
 
 	onMount(() => {
@@ -33,10 +34,10 @@
 	});
 </script>
 
-<div class="w-full h-[100vh] dark:bg-slate-800 bg-slate-50">
-	<table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+<div class="w-full h-[100vh]">
+	<table class="w-full text-sm text-left rtl:text-right text-slate-800 dark:text-slate-400">
 		<thead
-			class="text-xs text-gray-700 uppercase dark:bg-slate-700 bg-slate-100 dark:text-gray-400"
+			class="text-xs text-slate-800 uppercase dark:bg-gray-800 bg-gray-200 dark:text-slate-400"
 		>
 			<tr>
 				{#each displayedFields as field}
@@ -50,7 +51,7 @@
 		</thead>
 		<tbody>
 			{#each data as item}
-				<tr>
+				<tr class="even:dark:bg-slate-800 even:bg-slate-200">
 					<!-- content here -->
 					{#each displayedFields as field}
 						<!-- content here -->
@@ -61,13 +62,16 @@
 								<button
 									class="cursor-pointer text-green-500"
 									on:click={() => {
-										writeToClipboard(JSON.stringify(item[field], undefined, 2), self);
+										writeToClipboard(item[field]);
 									}}>{copyText}</button
 								></td
 							>
 						{/if}
 					{/each}
-					<td><a href={itemPath.replace(pathField, item[pathField])}>open</a></td>
+					<td
+						><a href={itemPath.replace(pathField, item[pathField])} class="text-emerald-600">view</a
+						></td
+					>
 				</tr>
 			{/each}
 		</tbody>

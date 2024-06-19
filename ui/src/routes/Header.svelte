@@ -1,17 +1,16 @@
 <script>
 	import DarkToggle from './DarkToggle.svelte';
 	import { page } from '$app/stores';
-	import logo from '$lib/images/svelte-logo.svg';
-	import github from '$lib/images/github.svg';
+
 	let items = [
 		{
 			name: 'overview',
 			path: '/'
 		}
 	];
-	import { DarkMode, P } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import { entityFields } from '$lib/entities';
+	import { staticConfig } from '$lib/config';
 
 	onMount(() => {
 		const entities = Object.entries(entityFields).map((i) => {
@@ -21,11 +20,12 @@
 	});
 </script>
 
-<header class="flex flex-col mb-4">
-	<div class="flex flex-row items-center">
-		<img src="/favicon.png" alt="bananaui logo" class="m-4" />
+<header class="flex flex-col border-r-[1px] dark:border-slate-700 px-8 bg-slate-100 dark:bg-slate-800">
+	<div class="flex flex-row items-center my-5">
+		<img src="/favicon.png" alt="bananaui logo" class="m-4" /> 
+		<h1 class="font-medium text-2xl">{staticConfig.name}</h1>
 		<!-- <DarkMode /> -->
-		<DarkToggle />
+		<DarkToggle div_class="" />
 	</div>
 
 	<nav class="text-2xl text-slate-400">

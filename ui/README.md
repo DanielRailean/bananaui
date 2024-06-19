@@ -11,6 +11,15 @@ appconfig:
 		"scope": "openid email",
 		"responseType": "id_token",
 		"response_mode": "fragment"
+	},
+	"auth": {
+		"enabled" : false
+	},
+	"kongApi": {
+		"endpoint": "http://localhost:8001",
+		"requestHeaders" : {
+			"test": "value"
+		}
 	}
 }
 ```

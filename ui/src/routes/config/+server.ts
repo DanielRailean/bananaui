@@ -1,3 +1,4 @@
+import type { IConfig } from '$lib/types';
 import { error, json } from '@sveltejs/kit';
 
 export function GET() {
@@ -8,7 +9,7 @@ export function GET() {
 	try {
 		const parsed = JSON.parse(configFile);
 		return json({
-			...parsed
+			...parsed as IConfig
 		});
 	} catch (err: any) {
 		console.log(configFile);

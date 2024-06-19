@@ -59,30 +59,3 @@
 		<h2 class="text-xl text-center">Loading ...</h2>
 	{/if}
 </div>
-
-<style lang="postcss">
-	.tree {
-		--json-tree-string-color: white;
-		--json-tree-boolean-color: white;
-		--json-tree-number-color: white;
-		--json-tree-label-color: green;
-		--json-tree-operator-color: gray;
-		/*
-    --json-tree-symbol-color: white;
-    --json-tree-function-color: white;
-    --json-tree-null-color: white;
-    --json-tree-undefined-color: white;
-    --json-tree-date-color: white;
-    --json-tree-internal-color: white;
-    --json-tree-regex-color: white; */
-
-		--json-tree-arrow-color: white;
-		--json-tree-property-color: white;
-
-		--json-tree-li-indentation: 1em;
-		--json-tree-li-line-height: 1.3;
-
-		--json-tree-font-size: 12px;
-		--json-tree-font-family: 'Courier New', Courier, monospace;
-	}
-</style>

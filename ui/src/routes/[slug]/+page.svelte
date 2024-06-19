@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { staticConfig } from '$lib/config';
 	import ArrayWrap from './../../ArrayWrap.svelte';
 	import type { GetAllServices } from '$lib/responseTypes.ts';
 	import { apiService } from '$lib/requests';
@@ -31,6 +32,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>{staticConfig.name} - {entity}</title>
+</svelte:head>
+
 {#if info && info.data && info.data.length > 0}
 	<ArrayWrap
 		displayedFields={entityFields[entity]}
@@ -39,8 +44,8 @@
 		itemPath="/{entity}/id"
 	></ArrayWrap>
 {:else if info && info.data && info.data.length == 0}
-	<div class="flex min-h-[20vh] w-full justify-center items-center">
-		<h2 class="text-3xl text-center">{entity.toUpperCase()} list empty!</h2>
+	<div class="flex h-[100vh] w-full justify-center items-center">
+		<h2 class="text-3xl text-center">{entity} list empty</h2>
 	</div>
 {/if}
 <div class="text-column"></div>

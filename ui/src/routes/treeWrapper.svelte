@@ -4,36 +4,14 @@
 	import JSONTree from 'svelte-json-tree';
 	export let data: any;
 	export let expandLevel = 0;
-
-	let lightColor = 'black';
-	let darkColor = 'white';
-	let variables = [
-		'--json-tree-string-color',
-		'--json-tree-boolean-color',
-		'--json-tree-number-color',
-		'--json-tree-arrow-color',
-		'--json-tree-property-color'
-	];
-	onMount(() => {
-		isDark.subscribe((val) => {
-			// console.log(val);
-			if (!document) {
-				return;
-			}
-			let root = document.querySelector(':root') as any;
-			for (const vari of variables) {
-				root.style.setProperty(vari, val ? darkColor : lightColor);
-			}
-		});
-	});
 </script>
 
-<div class="tree dark:tree-dark">
+<div class="tree">
 	{#if data}
 		<div class="relative overflow-x-auto">
-			<table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+			<table class="w-full text-sm text-left rtl:text-right text-gray-800 dark:text-gray-400">
 				<thead
-					class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+					class="text-xs text-gray-800 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
 				>
 					<tr>
 						<th scope="col" class="px-6 py-3"> Field </th>
@@ -67,19 +45,11 @@
 	.tree {
 		--json-tree-label-color: green;
 		--json-tree-operator-color: gray;
-		/*
-    --json-tree-symbol-color: white;
-    --json-tree-function-color: white;
-    --json-tree-null-color: white;
-    --json-tree-undefined-color: white;
-    --json-tree-date-color: white;
-    --json-tree-internal-color: white;
-    --json-tree-regex-color: white; */
 
 		--json-tree-li-indentation: 1em;
 		--json-tree-li-line-height: 1.3;
 
-		--json-tree-font-size: 12px;
+		--json-tree-font-size: 15px;
 		--json-tree-font-family: 'Courier New', Courier, monospace;
 	}
 </style>

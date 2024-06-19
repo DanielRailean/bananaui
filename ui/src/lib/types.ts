@@ -20,6 +20,13 @@ export interface IKongService {
 }
 
 export interface IConfig {
+	auth: {
+		enabled: boolean
+	},
+	kongApi: {
+		endpoint: string
+		requestHeaders: Record<string, string>,
+	}
 	oidc: IOidc;
 }
 
