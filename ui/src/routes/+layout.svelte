@@ -15,8 +15,8 @@
 <Login />
 <ConfigLoader />
 <div class="flex flex-row min-h-[100vh]">
-	{#if !$page.url.pathname.includes("/login") }
-		 <Header />
+	{#if !$page.url.pathname.includes('/login')}
+		<Header />
 	{/if}
 
 	<main class="w-full h-[100vh]">

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { isDark } from '$lib/stores';
 	import { onMount } from 'svelte';
-	export let div_class = ""
+	export let div_class = '';
 	import { SunOutline, MoonOutline } from 'flowbite-svelte-icons';
 	let value = -1;
 
@@ -49,14 +49,13 @@
 		isDark.subscribe((val) => {
 			console.log(val);
 			if (!document) {
-				console.log("document not defined")
+				console.log('document not defined');
 				return;
 			}
 			let root = document.querySelector(':root') as any;
-			if(!root)
-			{
-				console.log("no root!")
-				return
+			if (!root) {
+				console.log('no root!');
+				return;
 			}
 			for (const vari of variables) {
 				root.style.setProperty(vari, val ? darkColor : lightColor);
@@ -77,12 +76,12 @@
 
 <div class="h-10 mx-auto {div_class}">
 	{#if value === 0}
-	<div on:click={handleClick}>
-		<SunOutline/>
-	</div>
+		<div on:click={handleClick}>
+			<SunOutline />
+		</div>
 	{:else}
-	<div on:click={handleClick}>
-		<MoonOutline/>
-	</div>
+		<div on:click={handleClick}>
+			<MoonOutline />
+		</div>
 	{/if}
 </div>

@@ -9,7 +9,7 @@ export function GET() {
 	try {
 		const parsed = JSON.parse(configFile);
 		return json({
-			...parsed as IConfig
+			...(parsed as IConfig)
 		});
 	} catch (err: any) {
 		console.log(configFile);

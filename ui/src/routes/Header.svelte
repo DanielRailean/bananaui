@@ -20,9 +20,11 @@
 	});
 </script>
 
-<header class="flex flex-col border-r-[1px] dark:border-slate-700 px-8 bg-slate-100 dark:bg-slate-800">
+<header
+	class="flex flex-col border-r-[1px] dark:border-slate-700 px-8 bg-slate-100 dark:bg-slate-800"
+>
 	<div class="flex flex-row items-center my-5">
-		<img src="/favicon.png" alt="bananaui logo" class="m-4" /> 
+		<img src="/favicon.png" alt="bananaui logo" class="m-4" />
 		<h1 class="font-medium text-2xl">{staticConfig.name}</h1>
 		<!-- <DarkMode /> -->
 		<DarkToggle div_class="" />

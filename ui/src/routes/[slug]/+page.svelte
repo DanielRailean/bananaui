@@ -6,14 +6,14 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { entityFields } from '$lib/entities';
-	import { goto } from '$app/navigation';
 
-	let info: GetAllServices;
+	let info: GetAllServices | undefined;
 	let entity = $page.params.slug;
 
 	page.subscribe((val) => {
 		entity = val.params.slug;
 		if (Object.keys(entityFields).includes(entity)) {
+			info = undefined;
 			load();
 		}
 	});

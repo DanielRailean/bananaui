@@ -13,11 +13,11 @@ appconfig:
 		"response_mode": "fragment"
 	},
 	"auth": {
-		"enabled" : false
+		"enabled": false
 	},
 	"kongApi": {
 		"endpoint": "http://localhost:8001",
-		"requestHeaders" : {
+		"requestHeaders": {
 			"test": "value"
 		}
 	}

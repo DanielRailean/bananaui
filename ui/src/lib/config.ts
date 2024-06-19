@@ -1,4 +1,4 @@
 export const staticConfig = {
-  autoLogin : false,
-  name: "Banana UI"
-}
+	autoLogin: false,
+	name: 'Banana UI'
+};

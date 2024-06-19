@@ -9,9 +9,9 @@ class ApiService {
 
 	constructor(endpoint: string, requestHeaders?: Record<string, string>) {
 		this.instance = axios.create({
-			timeout: 30000,
+			timeout: 30000
 		});
-		this.endpoint = endpoint
+		this.endpoint = endpoint;
 	}
 
 	getInfo() {
@@ -61,10 +61,10 @@ class ApiService {
 	}
 }
 
-config.subscribe(v=> {
-	if(v) {
-		apiService = new ApiService(v.kongApi.endpoint, v.kongApi.requestHeaders)
+config.subscribe((v) => {
+	if (v) {
+		apiService = new ApiService(v.kongApi.endpoint, v.kongApi.requestHeaders);
 	}
-})
+});
 
-export let apiService = new ApiService("");
+export let apiService = new ApiService('');

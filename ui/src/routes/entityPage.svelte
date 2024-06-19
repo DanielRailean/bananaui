@@ -40,8 +40,7 @@
 			class="mr-5"
 			on:click={() => {
 				isEdited = !isEdited;
-			}}
-			>{isEdited ? 'cancel' : 'edit'}</Button
+			}}>{isEdited ? 'cancel' : 'edit'}</Button
 		>
 		{#if isEdited}
 			{#if stateJson != json}

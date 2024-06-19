@@ -8,10 +8,9 @@
 
 	let copyText = 'copy';
 	function writeToClipboard(data: any) {
-		let result = JSON.stringify(data, undefined, 2)
-		if(typeof data == "string")
-		{
-			result = data
+		let result = JSON.stringify(data, undefined, 2);
+		if (typeof data == 'string') {
+			result = data;
 		}
 		navigator.clipboard.writeText(result).then(
 			() => {
