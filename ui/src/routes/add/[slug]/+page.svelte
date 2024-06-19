@@ -6,6 +6,7 @@
 	import { page } from '$app/stores';
 	import { Button } from 'flowbite-svelte';
 	import { addToast } from '$lib/stores';
+	import { FloppyDiskAltOutline, LinkOutline } from 'flowbite-svelte-icons';
 
 	let entityKindToAdd = $page.params.slug;
 
@@ -34,18 +35,20 @@
 	}
 </script>
 
-<div class="flex flex-col m-6">
-	<div class="h-10">
-		<h1>
-			Admin API Docs
-
+<div class="flex flex-col m-4">
+	<div class="flex flex-row h-8">
+		<Button on:click={async () => await save()} color="green">
+			<FloppyDiskAltOutline class="m-2" />
+			save {entityKindToAdd.substr(0, entityKindToAdd.length - 1)}
+		</Button>
+		<Button class="ml-3" color="alternative">
 			<a href="https://docs.konghq.com/gateway/3.7.x/admin-api/">
-				<Button class="ml-3" color="alternative">Open</Button>
+				<div class="flex flex-row items-center">
+					<LinkOutline class="m-2" />
+					Open Admin API Docs
+				</div>
 			</a>
-		</h1>
-	</div>
-	<div class="flex flex-row h-8 mt-10">
-		<Button on:click={async () => await save()} color="green">save</Button>
+		</Button>
 	</div>
 </div>
 

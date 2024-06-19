@@ -9,6 +9,7 @@
 	import { page } from '$app/stores';
 	import { writeToClipboard } from '$lib/util';
 	import { addToast } from '$lib/stores';
+	import { EditOutline, FileCopyOutline, FloppyDiskAltOutline } from 'flowbite-svelte-icons';
 
 	let stateJson = '';
 
@@ -43,14 +44,24 @@
 			class="mr-2"
 			on:click={() => {
 				isEdited = !isEdited;
-			}}>{isEdited ? 'cancel' : 'edit'}</Button
+			}}
 		>
+			{#if isEdited}
+				<FloppyDiskAltOutline class="m-2" />
+				save
+			{:else}
+				<EditOutline class="m-2" />edit
+			{/if}
+		</Button>
 		<Button
 			color="alternative"
 			class="mr-2"
 			on:click={() => {
 				writeToClipboard(stateJson);
-			}}>copy</Button
+			}}
+		>
+			<FileCopyOutline class="m-2" />
+			copy</Button
 		>
 		{#if isEdited}
 			{#if stateJson != json}
