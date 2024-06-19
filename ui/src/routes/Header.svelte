@@ -32,7 +32,8 @@
 		<ul class="flex flex-col">
 			{#each items as item}
 				<li
-					class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {$page.url.pathname === item.path
+					class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {$page.url.pathname ===
+					item.path
 						? 'dark:text-slate-50 text-slate-700'
 						: ''}"
 				>

@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import JSONTree from 'svelte-json-tree';
 	export let data: any;
-	export let expandLevel = 0
+	export let expandLevel = 0;
 
 	let lightColor = 'black';
 	let darkColor = 'white';
@@ -16,7 +16,7 @@
 	];
 	onMount(() => {
 		isDark.subscribe((val) => {
-			console.log(val);
+			// console.log(val);
 			if (!document) {
 				return;
 			}

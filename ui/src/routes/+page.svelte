@@ -11,8 +11,6 @@
 	});
 </script>
 
-
 <div class="my-4">
 	<TreeWrapper data={info}></TreeWrapper>
-
 </div>

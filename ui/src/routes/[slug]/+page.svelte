@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { entityFields } from '$lib/entities';
+	import { goto } from '$app/navigation';
 
 	let info: GetAllServices;
 	let entity = $page.params.slug;
@@ -22,7 +23,7 @@
 			info = res.data as GetAllServices;
 			// console.log(entity)
 		} catch (error) {
-			console.log(error);
+			// console.log(error);
 		}
 	}
 	onMount(() => {
@@ -39,8 +40,7 @@
 	></ArrayWrap>
 {:else if info && info.data && info.data.length == 0}
 	<div class="flex min-h-[20vh] w-full justify-center items-center">
-	<h2 class="text-3xl text-center">{entity.toUpperCase()} list empty!</h2>
-
+		<h2 class="text-3xl text-center">{entity.toUpperCase()} list empty!</h2>
 	</div>
 {/if}
 <div class="text-column"></div>
