@@ -35,13 +35,13 @@
 </script>
 
 <div class="tree">
-	<div class="flex flex-row my-4">
+	<div class="flex flex-row m-4">
 		<Button
 			class="mr-5"
 			on:click={() => {
 				isEdited = !isEdited;
 			}}
-			color="alternative">{isEdited ? 'cancel' : 'edit'}</Button
+			>{isEdited ? 'cancel' : 'edit'}</Button
 		>
 		{#if isEdited}
 			{#if stateJson != json}
