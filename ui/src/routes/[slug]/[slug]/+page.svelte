@@ -1,5 +1,5 @@
 <script lang="ts">
-	import EntityPage from './../../entityPage.svelte';
+	import EntityPage from '../../../lib/components/entityPage.svelte';
 	import type { GetAllServices, Error } from '$lib/responseTypes.ts';
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';

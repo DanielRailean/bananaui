@@ -1,5 +1,5 @@
 <script lang="ts">
-	import TreeWrapper from './treeWrapper.svelte';
+	import TreeWrapper from '../lib/components/treeWrapper.svelte';
 
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';

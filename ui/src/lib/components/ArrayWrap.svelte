@@ -1,28 +1,25 @@
 <script lang="ts">
+	import { writeToClipboard } from '$lib/util';
+	import { goto } from '$app/navigation';
+	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
+	import { 
+		FileCopyOutline } from 'flowbite-svelte-icons';
+
 
 	export let data: any[];
 	export let displayedFields: any;
 	export let itemPath: string;
 	export let pathField: string;
+	export let kind: string
 
 	let copyText = 'copy';
-	function writeToClipboard(data: any) {
+	function copy(data: any) {
 		let result = JSON.stringify(data, undefined, 2);
 		if (typeof data == 'string') {
 			result = data;
 		}
-		navigator.clipboard.writeText(result).then(
-			() => {
-				copyText = 'ok';
-				setTimeout(() => {
-					copyText = 'copy';
-				}, 500);
-			},
-			() => {
-				/* clipboard write failed */
-			}
-		);
+		writeToClipboard(result);
 	}
 
 	onMount(() => {
@@ -33,12 +30,16 @@
 	});
 </script>
 
-<div class="w-full h-[100vh]">
+<div class="w-full">
+	<div class="flex flex-row m-4 h-8">
+		<Button color="alternative" on:click={()=>{goto(`/add/${kind}`)}}>Add</Button>
+	</div>
 	<table class="w-full text-sm text-left rtl:text-right text-slate-800 dark:text-slate-400">
 		<thead
 			class="text-xs text-slate-800 uppercase dark:bg-gray-800 bg-gray-200 dark:text-slate-400"
 		>
 			<tr>
+				<th>copy</th>
 				{#each displayedFields as field}
 					<!-- content here -->
 					{#if Object.keys(data[0]).includes(field)}
@@ -50,7 +51,10 @@
 		</thead>
 		<tbody>
 			{#each data as item}
-				<tr class="even:dark:bg-slate-800 even:bg-slate-200">
+			<tr class="even:dark:bg-slate-800 even:bg-slate-200">
+				<div class="h-full w-full cursor-pointer" on:click={()=>writeToClipboard(JSON.stringify(item, undefined, 2))}>
+					<FileCopyOutline class="m-2"/>
+				</div>
 					<!-- content here -->
 					{#each displayedFields as field}
 						<!-- content here -->
@@ -61,7 +65,7 @@
 								<button
 									class="cursor-pointer text-green-500"
 									on:click={() => {
-										writeToClipboard(item[field]);
+										copy(item[field]);
 									}}>{copyText}</button
 								></td
 							>

@@ -1,17 +1,20 @@
 <script>
+	import { addToast } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import { page } from '$app/stores';
 	import ConfigLoader from '$lib/components/ConfigLoader.svelte';
 	import { userToken } from '$lib/stores';
-	import Header from './Header.svelte';
-	import Login from './Login.svelte';
+	import Header from '../lib/components/Header.svelte';
+	import Login from '../lib/components/Login.svelte';
 	import './styles.css';
+	import Toasts from '$lib/components/Toasts.svelte';
 </script>
 
 <svelte:head>
 	<title>{staticConfig.name}</title>
 </svelte:head>
 
+<Toasts/>
 <Login />
 <ConfigLoader />
 <div class="flex flex-row min-h-[100vh]">

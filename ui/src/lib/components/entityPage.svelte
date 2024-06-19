@@ -7,6 +7,8 @@
 	import { apiService } from '$lib/requests';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { writeToClipboard } from '$lib/util';
+	import { addToast } from '$lib/stores';
 
 	let stateJson = '';
 
@@ -30,18 +32,25 @@
 			stateJson = json;
 		} catch (error: any) {
 			const err = error.response.data as any as Error;
-			console.log(err.message);
+			addToast({message: err.message})
 		}
 	}
 </script>
 
 <div class="tree">
-	<div class="flex flex-row m-4">
+	<div class="flex flex-row m-4 h-8">
 		<Button
 			class="mr-2"
 			on:click={() => {
 				isEdited = !isEdited;
 			}}>{isEdited ? 'cancel' : 'edit'}</Button
+		>
+		<Button
+			color="alternative"
+			class="mr-2"
+			on:click={() => {
+				writeToClipboard(stateJson)
+			}}>copy</Button
 		>
 		{#if isEdited}
 			{#if stateJson != json}

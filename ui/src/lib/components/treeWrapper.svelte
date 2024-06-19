@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { isDark } from '$lib/stores';
+	import { writeToClipboard } from '$lib/util';
+	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import JSONTree from 'svelte-json-tree';
 	export let data: any;
@@ -30,8 +32,9 @@
 							>
 								{key}
 							</th>
-							<td class="px-6 py-4">
+							<td class="px-6 py-4 flex flex-row items-center">
 								<JSONTree value={data[key]} defaultExpandedLevel={expandLevel}></JSONTree>
+								<Button color="alternative" class="h-7 ml-5" on:click={()=>{writeToClipboard(typeof data[key] == "string" ? data[key]:  JSON.stringify(data[key]))}}>copy</Button>
 							</td>
 						</tr>
 					{/each}

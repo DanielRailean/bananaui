@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { staticConfig } from '$lib/config';
-	import ArrayWrap from './../../ArrayWrap.svelte';
+	import ArrayWrap from '../../lib/components/ArrayWrap.svelte';
 	import type { GetAllServices } from '$lib/responseTypes.ts';
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
@@ -46,6 +46,7 @@
 		data={info.data}
 		pathField="id"
 		itemPath="/{entity}/id"
+		kind={entity}
 	></ArrayWrap>
 {:else if info && info.data && info.data.length == 0}
 	<div class="flex h-[100vh] w-full justify-center items-center">
