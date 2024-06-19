@@ -12,7 +12,7 @@
 
 	page.subscribe((val) => {
 		entity = val.params.slug;
-		if (Object.keys(kongEntities).includes(entity)) {
+		if (kongEntities.find((item) => item.name == entity)) {
 			info = undefined;
 			load();
 		}
@@ -20,7 +20,11 @@
 
 	async function load() {
 		try {
-			const res = await apiService.findAll(entity, {});
+			const kongEntity = kongEntities.find((i) => i.name == entity);
+			if (!kongEntity) {
+				return;
+			}
+			const res = await apiService.findAll(kongEntity.apiPath, {});
 			info = res.data as GetAllServices;
 			// console.log(entity)
 		} catch (error) {
@@ -38,7 +42,7 @@
 
 {#if info && info.data && info.data.length > 0}
 	<ArrayWrap
-		displayedFields={kongEntities[entity]}
+		displayedFields={kongEntities.find((item) => item.name == entity)?.displayedFields}
 		data={info.data}
 		pathField="id"
 		itemPath="/{entity}/id"

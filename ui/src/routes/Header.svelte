@@ -13,8 +13,8 @@
 	import { staticConfig } from '$lib/config';
 
 	onMount(() => {
-		const entities = Object.entries(kongEntities).map((i) => {
-			return { name: i[0], path: `/${i[0].toLowerCase()}` };
+		const entities = kongEntities.map((i) => {
+			return { name: i.name, path: `/${i.name.toLowerCase()}` };
 		});
 		items = [...items, ...entities];
 	});

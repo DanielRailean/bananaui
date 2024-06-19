@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 
 	export let data: any[];
-	export let displayedFields: string[] = [];
+	export let displayedFields: any;
 	export let itemPath: string;
 	export let pathField: string;
 
