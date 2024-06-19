@@ -5,14 +5,14 @@
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { entityFields } from '$lib/entities';
+	import { kongEntities } from '$lib/config';
 
 	let info: GetAllServices | undefined;
 	let entity = $page.params.slug;
 
 	page.subscribe((val) => {
 		entity = val.params.slug;
-		if (Object.keys(entityFields).includes(entity)) {
+		if (Object.keys(kongEntities).includes(entity)) {
 			info = undefined;
 			load();
 		}
@@ -38,7 +38,7 @@
 
 {#if info && info.data && info.data.length > 0}
 	<ArrayWrap
-		displayedFields={entityFields[entity]}
+		displayedFields={kongEntities[entity]}
 		data={info.data}
 		pathField="id"
 		itemPath="/{entity}/id"

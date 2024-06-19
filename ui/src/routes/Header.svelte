@@ -9,11 +9,11 @@
 		}
 	];
 	import { onMount } from 'svelte';
-	import { entityFields } from '$lib/entities';
+	import { kongEntities } from '$lib/config';
 	import { staticConfig } from '$lib/config';
 
 	onMount(() => {
-		const entities = Object.entries(entityFields).map((i) => {
+		const entities = Object.entries(kongEntities).map((i) => {
 			return { name: i[0], path: `/${i[0].toLowerCase()}` };
 		});
 		items = [...items, ...entities];
@@ -21,9 +21,9 @@
 </script>
 
 <header
-	class="flex flex-col border-r-[1px] dark:border-slate-700 px-8 bg-slate-100 dark:bg-slate-800"
+	class="flex flex-col border-r-[1px] dark:border-slate-700 p-10 bg-slate-100 dark:bg-slate-800"
 >
-	<div class="flex flex-row items-center my-5">
+	<div class="flex flex-row items-center min-w-[300px]">
 		<img src="/favicon.png" alt="bananaui logo" class="m-4" />
 		<h1 class="font-medium text-2xl">{staticConfig.name}</h1>
 		<!-- <DarkMode /> -->

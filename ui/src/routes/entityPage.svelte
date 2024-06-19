@@ -27,6 +27,7 @@
 			isEdited = !isEdited;
 			isEdited = isEdited;
 			data = JSON.parse(json);
+			stateJson = json;
 		} catch (error: any) {
 			const err = error.response.data as any as Error;
 			console.log(err.message);
@@ -37,7 +38,7 @@
 <div class="tree">
 	<div class="flex flex-row m-4">
 		<Button
-			class="mr-5"
+			class="mr-2"
 			on:click={() => {
 				isEdited = !isEdited;
 			}}>{isEdited ? 'cancel' : 'edit'}</Button
