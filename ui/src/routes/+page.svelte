@@ -11,6 +11,8 @@
 	});
 </script>
 
-<TreeWrapper data={info}></TreeWrapper>
 
-<div class="text-column"></div>
+<div class="my-4">
+	<TreeWrapper data={info}></TreeWrapper>
+
+</div>

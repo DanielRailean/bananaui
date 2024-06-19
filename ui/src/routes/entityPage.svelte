@@ -29,7 +29,7 @@
 			data = JSON.parse(json);
 		} catch (error: any) {
 			const err = error.response.data as any as Error;
-			alert(err.message);
+			console.log(err.message);
 		}
 	}
 </script>

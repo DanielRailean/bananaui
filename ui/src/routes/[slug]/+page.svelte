@@ -22,7 +22,7 @@
 			info = res.data as GetAllServices;
 			// console.log(entity)
 		} catch (error) {
-			alert(error);
+			console.log(error);
 		}
 	}
 	onMount(() => {

@@ -33,9 +33,9 @@
 	});
 </script>
 
-<div class="w-full h-[100vh] bg-slate-800">
+<div class="w-full h-[100vh] dark:bg-slate-800 bg-slate-50">
 	<table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-		<thead class="text-xs text-gray-700 uppercase bg-slate-700  dark:text-gray-400">
+		<thead class="text-xs text-gray-700 uppercase dark:bg-slate-700 bg-slate-100  dark:text-gray-400">
 			<tr>
 				{#each displayedFields as field}
 					<!-- content here -->

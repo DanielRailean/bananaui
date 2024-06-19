@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import JSONTree from 'svelte-json-tree';
 	export let data: any;
+	export let expandLevel = 0
 
 	let lightColor = 'black';
 	let darkColor = 'white';
@@ -50,7 +51,7 @@
 								{key}
 							</th>
 							<td class="px-6 py-4">
-								<JSONTree value={data[key]} defaultExpandedLevel={1}></JSONTree>
+								<JSONTree value={data[key]} defaultExpandedLevel={expandLevel}></JSONTree>
 							</td>
 						</tr>
 					{/each}
