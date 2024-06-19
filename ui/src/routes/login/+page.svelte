@@ -1,28 +1,17 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
-	import { userToken } from '$lib/stores';
+	import { config, userToken } from '$lib/stores';
+	import { delay } from '$lib/util';
 	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 
 	let source = '';
-	interface BananUiConfig {
-		oidc: Oidc;
-	}
 
-	interface Oidc {
-		authorizeEndpoint: string;
-		clientId: string;
-		selfUrl: string;
-		scope: string;
-		responseType: string;
-		response_mode: string;
-		state: string;
-	}
-
-	let config: BananUiConfig;
 	function getLoginUrl() {
-		return `${config.oidc.authorizeEndpoint}?client_id=${config.oidc.clientId}&redirect_uri=${config.oidc.selfUrl}&scope=${config.oidc.scope}&response_type=${config.oidc.responseType}&response_mode=${config.oidc.response_mode}&state=${config.oidc.state}&nonce=o2rp8ze2jrh`;
+		if (!$config) {
+			alert('config not loaded');
+			throw new Error('no config loaded');
+		}
+		return `${$config.oidc.authorizeEndpoint}?client_id=${$config.oidc.clientId}&redirect_uri=${$config.oidc.selfUrl}&scope=${$config.oidc.scope}&response_type=${$config.oidc.responseType}&response_mode=${$config.oidc.response_mode}&state=${source}&nonce=o2rp8ze2jrh`;
 	}
 
 	function tryLogin() {
@@ -30,21 +19,10 @@
 	}
 
 	onMount(async () => {
-		const res = await fetch('/config');
-		if (res.ok) {
-			config = (await res.json()) as BananUiConfig;
-			config.oidc.state = source;
-			// console.log(config);
+		await delay(2000);
+		if (!$userToken) {
+			tryLogin();
 		}
-		page.subscribe((v) => {
-			const sourceParam = v.url.searchParams.get('source');
-			if (sourceParam) {
-				source = sourceParam;
-				if (config) {
-					config.oidc.state = sourceParam;
-				}
-			}
-		});
 	});
 </script>
 

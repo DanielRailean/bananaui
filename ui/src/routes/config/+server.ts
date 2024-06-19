@@ -5,7 +5,13 @@ export function GET() {
 	if (!configFile) {
 		error(404);
 	}
-	return json({
-		...JSON.parse(configFile)
-	});
+	try {
+		const parsed = JSON.parse(configFile);
+		return json({
+			...parsed
+		});
+	} catch (err: any) {
+		console.log(configFile);
+		error(500, 'failed to parse');
+	}
 }

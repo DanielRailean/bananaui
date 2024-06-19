@@ -18,3 +18,16 @@ export interface IKongService {
 	read_timeout: number;
 	name: string;
 }
+
+export interface IConfig {
+	oidc: IOidc;
+}
+
+export interface IOidc {
+	authorizeEndpoint: string;
+	clientId: string;
+	selfUrl: string;
+	scope: string;
+	responseType: string;
+	response_mode: string;
+}
