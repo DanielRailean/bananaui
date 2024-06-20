@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { staticConfig } from '$lib/config';
 	import { config, userToken } from '$lib/stores';
 	import { delay } from '$lib/util';
@@ -20,11 +21,15 @@
 	}
 
 	onMount(async () => {
-		if (staticConfig.autoLogin) {
-			await delay(2000);
-			if (!$userToken) {
-				tryLogin();
+		const sourceParam = $page.url.searchParams.get('source');
+			if (sourceParam) {
+				source = sourceParam;
 			}
+		if (staticConfig.autoLogin) {
+			// await delay(2000);
+			// if (!$userToken) {
+			// 	tryLogin();
+			// }
 		}
 	});
 </script>

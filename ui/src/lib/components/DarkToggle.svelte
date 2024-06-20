@@ -74,14 +74,6 @@
 	];
 </script>
 
-<div class="h-10 mx-auto {div_class}">
-	{#if value === 0}
-		<div on:click={handleClick}>
-			<SunOutline />
-		</div>
-	{:else}
-		<div on:click={handleClick}>
-			<MoonOutline />
-		</div>
-	{/if}
+<div class="cursor-pointer {div_class}" title="toggle dark mode" on:click={handleClick}>
+	<img  src="/favicon.png" alt="bananaui logo" class="w-10 h-10 m-4 {$isDark ? "invert":  ""}" />
 </div>

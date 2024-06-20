@@ -14,9 +14,9 @@
 	<title>{staticConfig.name}</title>
 </svelte:head>
 
-<Toasts />
-<Login />
 <ConfigLoader />
+<Login />
+<Toasts />
 <div class="flex flex-row min-h-[100vh]">
 	{#if !$page.url.pathname.includes('/login')}
 		<Header />

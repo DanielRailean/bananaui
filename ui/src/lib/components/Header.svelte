@@ -21,13 +21,12 @@
 </script>
 
 <header
-	class="flex flex-col border-r-[1px] dark:border-slate-700 p-10 bg-slate-100 dark:bg-slate-800"
+	class="flex flex-col border-r-[1px] dark:border-slate-800 p-4 pt-10 bg-slate-100 dark:bg-gray-900"
 >
-	<div class="flex flex-row items-center min-w-[300px]">
-		<img src="/favicon.png" alt="bananaui logo" class="m-4" />
+	<div class="flex flex-row items-center min-w-[200px]">
+		<DarkToggle div_class="" />
 		<h1 class="font-medium text-2xl">{staticConfig.name}</h1>
 		<!-- <DarkMode /> -->
-		<DarkToggle div_class="" />
 	</div>
 
 	<nav class="text-2xl text-slate-400">
@@ -45,9 +44,3 @@
 		</ul>
 	</nav>
 </header>
-
-<style lang="postcss">
-	img {
-		@apply w-10 h-10;
-	}
-</style>

@@ -5,8 +5,8 @@
 	import { onMount } from 'svelte';
 
 	onMount(() => {
-		userToken.subscribe((v) => {
-			if (!v && $config?.auth.enabled) {
+		config.subscribe((v) => {
+			if (v && v.auth.enabled && !$userToken) {
 				const path = $page.url.pathname;
 				if (path != '/login') goto(`/login?source=${path}`);
 			}
