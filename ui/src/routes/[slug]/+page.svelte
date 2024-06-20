@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { addToast } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '../../lib/components/ArrayWrap.svelte';
 	import type { GetAllServices } from '$lib/responseTypes.ts';
@@ -27,13 +28,14 @@
 			const res = await apiService.findAll(kongEntity.apiPath, {});
 			info = res.data as GetAllServices;
 			// console.log(entity)
-		} catch (error) {
-			// console.log(error);
+		} catch (error:any) {
+			console.log(error);
+			addToast({message: `Failed fetching the ${entity}. ${error.message ? error.message: ""}`})
 		}
 	}
-	onMount(() => {
-		load();
-	});
+	// onMount(() => {
+	// 	load();
+	// });
 </script>
 
 <svelte:head>

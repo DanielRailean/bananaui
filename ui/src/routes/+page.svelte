@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { addToast } from '$lib/stores';
 	import TreeWrapper from '../lib/components/treeWrapper.svelte';
 
 	import { apiService } from '$lib/requests';
@@ -6,8 +7,12 @@
 
 	let info: any | undefined;
 	onMount(async () => {
-		const res = await apiService.getInfo();
-		info = res.data;
+		try {
+			const res = await apiService.getInfo();
+			info = res.data;
+		} catch (error: any) {
+			addToast({message: `Failed fetching the info. ${error.message ? error.message: ""}`})
+		}
 	});
 </script>
 

@@ -26,10 +26,10 @@
 				source = sourceParam;
 			}
 		if (staticConfig.autoLogin) {
-			// await delay(2000);
-			// if (!$userToken) {
-			// 	tryLogin();
-			// }
+			await delay(staticConfig.autoLoginDelayMs);
+			if (!$userToken) {
+				tryLogin();
+			}
 		}
 	});
 </script>

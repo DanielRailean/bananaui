@@ -1,5 +1,6 @@
 export const staticConfig = {
-	autoLogin: false,
+	autoLogin: true,
+	autoLoginDelayMs: 100,
 	name: 'Banana UI'
 };
 

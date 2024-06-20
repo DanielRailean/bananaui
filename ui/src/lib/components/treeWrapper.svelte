@@ -50,8 +50,6 @@
 				</tbody>
 			</table>
 		</div>
-	{:else}
-		<h2 class="text-xl text-center">Loading ...</h2>
 	{/if}
 </div>
 
