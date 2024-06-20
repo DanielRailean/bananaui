@@ -71,7 +71,7 @@ class ApiService {
 
 
 
-export let apiService = new ApiService('https://example.com', '');
+export let apiService = new ApiService('', '');
 config.subscribe((v) => {
 	if (v) {
 		apiService = new ApiService(v.kongApi.endpoint, '');
