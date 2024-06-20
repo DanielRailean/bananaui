@@ -1,0 +1,29 @@
+# stage build
+FROM node:18-alpine
+
+WORKDIR /app
+
+# copy everything to the container
+COPY . .
+
+# clean install all dependencies
+RUN npm install
+
+# build SvelteKit app
+RUN npm run build
+
+
+# stage run
+FROM node:18-alpine
+
+WORKDIR /app
+
+# copy dependency list
+COPY --from=0 /app/package.json ./
+
+# copy built SvelteKit app to /app
+COPY --from=0 /app/build ./
+
+ENV PORT 8080
+EXPOSE 8080
+CMD ["node", "./index.js"]
