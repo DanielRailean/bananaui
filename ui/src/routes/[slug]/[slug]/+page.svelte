@@ -16,7 +16,7 @@
 
 	onMount(async () => {
 		entity = $page.url.pathname.split('/')[1];
-		const res = await apiService.findRecord(entity, id);
+		const res = await (await apiService()).findRecord(entity, id);
 		info = res.data as GetAllServices;
 		json = JSON.stringify(info, undefined, 2);
 	});

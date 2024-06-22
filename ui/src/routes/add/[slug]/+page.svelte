@@ -24,7 +24,7 @@
 
 	async function save() {
 		try {
-			const res = await apiService.createRecord(entityKindToAdd, JSON.parse(json));
+			const res = await (await apiService()).createRecord(entityKindToAdd, JSON.parse(json));
 			if (res.data.id) {
 				goto(`/${entityKindToAdd}/${res.data.id}`);
 			}

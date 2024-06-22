@@ -8,7 +8,7 @@
 	let info: any | undefined;
 	onMount(async () => {
 		try {
-			const res = await apiService.getInfo();
+			const res = await(await apiService()).getInfo();
 			info = res.data;
 		} catch (error: any) {
 			addToast({message: `Failed fetching the info. ${error.message ? error.message: ""}`})

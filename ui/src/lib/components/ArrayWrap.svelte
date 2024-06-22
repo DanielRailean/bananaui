@@ -28,21 +28,6 @@
 </script>
 
 <div class="w-full">
-	<div class="flex flex-row m-4 h-8">
-		<Button
-			color="alternative"
-			on:click={() => {
-				goto(`/add/${kind}`);
-			}}
-		>
-			<a href="/add/{kind}">
-				<div class="flex flex-row items-center">
-					<CirclePlusOutline class="m-2" />
-					add
-				</div>
-			</a>
-		</Button>
-	</div>
 	<table class="w-full text-sm text-left rtl:text-right text-slate-800 dark:text-slate-400">
 		<thead
 			class="text-xs text-slate-800 uppercase dark:bg-gray-800 bg-gray-200 dark:text-slate-400"
@@ -79,9 +64,6 @@
 						<Button
 							class="h-8 p-2"
 							color="alternative"
-							on:click={() => {
-								copy(JSON.stringify(item));
-							}}
 						>
 							<a href={itemPath.replace(pathField, item[pathField])} class="text-emerald-600">
 								<div class="flex flex-row items-center">

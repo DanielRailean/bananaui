@@ -1,16 +1,18 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
-import { config } from './stores';
-import { userToken } from './stores';
+import { goto } from '$app/navigation';
+import { get } from 'svelte/store';
+import { config, userToken } from './stores';
+import { delay } from './util';
 
 class ApiService {
 	instance: AxiosInstance;
 	endpoint: string;
 
-	constructor(endpoint: string, token: string) {
+	constructor(endpoint: string, token?: string) {
 		this.instance = axios.create({
 			timeout: 30000,
 			headers: {
-				Authorization: `Bearer ${token}`
+				Authorization: token ? `Bearer ${token}`: undefined
 			}
 		});
 		this.endpoint = endpoint;
@@ -69,16 +71,30 @@ class ApiService {
 	}
 }
 
+let apiInstance: ApiService | undefined
+const maxRetries = 3
 
-
-export let apiService = new ApiService('', '');
-config.subscribe((v) => {
-	if (v) {
-		apiService = new ApiService(v.kongApi.endpoint, '');
+export let apiService = async (retryNo? : number): Promise<ApiService> => {
+	if(retryNo && retryNo > maxRetries)
+	{
+		throw new Error("retries exceeded")
 	}
-});
-userToken.subscribe((v) => {
-	if (v) {
-		apiService = new ApiService(apiService.getUrl(), v);
-	}
-});
+	if(apiInstance)
+		{
+			return apiInstance
+		}
+	const token = get(userToken)
+	const conf = get(config)
+	if(!conf)
+		{
+			await delay(500)
+			return await apiService(retryNo ? retryNo + 1 : 0)
+		}
+	if(!token && conf.auth.enabled)
+		{
+			goto("/login")
+			throw new Error("no token")
+		}
+	apiInstance = new ApiService(conf.kongApi.endpoint, token)
+	return apiInstance
+}

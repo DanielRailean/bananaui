@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { CirclePlusOutline } from 'flowbite-svelte-icons';
+	import { goto } from '$app/navigation';
+	import { Button } from 'flowbite-svelte';
 	import { addToast } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '../../lib/components/ArrayWrap.svelte';
@@ -25,7 +28,7 @@
 			if (!kongEntity) {
 				return;
 			}
-			const res = await apiService.findAll(kongEntity.apiPath, {});
+			const res = await (await apiService()).findAll(kongEntity.apiPath, {});
 			info = res.data as GetAllServices;
 			// console.log(entity)
 		} catch (error:any) {
@@ -42,6 +45,21 @@
 	<title>{staticConfig.name} - {entity}</title>
 </svelte:head>
 
+<div class="flex flex-row m-4 h-8">
+	<Button
+		color="alternative"
+		on:click={() => {
+			goto(`/add/${entity}`);
+		}}
+	>
+		<a href="/add/{entity}">
+			<div class="flex flex-row items-center">
+				<CirclePlusOutline class="m-2" />
+				add
+			</div>
+		</a>
+	</Button>
+</div>
 {#if info && info.data && info.data.length > 0}
 	<ArrayWrap
 		displayedFields={kongEntities.find((item) => item.name == entity)?.displayedFields}

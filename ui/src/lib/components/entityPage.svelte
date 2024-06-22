@@ -25,7 +25,7 @@
 
 	async function save() {
 		try {
-			const res = await apiService.updateRecord(entity, id, JSON.parse(json));
+			const res = await (await apiService()).updateRecord(entity, id, JSON.parse(json));
 
 			isEdited = !isEdited;
 			isEdited = isEdited;

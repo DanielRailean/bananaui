@@ -47,7 +47,6 @@
 		}, 500);
 
 		isDark.subscribe((val) => {
-			console.log(val);
 			if (!document) {
 				console.log('document not defined');
 				return;
