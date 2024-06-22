@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { kongEntities } from '$lib/config';
 	import { isDark } from '$lib/stores';
 	import { writeToClipboard } from '$lib/util';
 	import { Button } from 'flowbite-svelte';
@@ -21,7 +23,6 @@
 					</tr>
 				</thead>
 				<tbody>
-					<!-- content here -->
 					{#each Object.entries(data) as [key, value]}
 						<tr
 							class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 even:dark:bg-gray-700 even:bg-slate-200"
@@ -41,9 +42,21 @@
 									);
 								}}
 							>
-								<div class="cursor-pointer">
-									<JSONTree value={data[key]} defaultExpandedLevel={expandLevel}></JSONTree>
-								</div>
+								{#if typeof data[key] == 'string'}
+									{data[key]}
+								{:else if data[key] && Object.keys(data[key]).includes('id') && kongEntities.find((i) => i.apiPath == `${key}s`)}
+									<!-- svelte-ignore a11y-click-events-have-key-events -->
+									<!-- svelte-ignore a11y-no-static-element-interactions -->
+									<!-- <a title="open" href="/{key}s/{data[key].id}"> -->
+									<div class="" on:click|stopPropagation={() => goto(`/${key}s/${data[key].id}`)}>
+										<p class="dark:text-blue-500 text-blue-700">{data[key].id}</p>
+									</div>
+									<!-- </a> -->
+								{:else}
+									<div class="cursor-pointer">
+										<JSONTree value={data[key]} defaultExpandedLevel={expandLevel}></JSONTree>
+									</div>
+								{/if}
 							</td>
 						</tr>
 					{/each}

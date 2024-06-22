@@ -32,14 +32,15 @@
 	});
 
 	function format() {
-		let parsed: any | undefined
-		try{
-			parsed = JSON.parse(json)
+		let parsed: any | undefined;
+		try {
+			parsed = JSON.parse(json);
 		} catch (err: any) {
-			addToast({message: `Failed to parse JSON. ${err.message}`})
-			return
+			addToast({ message: `Failed to parse JSON. ${err.message}` });
+			return;
 		}
-		json = JSON.stringify(parsed, undefined, 2)
+		json = JSON.stringify(parsed, undefined, 2);
+		addToast({ message: `ok`, type: 'info' });
 	}
 
 	async function save() {
@@ -47,7 +48,9 @@
 			let res: ResWrapped<IEntityBase, IResCreateError> | undefined;
 
 			if (postPath) {
-				res = await (await apiService()).request<IEntityBase, IResCreateError>(postPath, "POST" , JSON.parse(json));
+				res = await (
+					await apiService()
+				).request<IEntityBase, IResCreateError>(postPath, 'POST', JSON.parse(json));
 			} else {
 				res = await (await apiService()).createRecord(entityKindToAdd, JSON.parse(json));
 			}
@@ -71,7 +74,7 @@
 			<FloppyDiskAltOutline class="m-2" />
 			save {entityKindToAdd.substr(0, entityKindToAdd.length - 1)}
 		</Button>
-		<Button  class="ml-3" on:click={format} color="blue">
+		<Button class="ml-3" on:click={format} color="blue">
 			<PaletteOutline class="m-2" />
 			format and validate JSON
 		</Button>

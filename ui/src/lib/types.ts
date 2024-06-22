@@ -55,5 +55,5 @@ export interface IKongEntity {
 	apiPath: string;
 	displayedFields: string[];
 	defaultJson?: string;
-	subEntities?: string[]
+	subEntities?: string[];
 }

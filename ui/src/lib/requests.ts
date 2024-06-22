@@ -52,7 +52,7 @@ async function requestWithResponseBody<T, E = void>(
 		result.err = await res.text();
 		try {
 			result.errTyped = JSON.parse(result.err) as E;
-		} catch { }
+		} catch {}
 	}
 	return result;
 }
@@ -81,7 +81,10 @@ class ApiService {
 		body?: object,
 		headers?: Record<string, string>
 	) {
-		return requestWithResponseBody<T,E>(`${this.endpoint}/${path}`, method, body, { ...this.headers, ...headers })
+		return requestWithResponseBody<T, E>(`${this.endpoint}/${path}`, method, body, {
+			...this.headers,
+			...headers
+		});
 	}
 
 	// entity-specific methods

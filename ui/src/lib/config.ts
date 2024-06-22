@@ -1,4 +1,4 @@
-import type { IKongEntity } from "./types";
+import type { IKongEntity } from './types';
 
 export const staticConfig = {
 	autoLogin: true,
@@ -15,7 +15,7 @@ export const kongEntities: IKongEntity[] = [
 	},
 	{
 		name: 'routes',
-		displayedFields: ['name','paths', 'methods', 'service', 'created_at'],
+		displayedFields: ['name', 'paths', 'methods', 'service', 'created_at'],
 		apiPath: 'routes',
 		subEntities: ['plugins']
 	},

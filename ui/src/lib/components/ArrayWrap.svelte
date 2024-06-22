@@ -4,6 +4,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import { CirclePlusOutline, FileCopyOutline, LinkOutline } from 'flowbite-svelte-icons';
+	import { kongEntities } from '$lib/config';
 
 	export let data: any[];
 	export let displayedFields: any;
@@ -42,7 +43,7 @@
 <div class="w-full">
 	<div class="flex flex-row m-4 h-8">
 		<input
-			class="bg-transparent"
+			class="bg-transparent rounded"
 			type="text"
 			bind:value={searchText}
 			on:input={search}
@@ -56,7 +57,6 @@
 			<tr>
 				<th><p class="pl-4">Actions</p></th>
 				{#each displayedFields as field}
-					<!-- content here -->
 					{#if Object.keys(data[0]).includes(field)}
 						<th scope="col" class="px-6 py-3"> {field} </th>
 					{/if}
@@ -91,9 +91,8 @@
 							</a>
 						</Button>
 					</td>
-					<!-- content here -->
+
 					{#each displayedFields as field}
-						<!-- content here -->
 						{#if Object.keys(item).includes(field)}
 							<td class="px-6 py-3">
 								<div class="flex flex-row items-center justify-between">
@@ -102,11 +101,22 @@
 									<p
 										class="mr-2 cursor-pointer"
 										title="click to copy"
-										on:click={() => {
+										on:click|stopPropagation={() => {
 											copy(item[field]);
 										}}
 									>
-										{JSON.stringify(item[field], undefined, 2)}
+										{#if typeof item[field] == 'string'}
+											{item[field]}
+										{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
+											<!-- svelte-ignore a11y-no-static-element-interactions -->
+											<div class="" on:click={() => goto(`/${field}s/${item[field].id}`)}>
+												<a title="open" href="/{field}s/{item[field].id}">
+													<p class="dark:text-blue-500 text-blue-700">{item[field].id}</p>
+												</a>
+											</div>
+										{:else}
+											{JSON.stringify(item[field], undefined, 2)}
+										{/if}
 									</p>
 								</div></td
 							>

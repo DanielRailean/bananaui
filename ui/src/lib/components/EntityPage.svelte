@@ -1,7 +1,6 @@
 <script lang="ts">
 	import ArrayWrap from './ArrayWrap.svelte';
 	export let data: any = {};
-	export let json: any = '';
 	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import TreeWrapper from './treeWrapper.svelte';
@@ -10,50 +9,87 @@
 	import { page } from '$app/stores';
 	import { writeToClipboard } from '$lib/util';
 	import { addToast } from '$lib/stores';
-	import { CirclePlusOutline, EditOutline, FileCopyOutline, FloppyDiskAltOutline } from 'flowbite-svelte-icons';
+	import {
+		CirclePlusOutline,
+		EditOutline,
+		FileCopyOutline,
+		FloppyDiskAltOutline,
+		PaletteOutline
+	} from 'flowbite-svelte-icons';
 	import { kongEntities } from '$lib/config';
 	import type { IKongEntity } from '$lib/types';
 
 	let stateJson = '';
+	let json = '';
 
 	let isEdited = false;
-	export let allowSubentities = true;
-	export let id: string;
-	export let entity: string;
+	// export let allowSubentities = true;
+	let id: string;
+	let entity: string;
 
 	let kongEntity: IKongEntity | undefined;
 
 	interface IEntities extends IKongEntity {
 		data?: any[];
+		addPath: string;
 	}
 	let subEntities: IEntities[];
 
-	onMount(async () => {
-		stateJson = json;
-		data = JSON.parse(json);
-
-		kongEntity = kongEntities.find((i) => i.name == entity);
-		subEntities = kongEntities.filter((e) => kongEntity?.subEntities?.includes(e.name)).map(i=>{
-			return {
-				...i,
-				apiPath : `${entity}/${id}/${i.name}`
-			}
-		});
-		for (const ent of subEntities) {
-			const res = await (
-				await apiService()
-			).request<{ data: any[] }>(ent.apiPath);
-			if (!res.ok || !res.data) {
-				addToast({ message: `failed to load ${ent.name}` });
-				continue;
-			}
-			ent.data = res.data.data as any[];
-			subEntities = subEntities;
-			// console.log(res);
-		}
+	page.subscribe(async (v) => {
+		data = undefined;
+		await load();
 	});
 
+	async function load() {
+		{
+			entity = $page.url.pathname.split('/')[1];
+			id = $page.params.slug;
+			const res = await (await apiService()).findRecord(entity, id);
+			data = res.data;
+			json = JSON.stringify(data, undefined, 2);
+			stateJson = json;
+
+			kongEntity = kongEntities.find((i) => i.name == entity);
+			subEntities = kongEntities
+				.filter((e) => kongEntity?.subEntities?.includes(e.name))
+				.map((i) => {
+					return {
+						...i,
+						addPath: `${entity}/${id}/${i.name}`
+					};
+				});
+			for (const ent of subEntities) {
+				const res = await (await apiService()).request<{ data: any[] }>(ent.addPath);
+				if (!res.ok || !res.data) {
+					addToast({ message: `failed to load ${ent.name}` });
+					continue;
+				}
+				ent.data = res.data.data as any[];
+				subEntities = subEntities;
+			}
+		}
+	}
+	// onMount(async () => {
+	// 	await load();
+	// });
+
+	function format() {
+		let parsed: any | undefined;
+		try {
+			parsed = JSON.parse(json);
+		} catch (err: any) {
+			addToast({ message: `Failed to parse JSON. ${err.message}` });
+			return;
+		}
+		json = JSON.stringify(parsed, undefined, 2);
+		addToast({ message: `ok`, type: 'info' });
+	}
 	async function save() {
+		const a = confirm('confirm save?');
+		if (!a) {
+			return;
+		}
+		format();
 		try {
 			const res = await (await apiService()).updateRecord(entity, id, JSON.parse(json));
 
@@ -76,12 +112,7 @@
 				isEdited = !isEdited;
 			}}
 		>
-			{#if isEdited}
-				<FloppyDiskAltOutline class="m-2" />
-				save
-			{:else}
-				<EditOutline class="m-2" />edit
-			{/if}
+			<EditOutline class="m-2" />edit
 		</Button>
 		<Button
 			color="alternative"
@@ -94,8 +125,15 @@
 			copy</Button
 		>
 		{#if isEdited}
+			<Button class="mr-3" on:click={format} color="blue">
+				<PaletteOutline class="m-2" />
+				format and validate JSON
+			</Button>
 			{#if stateJson != json}
-				<Button on:click={async () => await save()} color="green">save</Button>
+				<Button class="mr-3" on:click={async () => await save()} color="green">
+					<FloppyDiskAltOutline class="m-2" />
+					save</Button
+				>
 			{/if}
 		{/if}
 	</div>
@@ -106,29 +144,29 @@
 			<TreeWrapper {data} />
 			{#if subEntities}
 				{#each subEntities as subEntity}
-				<div class="flex flex-row m-4 h-8 items-center">
-					<h2>{subEntity.name}</h2>
-					<div class="flex flex-row m-4 h-8">
-						<Button
-							color="alternative"
-							on:click={() => {
-								goto(`/add/${subEntity.name}?apiPostPath=${btoa(subEntity.apiPath)}`);
-							}}
-						>
-							<a href="/add/{subEntity.name}?apiPostPath={btoa(subEntity.apiPath)}">
-								<div class="flex flex-row items-center">
-									<CirclePlusOutline class="m-2" />
-									add
-								</div>
-							</a>
-						</Button>
+					<div class="flex flex-row m-4 h-8 items-center">
+						<h2>{subEntity.name}</h2>
+						<div class="flex flex-row m-4 h-8">
+							<Button
+								color="alternative"
+								on:click={() => {
+									goto(`/add/${subEntity.name}?apiPostPath=${btoa(subEntity.addPath)}`);
+								}}
+							>
+								<a href="/add/{subEntity.name}?apiPostPath={btoa(subEntity.addPath)}">
+									<div class="flex flex-row items-center">
+										<CirclePlusOutline class="m-2" />
+										add
+									</div>
+								</a>
+							</Button>
+						</div>
 					</div>
-				</div>
 					{#if subEntity.data && subEntity.data.length > 0}
 						<ArrayWrap
 							data={subEntity.data}
 							displayedFields={subEntity.displayedFields}
-							itemPath={subEntity.apiPath}
+							itemPath={`/${subEntity.apiPath}/id`}
 							pathField="id"
 						/>
 					{/if}
