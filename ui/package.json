@@ -28,7 +28,7 @@
 		"tailwindcss": "3.4.4",
 		"tslib": "2.4.1",
 		"typescript": "5.5.2",
-		"vite": "5.0.3",
+		"vite": "5.0.13",
 		"svelte-json-tree": "2.2.0"
 	},
 	"type": "module",
