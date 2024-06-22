@@ -5,7 +5,7 @@ export type GetAllServices = {
 	next: [];
 };
 
-export type Error = {
+export type IResCreateError = {
 	message: string;
 	code: number;
 	fields: Record<string, string>;

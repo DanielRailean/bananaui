@@ -22,9 +22,9 @@
 
 	onMount(async () => {
 		const sourceParam = $page.url.searchParams.get('source');
-			if (sourceParam) {
-				source = sourceParam;
-			}
+		if (sourceParam) {
+			source = sourceParam;
+		}
 		if (staticConfig.autoLogin) {
 			await delay(staticConfig.autoLoginDelayMs);
 			if (!$userToken) {

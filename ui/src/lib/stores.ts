@@ -1,5 +1,5 @@
 import { writable, type Writable } from 'svelte/store';
-import type { IConfig } from './types';
+import type { IConfig, IToast } from './types';
 
 export const isDark = writable(0);
 export const userToken: Writable<string | undefined> = writable(undefined);
@@ -7,7 +7,7 @@ export const config: Writable<IConfig | undefined> = writable(undefined);
 
 export const toasts: Writable<any[]> = writable([]);
 
-export const addToast = (toast: any) => {
+export const addToast = (toast: IToast) => {
 	// Create a unique ID so we can easily find/remove it
 	// if it is dismissible/has a timeout.
 	const id = Math.floor(Math.random() * 10000);

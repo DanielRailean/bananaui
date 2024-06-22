@@ -61,10 +61,7 @@
 								json
 							</div>
 						</Button>
-						<Button
-							class="h-8 p-2"
-							color="alternative"
-						>
+						<Button class="h-8 p-2" color="alternative">
 							<a href={itemPath.replace(pathField, item[pathField])} class="text-emerald-600">
 								<div class="flex flex-row items-center">
 									<LinkOutline class="m-1" />

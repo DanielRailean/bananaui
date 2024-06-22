@@ -1,4 +1,8 @@
-export interface IKongService {
+export interface IEntityBase {
+	id: string;
+}
+
+export interface IKongService extends IEntityBase {
 	created_at: number;
 	updated_at: number;
 	retries: number;
@@ -9,7 +13,6 @@ export interface IKongService {
 	// client_certificate: null;
 	// tls_verify_depth:   null;
 	connect_timeout: number;
-	id: string;
 	protocol: string;
 	write_timeout: number;
 	// ca_certificates:    null;
@@ -37,4 +40,12 @@ export interface IOidc {
 	scope: string;
 	responseType: string;
 	response_mode: string;
+}
+
+export interface IToast {
+	id?: number;
+	type?: 'error' | 'info' | '';
+	dismissible?: boolean;
+	timeout?: number;
+	message: string;
 }

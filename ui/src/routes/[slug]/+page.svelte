@@ -31,9 +31,9 @@
 			const res = await (await apiService()).findAll(kongEntity.apiPath, {});
 			info = res.data as GetAllServices;
 			// console.log(entity)
-		} catch (error:any) {
+		} catch (error: any) {
 			console.log(error);
-			addToast({message: `Failed fetching the ${entity}. ${error.message ? error.message: ""}`})
+			addToast({ message: `Failed fetching the ${entity}. ${error.message ? error.message : ''}` });
 		}
 	}
 	// onMount(() => {

@@ -25,6 +25,10 @@
 	async function save() {
 		try {
 			const res = await (await apiService()).createRecord(entityKindToAdd, JSON.parse(json));
+			if (!res.ok || !res.data) {
+				addToast({ message: res.errTyped?.message ?? res.err ?? 'Error occured' });
+				return;
+			}
 			if (res.data.id) {
 				goto(`/${entityKindToAdd}/${res.data.id}`);
 			}
