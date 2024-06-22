@@ -10,7 +10,6 @@
 	export let itemPath: string;
 	export let pathField: string;
 
-	let searchField = 'name';
 	let searchText = '';
 	let filteredData: any[];
 

@@ -1,26 +1,23 @@
+import type { IKongEntity } from "./types";
+
 export const staticConfig = {
 	autoLogin: true,
 	autoLoginDelayMs: 100,
 	name: 'Banana UI'
 };
 
-interface kongEntity {
-	name: string;
-	apiPath: string;
-	displayedFields: string[];
-	defaultJson?: string;
-}
-
-export const kongEntities: kongEntity[] = [
+export const kongEntities: IKongEntity[] = [
 	{
 		name: 'services',
 		displayedFields: ['name', 'host', 'port', 'path', 'enabled', 'created_at'],
-		apiPath: 'services'
+		apiPath: 'services',
+		subEntities: ['routes', 'plugins']
 	},
 	{
 		name: 'routes',
-		displayedFields: ['name', 'paths', 'methods', 'protocols', 'created_at'],
-		apiPath: 'routes'
+		displayedFields: ['name','paths', 'methods', 'service', 'created_at'],
+		apiPath: 'routes',
+		subEntities: ['plugins']
 	},
 	{
 		name: 'plugins',

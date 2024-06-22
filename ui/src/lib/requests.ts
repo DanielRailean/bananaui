@@ -27,7 +27,7 @@ function request(
 	return fetch(url, opts);
 }
 
-type ResWrapped<T, E> = {
+export type ResWrapped<T, E> = {
 	ok: boolean;
 	data?: T;
 	err?: string;
@@ -52,7 +52,7 @@ async function requestWithResponseBody<T, E = void>(
 		result.err = await res.text();
 		try {
 			result.errTyped = JSON.parse(result.err) as E;
-		} catch {}
+		} catch { }
 	}
 	return result;
 }
@@ -73,6 +73,15 @@ class ApiService {
 
 	getInfo() {
 		return requestWithResponseBody(this.endpoint, undefined, undefined, this.headers);
+	}
+
+	request<T, E = void>(
+		path: string,
+		method: string = 'GET',
+		body?: object,
+		headers?: Record<string, string>
+	) {
+		return requestWithResponseBody<T,E>(`${this.endpoint}/${path}`, method, body, { ...this.headers, ...headers })
 	}
 
 	// entity-specific methods

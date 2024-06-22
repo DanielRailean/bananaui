@@ -49,3 +49,11 @@ export interface IToast {
 	timeout?: number;
 	message: string;
 }
+
+export interface IKongEntity {
+	name: string;
+	apiPath: string;
+	displayedFields: string[];
+	defaultJson?: string;
+	subEntities?: string[]
+}
