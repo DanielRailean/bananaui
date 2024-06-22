@@ -9,7 +9,10 @@
 	export let displayedFields: any;
 	export let itemPath: string;
 	export let pathField: string;
-	export let kind: string;
+
+	let searchField = 'name';
+	let searchText = '';
+	let filteredData: any[];
 
 	function copy(data: any) {
 		let result = JSON.stringify(data, undefined, 2);
@@ -24,10 +27,29 @@
 		if (!displayedFields || displayedFields.length == 0) {
 			displayedFields = Object.keys(data[0]);
 		}
+		filteredData = data;
 	});
+
+	function search() {
+		if (searchText.length == 0) {
+			filteredData = data;
+		}
+		filteredData = data.filter((item) =>
+			JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
+		);
+	}
 </script>
 
 <div class="w-full">
+	<div class="flex flex-row m-4 h-8">
+		<input
+			class="bg-transparent"
+			type="text"
+			bind:value={searchText}
+			on:input={search}
+			placeholder="search any field"
+		/>
+	</div>
 	<table class="w-full text-sm text-left rtl:text-right text-slate-800 dark:text-slate-400">
 		<thead
 			class="text-xs text-slate-800 uppercase dark:bg-gray-800 bg-gray-200 dark:text-slate-400"
@@ -46,7 +68,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each data as item}
+			{#each filteredData ?? data as item}
 				<tr class="even:dark:bg-slate-800 even:bg-slate-200">
 					<td class="px-6 py-3">
 						<Button
@@ -74,9 +96,10 @@
 					{#each displayedFields as field}
 						<!-- content here -->
 						{#if Object.keys(item).includes(field)}
-							<!-- svelte-ignore a11y-click-events-have-key-events -->
 							<td class="px-6 py-3">
 								<div class="flex flex-row items-center justify-between">
+									<!-- svelte-ignore a11y-click-events-have-key-events -->
+									<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 									<p
 										class="mr-2 cursor-pointer"
 										title="click to copy"

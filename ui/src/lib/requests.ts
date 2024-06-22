@@ -61,9 +61,11 @@ class ApiService {
 	endpoint: string;
 	headers: Record<string, string>;
 
-	constructor(endpoint: string, token?: string) {
+	constructor(endpoint: string, token?: string, requestHeaders?: Record<string, string>) {
 		this.endpoint = endpoint;
-		this.headers = {};
+		this.headers = {
+			...requestHeaders
+		};
 		if (token) {
 			this.headers['authorization'] = `Bearer ${token}`;
 		}
@@ -135,6 +137,6 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 		goto('/login');
 		throw new Error('no token');
 	}
-	apiInstance = new ApiService(conf.kongApi.endpoint, token);
+	apiInstance = new ApiService(conf.kongApi.endpoint, token, conf.kongApi.requestHeaders);
 	return apiInstance;
 };

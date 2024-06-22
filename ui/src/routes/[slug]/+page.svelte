@@ -5,7 +5,7 @@
 	import { addToast } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '../../lib/components/ArrayWrap.svelte';
-	import type { GetAllServices } from '$lib/responseTypes.ts';
+	import type { GetAllServices } from '$lib/responseTypes';
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
@@ -66,7 +66,6 @@
 		data={info.data}
 		pathField="id"
 		itemPath="/{entity}/id"
-		kind={entity}
 	></ArrayWrap>
 {:else if info && info.data && info.data.length == 0}
 	<div class="flex h-[100vh] w-full justify-center items-center">
