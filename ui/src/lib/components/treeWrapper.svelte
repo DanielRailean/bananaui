@@ -8,6 +8,8 @@
 	import JSONTree from 'svelte-json-tree';
 	export let data: any;
 	export let expandLevel = 0;
+	export let allowCopy = true;
+	export let allowKeyCopy = false;
 </script>
 
 <div class="tree">
@@ -29,14 +31,22 @@
 						>
 							<th
 								scope="row"
-								class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+								class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white {allowKeyCopy
+									? 'cursor-pointer'
+									: ''}"
+								title={allowKeyCopy ? `copy ${key}` : ''}
+								on:click={() => {
+									if (!allowKeyCopy) return;
+									writeToClipboard(key);
+								}}
 							>
 								{key}
 							</th>
 							<td
-								class="px-6 py-4 flex flex-row items-center cursor-pointer"
+								class="px-6 py-4 flex flex-row items-center {allowCopy ? 'cursor-pointer' : ''}"
 								title="click to copy"
 								on:click={() => {
+									if (!allowCopy) return;
 									writeToClipboard(
 										typeof data[key] == 'string' ? data[key] : JSON.stringify(data[key])
 									);

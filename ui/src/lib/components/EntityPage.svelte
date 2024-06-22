@@ -168,6 +168,7 @@
 							displayedFields={subEntity.displayedFields}
 							itemPath={`/${subEntity.apiPath}/id`}
 							pathField="id"
+							on:refresh={async () => await load()}
 						/>
 					{/if}
 				{/each}

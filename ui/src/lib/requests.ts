@@ -3,7 +3,7 @@ import { get } from 'svelte/store';
 import { addToast, config, userToken } from './stores';
 import { delay } from './util';
 import type { IEntityBase } from './types';
-import type { IResCreateError } from './responseTypes';
+import type { IRootRes, IResCreateError, ISchemaRes, IPluginConfig } from './responseTypes';
 
 function request(
 	url: string,
@@ -47,7 +47,9 @@ async function requestWithResponseBody<T, E = void>(
 		code: res.status
 	};
 	if (res.ok) {
-		result.data = (await res.json()) as T;
+		try {
+			result.data = (await res.json()) as T;
+		} catch {}
 	} else {
 		result.err = await res.text();
 		try {
@@ -72,7 +74,7 @@ class ApiService {
 	}
 
 	getInfo() {
-		return requestWithResponseBody(this.endpoint, undefined, undefined, this.headers);
+		return requestWithResponseBody<IRootRes>(this.endpoint, undefined, undefined, this.headers);
 	}
 
 	request<T, E = void>(
@@ -81,10 +83,34 @@ class ApiService {
 		body?: object,
 		headers?: Record<string, string>
 	) {
-		return requestWithResponseBody<T, E>(`${this.endpoint}/${path}`, method, body, {
-			...this.headers,
-			...headers
-		});
+		return requestWithResponseBody<T, E>(
+			`${this.endpoint}${path.startsWith('/') ? path : `/${path}`}`,
+			method,
+			body,
+			{
+				...this.headers,
+				...headers
+			}
+		);
+	}
+
+	// entity-specific methods
+	schema(entity: string) {
+		return requestWithResponseBody<ISchemaRes>(
+			`${this.endpoint}/schemas/${entity}`,
+			undefined,
+			undefined,
+			this.headers
+		);
+	}
+
+	pluginConfig(pluginName: string) {
+		return requestWithResponseBody<IPluginConfig>(
+			`${this.endpoint}/schemas/plugins/${pluginName}`,
+			undefined,
+			undefined,
+			this.headers
+		);
 	}
 
 	// entity-specific methods

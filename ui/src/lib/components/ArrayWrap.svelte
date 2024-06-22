@@ -3,8 +3,19 @@
 	import { goto } from '$app/navigation';
 	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
-	import { CirclePlusOutline, FileCopyOutline, LinkOutline } from 'flowbite-svelte-icons';
+	import {
+		CirclePlusOutline,
+		FileCopyOutline,
+		LinkOutline,
+		TrashBinOutline
+	} from 'flowbite-svelte-icons';
 	import { kongEntities } from '$lib/config';
+	import { apiService } from '$lib/requests';
+	import { addToast } from '$lib/stores';
+
+	import { createEventDispatcher } from 'svelte';
+
+	const dispatch = createEventDispatcher();
 
 	export let data: any[];
 	export let displayedFields: any;
@@ -38,6 +49,19 @@
 			JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
 		);
 	}
+	async function deleteEntity(path: string) {
+		const conf = confirm('confirm delete?');
+		if (!conf) {
+			return;
+		}
+		const res = await (await apiService()).request(path, 'DELETE');
+		if (!res.ok) {
+			addToast({ message: `failed to delete. ${res.err}` });
+		} else {
+			addToast({ message: `ok`, type: `info` });
+		}
+		dispatch('refresh');
+	}
 </script>
 
 <div class="w-full">
@@ -67,7 +91,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each filteredData ?? data as item}
+			{#each searchText.length > 0 ? filteredData : data as item}
 				<tr class="even:dark:bg-slate-800 even:bg-slate-200">
 					<td class="px-6 py-3">
 						<Button
@@ -86,9 +110,22 @@
 							<a href={itemPath.replace(pathField, item[pathField])} class="text-emerald-600">
 								<div class="flex flex-row items-center">
 									<LinkOutline class="m-1" />
-									link
+									open
 								</div>
 							</a>
+						</Button>
+						<Button
+							class="h-8 p-2"
+							color="alternative"
+							on:click={async () =>
+								await deleteEntity(`${itemPath.replace(pathField, item[pathField])}`)}
+						>
+							<div class="text-rose-500">
+								<div class="flex flex-row items-center">
+									<TrashBinOutline class="m-1" />
+									delete
+								</div>
+							</div>
 						</Button>
 					</td>
 

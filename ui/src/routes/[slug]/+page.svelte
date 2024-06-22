@@ -5,19 +5,18 @@
 	import { addToast } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '../../lib/components/ArrayWrap.svelte';
-	import type { GetAllServices } from '$lib/responseTypes';
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { kongEntities } from '$lib/config';
 
-	let info: GetAllServices | undefined;
+	let data: any | undefined;
 	let entity = $page.params.slug;
 
 	page.subscribe((val) => {
 		entity = val.params.slug;
 		if (kongEntities.find((item) => item.name == entity)) {
-			info = undefined;
+			data = undefined;
 			load();
 		}
 	});
@@ -28,8 +27,8 @@
 			if (!kongEntity) {
 				return;
 			}
-			const res = await (await apiService()).findAll(kongEntity.apiPath, {});
-			info = res.data as GetAllServices;
+			const res = await (await apiService()).findAll<any>(kongEntity.apiPath, {});
+			data = res.data.data;
 			// console.log(entity)
 		} catch (error: any) {
 			console.log(error);
@@ -60,14 +59,15 @@
 		</a>
 	</Button>
 </div>
-{#if info && info.data && info.data.length > 0}
+{#if data && data.length > 0}
 	<ArrayWrap
 		displayedFields={kongEntities.find((item) => item.name == entity)?.displayedFields}
-		data={info.data}
+		{data}
 		pathField="id"
 		itemPath="/{entity}/id"
+		on:refresh={async () => await load()}
 	></ArrayWrap>
-{:else if info && info.data && info.data.length == 0}
+{:else}
 	<div class="flex h-[100vh] w-full justify-center items-center">
 		<h2 class="text-3xl text-center">{entity} list empty</h2>
 	</div>
