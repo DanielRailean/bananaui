@@ -42,9 +42,7 @@
 									);
 								}}
 							>
-								{#if typeof data[key] == 'string'}
-									{data[key]}
-								{:else if data[key] && Object.keys(data[key]).includes('id') && kongEntities.find((i) => i.apiPath == `${key}s`)}
+								{#if data[key] && Object.keys(data[key]).includes('id') && kongEntities.find((i) => i.apiPath == `${key}s`)}
 									<!-- svelte-ignore a11y-click-events-have-key-events -->
 									<!-- svelte-ignore a11y-no-static-element-interactions -->
 									<!-- <a title="open" href="/{key}s/{data[key].id}"> -->

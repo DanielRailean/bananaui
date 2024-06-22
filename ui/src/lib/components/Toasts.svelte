@@ -5,7 +5,7 @@
 </script>
 
 {#if $toasts}
-	<section class="absolute right-0 flex flex-col z-[1000] mt-5 mr-10">
+	<section class="fixed right-0 top-0 flex flex-col z-[1000] mt-5 mr-10">
 		{#each $toasts as toast (toast.id)}
 			<Toast
 				type={toast.type}
