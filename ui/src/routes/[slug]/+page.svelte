@@ -11,17 +11,13 @@
 	import { kongEntities } from '$lib/config';
 
 	let data: any | undefined;
-	let entity = $page.params.slug;
+	let entity: string | undefined;
 
-	page.subscribe((val) => {
-		entity = val.params.slug;
-		if (kongEntities.find((item) => item.name == entity)) {
-			data = undefined;
-			load();
-		}
-	});
+	$: $page, load()
 
 	async function load() {
+		data = undefined
+		entity = $page.params.slug;
 		try {
 			const kongEntity = kongEntities.find((i) => i.name == entity);
 			if (!kongEntity) {
@@ -35,9 +31,7 @@
 			addToast({ message: `Failed fetching the ${entity}. ${error.message ? error.message : ''}` });
 		}
 	}
-	// onMount(() => {
-	// 	load();
-	// });
+
 </script>
 
 <svelte:head>

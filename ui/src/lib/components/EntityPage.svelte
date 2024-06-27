@@ -23,7 +23,6 @@
 	let json = '';
 
 	let isEdited = false;
-	// export let allowSubentities = true;
 	let id: string;
 	let entity: string;
 
@@ -35,13 +34,11 @@
 	}
 	let subEntities: IEntities[];
 
-	page.subscribe(async (v) => {
-		data = undefined;
-		await load();
-	});
+	$: $page, load()
 
 	async function load() {
 		{
+			data = undefined
 			entity = $page.url.pathname.split('/')[1];
 			id = $page.params.slug;
 			const res = await (await apiService()).findRecord(entity, id);
