@@ -4,6 +4,10 @@
 
 	let items = [
 		{
+			name: 'profile',
+			path: '/profile'
+		},
+		{
 			name: 'overview',
 			path: '/'
 		}
