@@ -25,7 +25,7 @@
 		if (sourceParam) {
 			source = sourceParam;
 		}
-		if (staticConfig.autoLogin) {
+		if ($config?.auth.autoLogin) {
 			await delay(staticConfig.autoLoginDelayMs);
 			if (!$userToken) {
 				tryLogin();

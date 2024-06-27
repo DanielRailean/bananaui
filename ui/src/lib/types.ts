@@ -25,6 +25,7 @@ export interface IKongService extends IEntityBase {
 export interface IConfig {
 	auth: {
 		enabled: boolean;
+		autoLogin: boolean;
 	};
 	kongApi: {
 		endpoint: string;

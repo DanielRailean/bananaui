@@ -1,7 +1,6 @@
 import type { IKongEntity } from './types';
 
 export const staticConfig = {
-	autoLogin: true,
 	autoLoginDelayMs: 100,
 	name: 'Banana UI'
 };
