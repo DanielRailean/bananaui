@@ -116,7 +116,7 @@
 	}
 </script>
 
-<div class="mb-4">
+<div class="mb-2">
 	<div class="flex flex-row m-4 h-8">
 		<Button
 			class="mr-2"
