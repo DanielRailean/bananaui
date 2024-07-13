@@ -28,13 +28,13 @@
 
 	let isEdited = false;
 	let id: string;
-	let entity: string;
+	let entityType: string;
 
-	let kongEntity: IKongEntity | undefined;
+	let currentEntity: IKongEntity | undefined;
 
 	interface IEntities extends IKongEntity {
 		data?: any[];
-		addPath: string;
+		entitySubPath: string;
 	}
 	let subEntities: IEntities[];
 
@@ -43,29 +43,29 @@
 	async function load() {
 		{
 			data = undefined;
-			entity = $page.url.pathname.split('/')[1];
+			entityType = $page.url.pathname.split('/')[1];
 			id = $page.params.slug;
-			const res = await (await apiService()).findRecord(entity, id);
+			const res = await (await apiService()).findRecord(entityType, id);
 			data = res.data;
 			json = JSON.stringify(data, undefined, 2);
 			stateJson = json;
 
-			kongEntity = kongEntities.find((i) => i.name == entity);
+			currentEntity = kongEntities.find((ent) => ent.name == entityType);
 			subEntities = kongEntities
-				.filter((e) => kongEntity?.subEntities?.includes(e.name))
-				.map((i) => {
+				.filter((subEnt) => currentEntity?.subEntities?.includes(subEnt.name))
+				.map((subEnt) => {
 					return {
-						...i,
-						addPath: `${entity}/${id}/${i.name}`
+						...subEnt,
+						entitySubPath: `${entityType}/${id}/${subEnt.name}`
 					};
 				});
 			for (const ent of subEntities) {
-				const res = await (await apiService()).request<{ data: any[] }>(ent.addPath);
-				if (!res.ok || !res.data) {
+				const res2 = await (await apiService()).findAll(ent.name, {}, `/${entityType}/${id}`);
+				if (!res2.ok) {
 					addToast({ message: `failed to load ${ent.name}` });
 					continue;
 				}
-				ent.data = res.data.data as any[];
+				ent.data = res2.data?.data as any[];
 				subEntities = subEntities;
 			}
 		}
@@ -81,7 +81,7 @@
 			addToast({ message: `failed to delete. ${res.err}` });
 		} else {
 			addToast({ message: `ok`, type: `info` });
-			goto(`/${entity}`);
+			goto(`/${entityType}`);
 		}
 	}
 
@@ -103,7 +103,7 @@
 		}
 		format();
 		try {
-			const res = await (await apiService()).updateRecord(entity, id, JSON.parse(json));
+			const res = await (await apiService()).updateRecord(entityType, id, JSON.parse(json));
 
 			isEdited = !isEdited;
 			isEdited = isEdited;
@@ -130,7 +130,7 @@
 			class="h-8 p-2 mr-2"
 			title="delete"
 			color="alternative"
-			on:click={async () => await deleteEntity(`/${entity}/${id}`, data.name ?? data.id)}
+			on:click={async () => await deleteEntity(`/${entityType}/${id}`, data.name ?? data.id)}
 		>
 			<div class="text-rose-500">
 				<div class="flex flex-row items-center">
@@ -175,10 +175,10 @@
 							<Button
 								color="alternative"
 								on:click={() => {
-									goto(`/add/${subEntity.name}?apiPostPath=${btoa(subEntity.addPath)}`);
+									goto(`/add/${subEntity.name}?apiPostPath=${btoa(subEntity.entitySubPath)}`);
 								}}
 							>
-								<a href="/add/{subEntity.name}?apiPostPath={btoa(subEntity.addPath)}">
+								<a href="/add/{subEntity.name}?apiPostPath={btoa(subEntity.entitySubPath)}">
 									<div class="flex flex-row items-center">
 										<CirclePlusOutline class="m-2" />
 										add

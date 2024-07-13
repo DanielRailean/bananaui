@@ -2,8 +2,9 @@ import { goto } from '$app/navigation';
 import { get } from 'svelte/store';
 import { addToast, config, userToken } from './stores';
 import { delay } from './util';
-import type { IEntityBase } from './types';
+import type { IEntityBase, IPaginationRes } from './types';
 import type { IRootRes, IResCreateError, ISchemaRes, IPluginConfig } from './responseTypes';
+import { paginationSize } from './config';
 
 function request(
 	url: string,
@@ -82,7 +83,7 @@ class ApiService {
 		method: string = 'GET',
 		body?: object,
 		headers?: Record<string, string>
-	) {
+	): Promise<ResWrapped<T, E>> {
 		return requestWithResponseBody<T, E>(
 			`${this.endpoint}${path.startsWith('/') ? path : `/${path}`}`,
 			method,
@@ -114,13 +115,34 @@ class ApiService {
 	}
 
 	// entity-specific methods
-	findAll<T>(entity: string, params: Record<string, unknown>) {
-		return requestWithResponseBody<T>(
-			`${this.endpoint}/${entity}`,
+	async findAll<T extends IPaginationRes>(
+		entity: string,
+		params: Record<string, unknown> = {},
+		pathPrefix: string = ''
+	) {
+		const page1 = await requestWithResponseBody<T>(
+			`${this.endpoint}${pathPrefix}/${entity}?size=${paginationSize}`,
 			undefined,
 			undefined,
 			this.headers
 		);
+		if (page1.data && page1.data.next) {
+			let finalData = page1.data.data;
+			let pageLooped = await this.request<T>(page1.data.next, undefined, undefined, this.headers);
+			finalData = finalData.concat(pageLooped.data?.data);
+			while (pageLooped && pageLooped.data && pageLooped.data.next) {
+				pageLooped = await this.request<T>(
+					pageLooped.data.next ?? '',
+					undefined,
+					undefined,
+					this.headers
+				);
+				finalData = finalData.concat(pageLooped.data?.data);
+			}
+			page1.data.data = finalData;
+		}
+
+		return page1;
 	}
 
 	findRecord<T>(entity: string, id: string) {

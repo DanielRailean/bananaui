@@ -39,7 +39,10 @@
 </svelte:head>
 
 <div class="flex flex-col mx-4 mt-4">
-	<h1 class="text-xl mb-3 ml-1 dark:text-zinc-300">{capitalizeFirstLetter(entity)}</h1>
+	<h1 class="text-xl mb-3 ml-1 dark:text-zinc-300">
+		{data ? data.length : 0}
+		{capitalizeFirstLetter(entity)}
+	</h1>
 	<Button
 		class="h-8 w-20 border-slate-300"
 		color="alternative"
