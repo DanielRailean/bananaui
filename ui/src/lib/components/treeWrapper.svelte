@@ -1,11 +1,7 @@
 <script lang="ts">
-	import DarkToggle from './DarkToggle.svelte';
 	import { goto } from '$app/navigation';
 	import { dateFields, kongEntities } from '$lib/config';
-	import { isDark } from '$lib/stores';
 	import { writeToClipboard } from '$lib/util';
-	import { Button } from 'flowbite-svelte';
-	import { onMount } from 'svelte';
 	import JSONTree from 'svelte-json-tree';
 	import { DateTime } from 'luxon';
 	export let data: any;
@@ -18,7 +14,7 @@
 <div class="tree">
 	{#if data}
 		<div
-			class="relative overflow-x-auto {rounded ? 'rounded-xl' : ''}"
+			class="relative overflow-x-auto {rounded ? 'rounded-xl' : ''} border-b dark:border-slate-800"
 		>
 			<table class="w-full text-sm text-left rtl:text-right text-gray-800 dark:text-zinc-300">
 				<!-- <thead
