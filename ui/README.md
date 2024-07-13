@@ -1,12 +1,12 @@
 # BANANA UI
 
-appconfig:
+appconfig (read from the BANANA_UI_CONFIG env var):
 
 ```json
 {
 	"oidc": {
 		"authorizeEndpoint": "https://login.microsoftonline.com/{tenant}/oauth2/authorize",
-		"clientId": "31c26159-3169-4ad3-bd2b-86a038f5b3fc",
+		"clientId": "any",
 		"selfUrl": "http://localhost:8080/oidc/callback",
 		"scope": "openid email",
 		"responseType": "id_token",

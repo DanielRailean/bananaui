@@ -49,8 +49,8 @@
 			JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
 		);
 	}
-	async function deleteEntity(path: string) {
-		const conf = confirm('confirm delete?');
+	async function deleteEntity(path: string, name:string) {
+		const conf = confirm(`Please confirm deletion of '${name}'`);
 		if (!conf) {
 			return;
 		}
@@ -67,7 +67,7 @@
 <div class="w-full">
 	<div class="flex flex-row m-4 h-8">
 		<input
-			class="bg-transparent rounded"
+			class="bg-transparent rounded dark:border-slate-700 border-slate-300"
 			type="text"
 			bind:value={searchText}
 			on:input={search}
@@ -82,20 +82,19 @@
 				<th><p class="pl-4">Actions</p></th>
 				{#each displayedFields as field}
 					{#if Object.keys(data[0]).includes(field)}
-						<th scope="col" class="px-6 py-3"> {field} </th>
+						<th scope="col" class="py-3"> {field} </th>
 					{/if}
 				{/each}
-				<th>
-					<p class="pr-6">&lt</p>
-				</th>
 			</tr>
 		</thead>
 		<tbody>
 			{#each searchText.length > 0 ? filteredData : data as item}
-				<tr class="even:dark:bg-slate-800 even:bg-slate-200">
-					<td class="px-6 py-3">
-						<Button
+				<tr class="border-t dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-900">
+					<td class="py-3">
+						<div class="ml-2">
+							<Button
 							class="h-8 p-2"
+							title="copy as json"
 							color="alternative"
 							on:click={() => {
 								copy(JSON.stringify(item));
@@ -103,35 +102,36 @@
 						>
 							<div class="flex flex-row items-center">
 								<FileCopyOutline class="m-1" />
-								json
 							</div>
 						</Button>
-						<Button class="h-8 p-2" color="alternative">
+						<Button title="open" class="h-8 p-2" color="alternative">
 							<a href={itemPath.replace(pathField, item[pathField])} class="text-emerald-600">
 								<div class="flex flex-row items-center">
 									<LinkOutline class="m-1" />
-									open
+									
 								</div>
 							</a>
 						</Button>
 						<Button
 							class="h-8 p-2"
+							title="delete"
 							color="alternative"
 							on:click={async () =>
-								await deleteEntity(`${itemPath.replace(pathField, item[pathField])}`)}
+								await deleteEntity(`${itemPath.replace(pathField, item[pathField])}`, item.name ?? item.id)}
 						>
 							<div class="text-rose-500">
 								<div class="flex flex-row items-center">
 									<TrashBinOutline class="m-1" />
-									delete
+									
 								</div>
 							</div>
 						</Button>
+						</div>
 					</td>
 
 					{#each displayedFields as field}
 						{#if Object.keys(item).includes(field)}
-							<td class="px-6 py-3">
+							<td class="py-3">
 								<div class="flex flex-row items-center justify-between">
 									<!-- svelte-ignore a11y-click-events-have-key-events -->
 									<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
@@ -159,7 +159,6 @@
 							>
 						{/if}
 					{/each}
-					<td></td>
 				</tr>
 			{/each}
 		</tbody>

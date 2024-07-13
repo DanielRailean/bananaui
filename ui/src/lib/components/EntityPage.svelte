@@ -101,7 +101,7 @@
 	}
 </script>
 
-<div class="pb-10">
+<div class="">
 	<div class="flex flex-row m-4 h-8">
 		<Button
 			class="mr-2"
@@ -138,7 +138,7 @@
 		{#if isEdited}
 			<textarea class="dark:bg-slate-900 w-full min-h-[70vh]" bind:value={json}></textarea>
 		{:else}
-			<TreeWrapper {data} />
+			<TreeWrapper {data} rounded={false} />
 			{#if subEntities}
 				{#each subEntities as subEntity}
 					<div class="flex flex-row m-4 h-8 items-center">

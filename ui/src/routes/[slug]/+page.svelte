@@ -9,14 +9,15 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { kongEntities } from '$lib/config';
+	import { capitalizeFirstLetter } from '$lib/util';
 
 	let data: any | undefined;
 	let entity: string | undefined;
 
-	$: $page, load()
+	$: $page, load();
 
 	async function load() {
-		data = undefined
+		data = undefined;
 		entity = $page.params.slug;
 		try {
 			const kongEntity = kongEntities.find((i) => i.name == entity);
@@ -31,39 +32,40 @@
 			addToast({ message: `Failed fetching the ${entity}. ${error.message ? error.message : ''}` });
 		}
 	}
-
 </script>
 
 <svelte:head>
-	<title>{staticConfig.name} - {entity}</title>
+	<title>{staticConfig.name} - {capitalizeFirstLetter(entity)}</title>
 </svelte:head>
 
-<div class="flex flex-row m-4 h-8">
-	<Button
-		color="alternative"
-		on:click={() => {
-			goto(`/add/${entity}`);
-		}}
-	>
-		<a href="/add/{entity}">
-			<div class="flex flex-row items-center">
-				<CirclePlusOutline class="m-2" />
-				add
-			</div>
-		</a>
-	</Button>
-</div>
-{#if data && data.length > 0}
-	<ArrayWrap
-		displayedFields={kongEntities.find((item) => item.name == entity)?.displayedFields}
-		{data}
-		pathField="id"
-		itemPath="/{entity}/id"
-		on:refresh={async () => await load()}
-	></ArrayWrap>
-{:else}
-	<div class="flex h-[100vh] w-full justify-center items-center">
-		<h2 class="text-3xl text-center">{entity} list empty</h2>
+
+	<div class="flex flex-col mx-4 mt-4">
+		<h1 class="text-xl mb-3 ml-1">{capitalizeFirstLetter(entity)}</h1>
+		<Button
+			class="h-8 w-20 border-slate-300"
+			color="alternative"
+			on:click={() => {
+				goto(`/add/${entity}`);
+			}}
+		>
+			<a href="/add/{entity}">
+				<div class="flex flex-row items-center">
+					<CirclePlusOutline class="m-2" />
+					add
+				</div>
+			</a>
+		</Button>
 	</div>
-{/if}
-<div class="text-column"></div>
+	{#if data && data.length > 0}
+		<ArrayWrap
+			displayedFields={kongEntities.find((item) => item.name == entity)?.displayedFields}
+			{data}
+			pathField="id"
+			itemPath="/{entity}/id"
+			on:refresh={async () => await load()}
+		></ArrayWrap>
+	{:else}
+		<div class="flex w-full justify-center items-center">
+			<h2 class="text-xl text-center mb-10">No entries</h2>
+		</div>
+	{/if}
