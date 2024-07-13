@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { IKongEntity } from '$lib/types.ts';
 	import { CirclePlusOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
 	import { Button } from 'flowbite-svelte';
@@ -13,6 +14,7 @@
 
 	let data: any | undefined;
 	let entity: string | undefined;
+	let kongEntity: IKongEntity | undefined
 
 	$: $page, load();
 
@@ -20,7 +22,7 @@
 		data = undefined;
 		entity = $page.params.slug;
 		try {
-			const kongEntity = kongEntities.find((i) => i.name == entity);
+			kongEntity = kongEntities.find((i) => i.name == entity);
 			if (!kongEntity) {
 				return;
 			}
@@ -64,6 +66,7 @@
 		{data}
 		pathField="id"
 		itemPath="/{entity}/id"
+		entity={kongEntity}
 		on:refresh={async () => await load()}
 	></ArrayWrap>
 {:else}

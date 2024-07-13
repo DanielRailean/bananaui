@@ -14,6 +14,7 @@
 	import { apiService } from '$lib/requests';
 	import { addToast } from '$lib/stores';
 	import { createEventDispatcher } from 'svelte';
+	import type { IKongEntity } from '$lib/types';
 
 	const dispatch = createEventDispatcher();
 
@@ -21,6 +22,7 @@
 	export let displayedFields: any;
 	export let itemPath: string;
 	export let pathField: string;
+	export let entity: IKongEntity | undefined = undefined;
 
 	let searchText = '';
 	let filteredData: any[];
@@ -34,11 +36,20 @@
 	}
 
 	onMount(() => {
-		// console.log(data);
 		if (!displayedFields || displayedFields.length == 0) {
 			displayedFields = Object.keys(data[0]);
 		}
-		filteredData = data;
+		filteredData = data.sort((a, b) => {
+			if (entity && entity.sortBy) {
+				const sortKey = entity.sortBy;
+				if (entity.sortAscending === true) {
+					return (a[sortKey] - b[sortKey]) as number;
+				} else {
+					return (b[sortKey] - a[sortKey]) as number;
+				}
+			}
+			return b.updated_at - a.updated_at
+		});
 	});
 
 	function search() {
