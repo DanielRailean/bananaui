@@ -19,9 +19,6 @@
 	} from 'flowbite-svelte-icons';
 	import { kongEntities } from '$lib/config';
 	import type { IKongEntity } from '$lib/types';
-	import { createEventDispatcher } from 'svelte';
-
-	const dispatch = createEventDispatcher();
 
 	let stateJson = '';
 	let json = '';
@@ -40,11 +37,24 @@
 
 	$: $page, load();
 
+	let isMounted = false
+
+	onMount(()=>{
+		isMounted = true
+		load()
+	})
+
 	async function load() {
+		if(!isMounted)
+		{
+			return
+		}
+		data = undefined;
+		const searchParams = new URLSearchParams(window.location.search)
+		entityType = searchParams.get("type") ?? "none";
+		id = searchParams.get('id') ?? "none";
 		{
 			data = undefined;
-			entityType = $page.url.pathname.split('/')[1];
-			id = $page.params.slug;
 			const res = await (await apiService()).findRecord(entityType, id);
 			data = res.data;
 			json = JSON.stringify(data, undefined, 2);
@@ -71,17 +81,17 @@
 		}
 	}
 
-	async function deleteEntity(path: string, name: string) {
+	async function deleteEntity(type:string, id: string, name: string) {
 		const conf = confirm(`Please confirm deletion of '${name}'`);
 		if (!conf) {
 			return;
 		}
-		const res = await (await apiService()).request(path, 'DELETE');
+		const res = await (await apiService()).deleteRecord(type, id);
 		if (!res.ok) {
 			addToast({ message: `failed to delete. ${res.err}` });
 		} else {
 			addToast({ message: `ok`, type: `info` });
-			goto(`/${entityType}`);
+			goto(`/entities?type=${entityType}`);
 		}
 	}
 
@@ -130,7 +140,7 @@
 			class="h-8 p-2 mr-2"
 			title="delete"
 			color="alternative"
-			on:click={async () => await deleteEntity(`/${entityType}/${id}`, data.name ?? data.id)}
+			on:click={async () => await deleteEntity(entityType, id, data.name ?? data.id)}
 		>
 			<div class="text-rose-500">
 				<div class="flex flex-row items-center">
@@ -175,10 +185,10 @@
 							<Button
 								color="alternative"
 								on:click={() => {
-									goto(`/add/${subEntity.name}?apiPostPath=${btoa(subEntity.entitySubPath)}`);
+									goto(`/add?type=${subEntity.name}?apiPostPath=${btoa(subEntity.entitySubPath)}`);
 								}}
 							>
-								<a href="/add/{subEntity.name}?apiPostPath={btoa(subEntity.entitySubPath)}">
+								<a href="/add?type={subEntity.name}?apiPostPath={btoa(subEntity.entitySubPath)}">
 									<div class="flex flex-row items-center">
 										<CirclePlusOutline class="m-2" />
 										add
@@ -191,8 +201,8 @@
 						<ArrayWrap
 							data={subEntity.data}
 							displayedFields={subEntity.displayedFields}
-							itemPath={`/${subEntity.apiPath}/id`}
-							pathField="id"
+							type={subEntity.name}
+							entity={subEntity}
 							on:refresh={async () => await load()}
 						/>
 					{/if}

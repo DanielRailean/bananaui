@@ -12,7 +12,7 @@
 	import { addToast } from '$lib/stores';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 
-	let entityKindToAdd = $page.params.slug;
+	let entityKindToAdd: string;
 
 	let json = '';
 	let dummyObject: any = {};
@@ -33,7 +33,12 @@
 	}
 
 	onMount(async () => {
-		let path = $page.url.searchParams.get('apiPostPath');
+		let query = new URLSearchParams(window.location.search);
+		let path = query.get('apiPostPath');
+		let type = query.get('type');
+		if (type) {
+			entityKindToAdd = type;
+		}
 		if (path) {
 			postPath = atob(path);
 		}
@@ -130,44 +135,45 @@
 	}
 </script>
 
-<div class="flex flex-col m-4">
-	<div class="flex flex-row h-8">
-		<Button on:click={async () => await save()} color="green">
-			<FloppyDiskAltOutline class="m-2" />
-			save {entityKindToAdd.substr(0, entityKindToAdd.length - 1)}
-		</Button>
-		<Button class="ml-3" on:click={format} color="blue">
-			<PaletteOutline class="m-2" />
-			format and validate JSON
-		</Button>
-		<Button class="ml-3" color="alternative">
-			<a href="https://docs.konghq.com/gateway/3.7.x/admin-api/">
-				<div class="flex flex-row items-center">
-					<LinkOutline class="m-2" />
-					Open Admin API Docs
-				</div>
-			</a>
-		</Button>
-	</div>
-	{#if pluginSelect}
-		<div class="my-2">
-			<Label>
-				Select a plugin to load schema
-				<Select
-					class="mt-2"
-					items={pluginSelect}
-					bind:value={selectedPlugin}
-					on:change={pluginSelected}
-				/>
-			</Label>
+{#if entityKindToAdd}
+	<div class="flex flex-col m-4">
+		<div class="flex flex-row h-8">
+			<Button on:click={async () => await save()} color="green">
+				<FloppyDiskAltOutline class="m-2" />
+				save {entityKindToAdd.substr(0, entityKindToAdd.length - 1)}
+			</Button>
+			<Button class="ml-3" on:click={format} color="blue">
+				<PaletteOutline class="m-2" />
+				format and validate JSON
+			</Button>
+			<Button class="ml-3" color="alternative">
+				<a href="https://docs.konghq.com/gateway/3.7.x/admin-api/">
+					<div class="flex flex-row items-center">
+						<LinkOutline class="m-2" />
+						Open Admin API Docs
+					</div>
+				</a>
+			</Button>
 		</div>
-	{/if}
-</div>
+		{#if pluginSelect}
+			<div class="my-2">
+				<Label>
+					Select a plugin to load schema
+					<Select
+						class="mt-2"
+						items={pluginSelect}
+						bind:value={selectedPlugin}
+						on:change={pluginSelected}
+					/>
+				</Label>
+			</div>
+		{/if}
+	</div>
+{/if}
 
 <textarea class="dark:bg-slate-900 w-full min-h-[30vh]" bind:value={json}></textarea>
 <TreeWrapper data={testSchema} expandLevel={0} allowCopy={false} allowKeyCopy={true} />
 {#if pluginSchema}
-	<!-- content here -->
 	<h2 class="m-4">Configuration parameters:</h2>
 	<TreeWrapper data={pluginSchema} expandLevel={0} allowCopy={false} allowKeyCopy={true} />
 {/if}

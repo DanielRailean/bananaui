@@ -5,7 +5,6 @@
 	import { onMount } from 'svelte';
 	import { DateTime } from 'luxon';
 	import {
-		CirclePlusOutline,
 		FileCopyOutline,
 		LinkOutline,
 		TrashBinOutline
@@ -20,8 +19,7 @@
 
 	export let data: any[];
 	export let displayedFields: any;
-	export let itemPath: string;
-	export let pathField: string;
+	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
 
 	let searchText = '';
@@ -60,12 +58,12 @@
 			JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
 		);
 	}
-	async function deleteEntity(path: string, name: string) {
+	async function deleteEntity(type:string, id: string, name: string) {
 		const conf = confirm(`Please confirm deletion of '${name}'`);
 		if (!conf) {
 			return;
 		}
-		const res = await (await apiService()).request(path, 'DELETE');
+		const res = await (await apiService()).deleteRecord(type, id);
 		if (!res.ok) {
 			addToast({ message: `failed to delete. ${res.err}` });
 		} else {
@@ -116,7 +114,7 @@
 								</div>
 							</Button>
 							<Button title="open" class="h-8 p-2" color="alternative">
-								<a href={itemPath.replace(pathField, item[pathField])} class="text-emerald-600">
+								<a href={`/entity?type=${type}`+`&id=${item.id}`} class="text-emerald-600">
 									<div class="flex flex-row items-center">
 										<LinkOutline class="m-1" />
 									</div>
@@ -128,7 +126,8 @@
 								color="alternative"
 								on:click={async () =>
 									await deleteEntity(
-										`${itemPath.replace(pathField, item[pathField])}`,
+										entity?.name ?? "",
+										item.id,
 										item.name ?? item.id
 									)}
 							>
@@ -167,8 +166,8 @@
 											{/if}
 										{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
 											<!-- svelte-ignore a11y-no-static-element-interactions -->
-											<div class="" on:click={() => goto(`/${field}s/${item[field].id}`)}>
-												<a title="open" href="/{field}s/{item[field].id}">
+											<div class="" on:click={() => goto(`/entity?type=${field}s&id=${item[field].id}`)}>
+												<a title="open" href="/entity?type={field}s&id={item[field].id}">
 													<p class="dark:text-blue-500 text-blue-700">{item[field].id}</p>
 												</a>
 											</div>

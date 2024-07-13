@@ -13,14 +13,25 @@
 	import { capitalizeFirstLetter } from '$lib/util';
 
 	let data: any | undefined;
-	let entity: string | undefined;
+	let entity: string;
 	let kongEntity: IKongEntity | undefined
+	let isMounted = false
 
 	$: $page, load();
 
+
+	onMount(()=>{
+		isMounted = true
+		load()
+	})
+
 	async function load() {
+		if(!isMounted)
+		{
+			return
+		}
 		data = undefined;
-		entity = $page.params.slug;
+		entity = new URLSearchParams(window.location.search).get('type') ?? "none";
 		try {
 			kongEntity = kongEntities.find((i) => i.name == entity);
 			if (!kongEntity) {
@@ -49,10 +60,10 @@
 		class="h-8 w-20 border-slate-300"
 		color="alternative"
 		on:click={() => {
-			goto(`/add/${entity}`);
+			goto(`/add?type=${entity}`);
 		}}
 	>
-		<a href="/add/{entity}">
+		<a href="/add?type={entity}">
 			<div class="flex flex-row items-center">
 				<CirclePlusOutline class="m-2" />
 				add
@@ -64,8 +75,7 @@
 	<ArrayWrap
 		displayedFields={kongEntities.find((item) => item.name == entity)?.displayedFields}
 		{data}
-		pathField="id"
-		itemPath="/{entity}/id"
+		type={entity}
 		entity={kongEntity}
 		on:refresh={async () => await load()}
 	></ArrayWrap>

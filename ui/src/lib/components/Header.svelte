@@ -5,11 +5,11 @@
 	let items = [
 		{
 			name: 'profile',
-			path: '/profile'
+			appPath: '/profile'
 		},
 		{
 			name: 'overview',
-			path: '/'
+			appPath: '/'
 		}
 	];
 	import { onMount } from 'svelte';
@@ -19,7 +19,7 @@
 
 	onMount(() => {
 		const entities = kongEntities.map((i) => {
-			return { name: i.name, path: `/${i.name.toLowerCase()}` };
+			return { name: i.name, appPath: `/entities?type=${i.name.toLowerCase()}` };
 		});
 		items = [...items, ...entities];
 	});
@@ -31,19 +31,17 @@
 	<div class="flex flex-row items-center min-w-[200px]">
 		<DarkToggle div_class="" />
 		<h1 class="font-medium text-2xl">{staticConfig.name}</h1>
-		<!-- <DarkMode /> -->
 	</div>
 
 	<nav class="text-2xl text-slate-400">
 		<ul class="flex flex-col">
 			{#each items as item}
 				<li
-					class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {$page.url.pathname ===
-					item.path
+					class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {$page.url.pathname == item.appPath || $page.url.search.includes(`=${item.name}`)
 						? 'dark:text-slate-50 text-slate-700'
 						: ''}"
 				>
-					<a href={item.path}>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a>
+					<a href={item.appPath}>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a>
 				</li>
 			{/each}
 		</ul>
