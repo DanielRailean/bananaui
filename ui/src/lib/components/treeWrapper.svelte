@@ -18,7 +18,7 @@
 <div class="tree">
 	{#if data}
 		<div
-			class="relative overflow-x-auto {rounded ? 'rounded-xl' : ''} border dark:border-slate-800"
+			class="relative overflow-x-auto {rounded ? 'rounded-xl' : ''}"
 		>
 			<table class="w-full text-sm text-left rtl:text-right text-gray-800 dark:text-zinc-300">
 				<!-- <thead
