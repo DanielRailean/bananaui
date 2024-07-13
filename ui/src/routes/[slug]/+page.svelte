@@ -38,34 +38,33 @@
 	<title>{staticConfig.name} - {capitalizeFirstLetter(entity)}</title>
 </svelte:head>
 
-
-	<div class="flex flex-col mx-4 mt-4">
-		<h1 class="text-xl mb-3 ml-1">{capitalizeFirstLetter(entity)}</h1>
-		<Button
-			class="h-8 w-20 border-slate-300"
-			color="alternative"
-			on:click={() => {
-				goto(`/add/${entity}`);
-			}}
-		>
-			<a href="/add/{entity}">
-				<div class="flex flex-row items-center">
-					<CirclePlusOutline class="m-2" />
-					add
-				</div>
-			</a>
-		</Button>
+<div class="flex flex-col mx-4 mt-4">
+	<h1 class="text-xl mb-3 ml-1">{capitalizeFirstLetter(entity)}</h1>
+	<Button
+		class="h-8 w-20 border-slate-300"
+		color="alternative"
+		on:click={() => {
+			goto(`/add/${entity}`);
+		}}
+	>
+		<a href="/add/{entity}">
+			<div class="flex flex-row items-center">
+				<CirclePlusOutline class="m-2" />
+				add
+			</div>
+		</a>
+	</Button>
+</div>
+{#if data && data.length > 0}
+	<ArrayWrap
+		displayedFields={kongEntities.find((item) => item.name == entity)?.displayedFields}
+		{data}
+		pathField="id"
+		itemPath="/{entity}/id"
+		on:refresh={async () => await load()}
+	></ArrayWrap>
+{:else}
+	<div class="flex w-full justify-center items-center">
+		<h2 class="text-xl text-center mb-10">No entries</h2>
 	</div>
-	{#if data && data.length > 0}
-		<ArrayWrap
-			displayedFields={kongEntities.find((item) => item.name == entity)?.displayedFields}
-			{data}
-			pathField="id"
-			itemPath="/{entity}/id"
-			on:refresh={async () => await load()}
-		></ArrayWrap>
-	{:else}
-		<div class="flex w-full justify-center items-center">
-			<h2 class="text-xl text-center mb-10">No entries</h2>
-		</div>
-	{/if}
+{/if}

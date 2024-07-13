@@ -1,12 +1,13 @@
 <script lang="ts">
 	import DarkToggle from './DarkToggle.svelte';
 	import { goto } from '$app/navigation';
-	import { kongEntities } from '$lib/config';
+	import { dateFields, kongEntities } from '$lib/config';
 	import { isDark } from '$lib/stores';
 	import { writeToClipboard } from '$lib/util';
 	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import JSONTree from 'svelte-json-tree';
+	import { DateTime } from 'luxon';
 	export let data: any;
 	export let expandLevel = 0;
 	export let allowCopy = true;
@@ -16,7 +17,9 @@
 
 <div class="tree">
 	{#if data}
-		<div class="relative overflow-x-auto {rounded ? "rounded-xl" : ""} border dark:border-slate-800">
+		<div
+			class="relative overflow-x-auto {rounded ? 'rounded-xl' : ''} border dark:border-slate-800"
+		>
 			<table class="w-full text-sm text-left rtl:text-right text-gray-800 dark:text-zinc-300">
 				<!-- <thead
 					class="text-xs text-gray-800 uppercase bg-slate-100 dark:bg-gray-900 dark:text-gray-400"
@@ -28,9 +31,7 @@
 				</thead> -->
 				<tbody>
 					{#each Object.entries(data) as [key, value]}
-						<tr
-							class="bg-white border-t dark:bg-gray-900 dark:border-gray-700"
-						>
+						<tr class="bg-white border-t dark:bg-gray-900 dark:border-gray-700">
 							<th
 								scope="row"
 								class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-zinc-300 {allowKeyCopy
@@ -62,12 +63,21 @@
 										<p class="dark:text-blue-500 text-blue-700">{data[key].id}</p>
 									</div>
 									<!-- </a> -->
-								{:else if typeof data[key] == "object" && data[key] != null}
-								<div class="cursor-pointer">
-									<JSONTree value={data[key]} defaultExpandedLevel={expandLevel}></JSONTree>
-								</div>
+								{:else if typeof data[key] == 'object' && data[key] != null}
+									<div class="cursor-pointer">
+										<JSONTree value={data[key]} defaultExpandedLevel={expandLevel}></JSONTree>
+									</div>
+								{:else if typeof data[key] == 'number'}
+									{#if dateFields.includes(key)}
+										{DateTime.fromSeconds(data[key]).toLocaleString({
+											...DateTime.DATETIME_MED,
+											weekday: 'short'
+										})}
+									{:else}
+										{data[key]}
+									{/if}
 								{:else}
-								{data[key]}
+									{data[key]}
 								{/if}
 							</td>
 						</tr>

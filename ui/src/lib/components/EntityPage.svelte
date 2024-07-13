@@ -34,11 +34,11 @@
 	}
 	let subEntities: IEntities[];
 
-	$: $page, load()
+	$: $page, load();
 
 	async function load() {
 		{
-			data = undefined
+			data = undefined;
 			entity = $page.url.pathname.split('/')[1];
 			id = $page.params.slug;
 			const res = await (await apiService()).findRecord(entity, id);
@@ -101,7 +101,7 @@
 	}
 </script>
 
-<div class="">
+<div class="mb-4">
 	<div class="flex flex-row m-4 h-8">
 		<Button
 			class="mr-2"

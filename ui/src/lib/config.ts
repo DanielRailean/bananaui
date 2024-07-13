@@ -5,6 +5,7 @@ export const staticConfig = {
 	name: 'Banana UI'
 };
 
+export const dateFields = ['created_at', 'updated_at'];
 export const kongEntities: IKongEntity[] = [
 	{
 		name: 'services',

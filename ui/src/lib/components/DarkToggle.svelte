@@ -74,8 +74,8 @@
 		'--json-tree-operator-color',
 		'--json-tree-number-color',
 		'--json-tree-string-color',
-		'--json-tree-property-color',
-			];
+		'--json-tree-property-color'
+	];
 </script>
 
 <div class="cursor-pointer {div_class}" title="toggle dark mode" on:click={handleClick}>

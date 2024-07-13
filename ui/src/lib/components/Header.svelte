@@ -43,7 +43,7 @@
 						? 'dark:text-slate-50 text-slate-700'
 						: ''}"
 				>
-					<a href={item.path}>{capitalizeFirstLetter(item.name.replaceAll("_"," "))}</a>
+					<a href={item.path}>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a>
 				</li>
 			{/each}
 		</ul>

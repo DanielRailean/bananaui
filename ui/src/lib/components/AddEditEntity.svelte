@@ -54,7 +54,6 @@
 		}
 		const res = await (await apiService()).schema(entityKindToAdd);
 		if (res.ok && res.data) {
-
 			testSchema = {};
 			for (const field of res.data.fields) {
 				const entries = Object.entries(field)[0];

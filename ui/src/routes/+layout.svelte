@@ -22,7 +22,7 @@
 		<Header />
 	{/if}
 
-	<main class="w-full h-[100vh]">
+	<main class="w-full h-full">
 		<div
 			class="flex flex-col m-8 border border-slate-300 dark:border-zinc-800 bg-white rounded-xl dark:bg-slate-900 dark:text-slate-50"
 		>
