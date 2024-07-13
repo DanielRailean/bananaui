@@ -14,61 +14,76 @@
 		EditOutline,
 		FileCopyOutline,
 		FloppyDiskAltOutline,
-		PaletteOutline
+		PaletteOutline,
+		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import { kongEntities } from '$lib/config';
 	import type { IKongEntity } from '$lib/types';
+	import { createEventDispatcher } from 'svelte';
+
+	const dispatch = createEventDispatcher();
 
 	let stateJson = '';
 	let json = '';
 
 	let isEdited = false;
 	let id: string;
-	let entity: string;
+	let entityType: string;
 
-	let kongEntity: IKongEntity | undefined;
+	let currentEntity: IKongEntity | undefined;
 
 	interface IEntities extends IKongEntity {
 		data?: any[];
-		addPath: string;
+		entitySubPath: string;
 	}
 	let subEntities: IEntities[];
 
-	$: $page, load()
+	$: $page, load();
 
 	async function load() {
 		{
-			data = undefined
-			entity = $page.url.pathname.split('/')[1];
+			data = undefined;
+			entityType = $page.url.pathname.split('/')[1];
 			id = $page.params.slug;
-			const res = await (await apiService()).findRecord(entity, id);
+			const res = await (await apiService()).findRecord(entityType, id);
 			data = res.data;
 			json = JSON.stringify(data, undefined, 2);
 			stateJson = json;
 
-			kongEntity = kongEntities.find((i) => i.name == entity);
+			currentEntity = kongEntities.find((ent) => ent.name == entityType);
 			subEntities = kongEntities
-				.filter((e) => kongEntity?.subEntities?.includes(e.name))
-				.map((i) => {
+				.filter((subEnt) => currentEntity?.subEntities?.includes(subEnt.name))
+				.map((subEnt) => {
 					return {
-						...i,
-						addPath: `${entity}/${id}/${i.name}`
+						...subEnt,
+						entitySubPath: `${entityType}/${id}/${subEnt.name}`
 					};
 				});
 			for (const ent of subEntities) {
-				const res = await (await apiService()).request<{ data: any[] }>(ent.addPath);
-				if (!res.ok || !res.data) {
+				const res2 = await (await apiService()).findAll(ent.name, {}, `/${entityType}/${id}`);
+				if (!res2.ok) {
 					addToast({ message: `failed to load ${ent.name}` });
 					continue;
 				}
-				ent.data = res.data.data as any[];
+				ent.data = res2.data?.data as any[];
 				subEntities = subEntities;
 			}
 		}
 	}
-	// onMount(async () => {
-	// 	await load();
-	// });
+
+	async function deleteEntity(path: string, name: string) {
+		const conf = confirm(`Please confirm deletion of '${name}'`);
+		if (!conf) {
+			return;
+		}
+		const res = await (await apiService()).request(path, 'DELETE');
+		if (!res.ok) {
+			addToast({ message: `failed to delete. ${res.err}` });
+		} else {
+			addToast({ message: `ok`, type: `info` });
+			goto(`/${entityType}`);
+		}
+	}
 
 	function format() {
 		let parsed: any | undefined;
@@ -88,7 +103,7 @@
 		}
 		format();
 		try {
-			const res = await (await apiService()).updateRecord(entity, id, JSON.parse(json));
+			const res = await (await apiService()).updateRecord(entityType, id, JSON.parse(json));
 
 			isEdited = !isEdited;
 			isEdited = isEdited;
@@ -101,7 +116,7 @@
 	}
 </script>
 
-<div class="pb-10">
+<div class="mb-2">
 	<div class="flex flex-row m-4 h-8">
 		<Button
 			class="mr-2"
@@ -110,6 +125,19 @@
 			}}
 		>
 			<EditOutline class="m-2" />edit
+		</Button>
+		<Button
+			class="h-8 p-2 mr-2"
+			title="delete"
+			color="alternative"
+			on:click={async () => await deleteEntity(`/${entityType}/${id}`, data.name ?? data.id)}
+		>
+			<div class="text-rose-500">
+				<div class="flex flex-row items-center">
+					<TrashBinOutline class="m-1" />
+					delete
+				</div>
+			</div>
 		</Button>
 		<Button
 			color="alternative"
@@ -138,7 +166,7 @@
 		{#if isEdited}
 			<textarea class="dark:bg-slate-900 w-full min-h-[70vh]" bind:value={json}></textarea>
 		{:else}
-			<TreeWrapper {data} />
+			<TreeWrapper {data} rounded={false} />
 			{#if subEntities}
 				{#each subEntities as subEntity}
 					<div class="flex flex-row m-4 h-8 items-center">
@@ -147,10 +175,10 @@
 							<Button
 								color="alternative"
 								on:click={() => {
-									goto(`/add/${subEntity.name}?apiPostPath=${btoa(subEntity.addPath)}`);
+									goto(`/add/${subEntity.name}?apiPostPath=${btoa(subEntity.entitySubPath)}`);
 								}}
 							>
-								<a href="/add/{subEntity.name}?apiPostPath={btoa(subEntity.addPath)}">
+								<a href="/add/{subEntity.name}?apiPostPath={btoa(subEntity.entitySubPath)}">
 									<div class="flex flex-row items-center">
 										<CirclePlusOutline class="m-2" />
 										add

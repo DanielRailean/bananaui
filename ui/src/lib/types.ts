@@ -2,6 +2,12 @@ export interface IEntityBase {
 	id: string;
 }
 
+export interface IPaginationRes {
+	next?: string;
+	offset?: string;
+	data: any[];
+}
+
 export interface IKongService extends IEntityBase {
 	created_at: number;
 	updated_at: number;

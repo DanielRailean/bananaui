@@ -63,12 +63,17 @@
 	});
 
 	let lightColor = 'rgb(2 6 23)';
-	let darkColor = 'white';
+	let darkColor = 'lightgray';
 	let variables = [
 		'--json-tree-string-color',
 		'--json-tree-boolean-color',
 		'--json-tree-number-color',
 		'--json-tree-arrow-color',
+		'--json-tree-property-color',
+		'--json-tree-label-color',
+		'--json-tree-operator-color',
+		'--json-tree-number-color',
+		'--json-tree-string-color',
 		'--json-tree-property-color'
 	];
 </script>

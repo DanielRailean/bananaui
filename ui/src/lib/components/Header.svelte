@@ -15,6 +15,7 @@
 	import { onMount } from 'svelte';
 	import { kongEntities } from '$lib/config';
 	import { staticConfig } from '$lib/config';
+	import { capitalizeFirstLetter } from '$lib/util';
 
 	onMount(() => {
 		const entities = kongEntities.map((i) => {
@@ -42,7 +43,7 @@
 						? 'dark:text-slate-50 text-slate-700'
 						: ''}"
 				>
-					<a href={item.path}>{item.name}</a>
+					<a href={item.path}>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a>
 				</li>
 			{/each}
 		</ul>
