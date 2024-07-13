@@ -14,10 +14,14 @@
 		EditOutline,
 		FileCopyOutline,
 		FloppyDiskAltOutline,
-		PaletteOutline
+		PaletteOutline,
+		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import { kongEntities } from '$lib/config';
 	import type { IKongEntity } from '$lib/types';
+	import { createEventDispatcher } from 'svelte';
+
+	const dispatch = createEventDispatcher();
 
 	let stateJson = '';
 	let json = '';
@@ -66,9 +70,20 @@
 			}
 		}
 	}
-	// onMount(async () => {
-	// 	await load();
-	// });
+
+	async function deleteEntity(path: string, name: string) {
+		const conf = confirm(`Please confirm deletion of '${name}'`);
+		if (!conf) {
+			return;
+		}
+		const res = await (await apiService()).request(path, 'DELETE');
+		if (!res.ok) {
+			addToast({ message: `failed to delete. ${res.err}` });
+		} else {
+			addToast({ message: `ok`, type: `info` });
+			goto(`/${entity}`);
+		}
+	}
 
 	function format() {
 		let parsed: any | undefined;
@@ -110,6 +125,19 @@
 			}}
 		>
 			<EditOutline class="m-2" />edit
+		</Button>
+		<Button
+			class="h-8 p-2 mr-2"
+			title="delete"
+			color="alternative"
+			on:click={async () => await deleteEntity(`/${entity}/${id}`, data.name ?? data.id)}
+		>
+			<div class="text-rose-500">
+				<div class="flex flex-row items-center">
+					<TrashBinOutline class="m-1" />
+					delete
+				</div>
+			</div>
 		</Button>
 		<Button
 			color="alternative"
