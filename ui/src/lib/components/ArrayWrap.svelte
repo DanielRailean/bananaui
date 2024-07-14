@@ -10,6 +10,7 @@
 	import { addToast } from '$lib/stores';
 	import { createEventDispatcher } from 'svelte';
 	import type { IKongEntity } from '$lib/types';
+	import { base } from '$app/paths';
 
 	const dispatch = createEventDispatcher();
 
@@ -110,7 +111,7 @@
 								</div>
 							</Button>
 							<Button title="open" class="h-8 p-2" color="alternative">
-								<a href={`/entity?type=${type}` + `&id=${item.id}`} class="text-emerald-600">
+								<a href="{base}/entity?type={type}&id={item.id}" class="text-emerald-600">
 									<div class="flex flex-row items-center">
 										<LinkOutline class="m-1" />
 									</div>

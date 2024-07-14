@@ -4,6 +4,8 @@
 	import { delay } from '$lib/util';
 	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
+	import logo from '$lib/assets/favicon.png';
+
 
 	let source = '';
 
@@ -38,7 +40,7 @@
 <div class="flex items-center justify-center h-full w-full">
 	<div class="flex flex-col h-[200px] w-[500px] my-auto">
 		<div class="flex flex-row mx-auto items-center">
-			<img class="h-16 w-16 mr-4" src="/favicon.png" alt="bananaui logo" />
+			<img class="h-16 w-16 mr-4" src={logo} alt="bananaui logo" />
 
 			<h1 class="text-5xl font-medium">
 				{staticConfig.name}
