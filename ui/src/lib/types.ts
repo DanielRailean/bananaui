@@ -37,7 +37,12 @@ export interface IConfig {
 		endpoint: string;
 		requestHeaders: Record<string, string>;
 	};
-	oidc: IOidc;
+	oidc?: IOidc;
+}
+
+export interface IConfigWrap {
+	config: IConfig;
+	source: 'local' | 'remote';
 }
 
 export interface IOidc {
@@ -60,6 +65,8 @@ export interface IToast {
 export interface IKongEntity {
 	name: string;
 	apiPath: string;
+	sortBy?: string;
+	sortAscending?: boolean;
 	displayedFields: string[];
 	defaultJson?: string;
 	subEntities?: string[];

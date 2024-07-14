@@ -1,13 +1,10 @@
 <script lang="ts">
-	import DarkToggle from './DarkToggle.svelte';
 	import { goto } from '$app/navigation';
 	import { dateFields, kongEntities } from '$lib/config';
-	import { isDark } from '$lib/stores';
 	import { writeToClipboard } from '$lib/util';
-	import { Button } from 'flowbite-svelte';
-	import { onMount } from 'svelte';
 	import JSONTree from 'svelte-json-tree';
 	import { DateTime } from 'luxon';
+	import { base } from '$app/paths';
 	export let data: any;
 	export let expandLevel = 0;
 	export let allowCopy = true;
@@ -18,7 +15,7 @@
 <div class="tree">
 	{#if data}
 		<div
-			class="relative overflow-x-auto {rounded ? 'rounded-xl' : ''} border dark:border-slate-800"
+			class="relative overflow-x-auto {rounded ? 'rounded-xl' : ''} border-b dark:border-slate-800"
 		>
 			<table class="w-full text-sm text-left rtl:text-right text-gray-800 dark:text-zinc-300">
 				<!-- <thead
@@ -58,10 +55,16 @@
 								{#if data[key] && Object.keys(data[key]).includes('id') && kongEntities.find((i) => i.apiPath == `${key}s`)}
 									<!-- svelte-ignore a11y-click-events-have-key-events -->
 									<!-- svelte-ignore a11y-no-static-element-interactions -->
-									<!-- <a title="open" href="/{key}s/{data[key].id}"> -->
-									<div class="" on:click|stopPropagation={() => goto(`/${key}s/${data[key].id}`)}>
-										<p class="dark:text-blue-500 text-blue-700">{data[key].id}</p>
-									</div>
+									<a href="{base}/entity?type={key}s&id={data[key].id}" on:click|preventDefault>
+										<div
+											class=""
+											title="open {key}"
+											on:click|stopPropagation|preventDefault={() =>
+												goto(`${base}/entity?type=${key}s&id=${data[key].id}`)}
+										>
+											<p class="dark:text-blue-500 text-blue-700">{data[key].id}</p>
+										</div>
+									</a>
 									<!-- </a> -->
 								{:else if typeof data[key] == 'object' && data[key] != null}
 									<div class="cursor-pointer">

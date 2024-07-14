@@ -1,50 +1,93 @@
-<script>
+<script lang="ts">
 	import DarkToggle from './DarkToggle.svelte';
 	import { page } from '$app/stores';
 
-	let items = [
+	type HeaderItem = {
+		name: string;
+		appPath: string;
+	};
+	let items: HeaderItem[] = [
 		{
 			name: 'profile',
-			path: '/profile'
+			appPath: '/profile'
 		},
 		{
 			name: 'overview',
-			path: '/'
+			appPath: '/'
+		}
+	];
+	let itemsEnd: HeaderItem[] = [
+		{
+			name: 'settings',
+			appPath: '/settings'
 		}
 	];
 	import { onMount } from 'svelte';
 	import { kongEntities } from '$lib/config';
 	import { staticConfig } from '$lib/config';
 	import { capitalizeFirstLetter } from '$lib/util';
+	import { base } from '$app/paths';
+	import { userToken } from '$lib/stores';
+
+	let mounted = false;
+
+	$: $page, triggerLoad();
+
+	function triggerLoad() {
+		items = items;
+	}
+	function isCurrentPage(item: HeaderItem) {
+		if (!mounted) return false;
+
+		if (!window) return false;
+		return (
+			window.location.pathname == item.appPath || window.location.search.includes(`=${item.name}`)
+		);
+	}
 
 	onMount(() => {
+		mounted = true;
 		const entities = kongEntities.map((i) => {
-			return { name: i.name, path: `/${i.name.toLowerCase()}` };
+			return { name: i.name, appPath: `/entities?type=${i.name.toLowerCase()}` };
 		});
-		items = [...items, ...entities];
+		items = [...items, ...entities, ...itemsEnd];
 	});
 </script>
 
 <header
-	class="flex flex-col border-r-[1px] dark:border-slate-800 p-4 pt-10 bg-slate-100 dark:bg-gray-900"
+	class="flex flex-col border-r-[1px] dark:border-slate-800 p-4 pt-10 bg-slate-100 dark:bg-gray-900 rounded-r-xl"
 >
 	<div class="flex flex-row items-center min-w-[200px]">
 		<DarkToggle div_class="" />
 		<h1 class="font-medium text-2xl">{staticConfig.name}</h1>
-		<!-- <DarkMode /> -->
 	</div>
 
 	<nav class="text-2xl text-slate-400">
 		<ul class="flex flex-col">
 			{#each items as item}
-				<li
-					class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {$page.url.pathname ===
-					item.path
-						? 'dark:text-slate-50 text-slate-700'
-						: ''}"
-				>
-					<a href={item.path}>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a>
-				</li>
+				{#if item.name == 'profile'}
+					{#if $userToken}
+						<li
+							class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {isCurrentPage(item)
+								? 'dark:text-slate-50 text-slate-700'
+								: ''}"
+						>
+							<a href="{base}{item.appPath}"
+								>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a
+							>
+						</li>
+					{/if}
+				{:else}
+					<li
+						class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {isCurrentPage(item)
+							? 'dark:text-slate-50 text-slate-700'
+							: ''}"
+					>
+						<a href="{base}{item.appPath}"
+							>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a
+						>
+					</li>
+				{/if}
 			{/each}
 		</ul>
 	</nav>

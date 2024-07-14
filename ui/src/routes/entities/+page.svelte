@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { IKongEntity } from '$lib/types.ts';
 	import { CirclePlusOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
 	import { Button } from 'flowbite-svelte';
@@ -10,17 +11,28 @@
 	import { page } from '$app/stores';
 	import { kongEntities } from '$lib/config';
 	import { capitalizeFirstLetter } from '$lib/util';
+	import { base } from '$app/paths';
 
 	let data: any | undefined;
-	let entity: string | undefined;
+	let entity: string;
+	let kongEntity: IKongEntity | undefined;
+	let isMounted = false;
 
 	$: $page, load();
 
+	onMount(() => {
+		isMounted = true;
+		load();
+	});
+
 	async function load() {
+		if (!isMounted) {
+			return;
+		}
 		data = undefined;
-		entity = $page.params.slug;
+		entity = new URLSearchParams(window.location.search).get('type') ?? 'none';
 		try {
-			const kongEntity = kongEntities.find((i) => i.name == entity);
+			kongEntity = kongEntities.find((i) => i.name == entity);
 			if (!kongEntity) {
 				return;
 			}
@@ -47,10 +59,10 @@
 		class="h-8 w-20 border-slate-300"
 		color="alternative"
 		on:click={() => {
-			goto(`/add/${entity}`);
+			goto(`${base}/add?type=${entity}`);
 		}}
 	>
-		<a href="/add/{entity}">
+		<a href="{base}/add?type={entity}">
 			<div class="flex flex-row items-center">
 				<CirclePlusOutline class="m-2" />
 				add
@@ -62,8 +74,8 @@
 	<ArrayWrap
 		displayedFields={kongEntities.find((item) => item.name == entity)?.displayedFields}
 		{data}
-		pathField="id"
-		itemPath="/{entity}/id"
+		type={entity}
+		entity={kongEntity}
 		on:refresh={async () => await load()}
 	></ArrayWrap>
 {:else}

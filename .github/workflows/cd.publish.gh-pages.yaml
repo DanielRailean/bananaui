@@ -1,0 +1,32 @@
+name: '[CD] DeployPages'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+
+jobs:
+  publish:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: yarn install
+        working-directory: ui
+        run: yarn
+
+      - name: build
+        working-directory: ui
+        env:
+          SVELTE_BUILD_STATIC: true
+        run: yarn build
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ui/build

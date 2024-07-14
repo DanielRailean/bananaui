@@ -5,6 +5,7 @@ import { delay } from './util';
 import type { IEntityBase, IPaginationRes } from './types';
 import type { IRootRes, IResCreateError, ISchemaRes, IPluginConfig } from './responseTypes';
 import { paginationSize } from './config';
+import { base } from '$app/paths';
 
 function request(
 	url: string,
@@ -188,13 +189,13 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 		return apiInstance;
 	}
 	const token = get(userToken);
-	const conf = get(config);
+	const conf = get(config)?.config;
 	if (!conf) {
 		await delay(200);
 		return await apiService(retryNo ? retryNo + 1 : 0);
 	}
 	if (!token && conf.auth.enabled) {
-		goto('/login');
+		goto(`${base}/login`);
 		throw new Error('no token');
 	}
 	apiInstance = new ApiService(conf.kongApi.endpoint, token, conf.kongApi.requestHeaders);

@@ -2,8 +2,8 @@
 	import { isDark } from '$lib/stores';
 	import { onMount } from 'svelte';
 	export let div_class = '';
-	import { SunOutline, MoonOutline } from 'flowbite-svelte-icons';
 	let value = -1;
+	import logo from '$lib/assets/favicon.png';
 
 	const handleDark = () => {
 		if (!localStorage.theme) {
@@ -79,5 +79,5 @@
 </script>
 
 <div class="cursor-pointer {div_class}" title="toggle dark mode" on:click={handleClick}>
-	<img src="/favicon.png" alt="bananaui logo" class="w-10 h-10 m-4 {$isDark ? 'invert' : ''}" />
+	<img src={logo} alt="bananaui logo" class="w-10 h-10 m-4 {$isDark ? 'invert' : ''}" />
 </div>

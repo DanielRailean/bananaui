@@ -11,19 +11,21 @@ export const dateFields = ['created_at', 'updated_at'];
 export const kongEntities: IKongEntity[] = [
 	{
 		name: 'services',
-		displayedFields: ['name', 'host', 'port', 'path', 'enabled', 'created_at'],
+		displayedFields: ['name', 'host', 'port', 'path', 'enabled', 'updated_at'],
 		apiPath: 'services',
-		subEntities: ['routes', 'plugins']
+		subEntities: ['routes', 'plugins'],
+		sortBy: 'updated_at',
+		sortAscending: false
 	},
 	{
 		name: 'routes',
-		displayedFields: ['name', 'paths', 'methods', 'service', 'created_at'],
+		displayedFields: ['name', 'paths', 'methods', 'service', 'updated_at'],
 		apiPath: 'routes',
 		subEntities: ['plugins']
 	},
 	{
 		name: 'plugins',
-		displayedFields: ['name', 'service', 'route', 'created_at'],
+		displayedFields: ['name', 'service', 'route', 'updated_at'],
 		apiPath: 'plugins'
 	},
 	{ name: 'keys', displayedFields: ['name', 'kid', 'updated_at'], apiPath: 'keys' },
@@ -36,3 +38,14 @@ export const kongEntities: IKongEntity[] = [
 	{ name: 'snis', displayedFields: [], apiPath: 'snis' },
 	{ name: 'dataplanes', displayedFields: [], apiPath: 'clustering/data-planes' }
 ];
+
+export const preferences = {
+	copyElementOnSingleElementArray: {
+		type: 'boolean',
+		default: true
+	},
+	showSelfLinkOnSubEntities: {
+		type: 'boolean',
+		default: false
+	}
+};

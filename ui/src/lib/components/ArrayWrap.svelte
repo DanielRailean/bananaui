@@ -4,23 +4,20 @@
 	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import { DateTime } from 'luxon';
-	import {
-		CirclePlusOutline,
-		FileCopyOutline,
-		LinkOutline,
-		TrashBinOutline
-	} from 'flowbite-svelte-icons';
+	import { FileCopyOutline, LinkOutline, TrashBinOutline } from 'flowbite-svelte-icons';
 	import { dateFields, kongEntities } from '$lib/config';
 	import { apiService } from '$lib/requests';
 	import { addToast } from '$lib/stores';
 	import { createEventDispatcher } from 'svelte';
+	import type { IKongEntity } from '$lib/types';
+	import { base } from '$app/paths';
 
 	const dispatch = createEventDispatcher();
 
 	export let data: any[];
 	export let displayedFields: any;
-	export let itemPath: string;
-	export let pathField: string;
+	export let type: string;
+	export let entity: IKongEntity | undefined = undefined;
 
 	let searchText = '';
 	let filteredData: any[];
@@ -34,11 +31,20 @@
 	}
 
 	onMount(() => {
-		// console.log(data);
 		if (!displayedFields || displayedFields.length == 0) {
 			displayedFields = Object.keys(data[0]);
 		}
-		filteredData = data;
+		filteredData = data.sort((a, b) => {
+			if (entity && entity.sortBy) {
+				const sortKey = entity.sortBy;
+				if (entity.sortAscending === true) {
+					return (a[sortKey] - b[sortKey]) as number;
+				} else {
+					return (b[sortKey] - a[sortKey]) as number;
+				}
+			}
+			return b.updated_at - a.updated_at;
+		});
 	});
 
 	function search() {
@@ -49,12 +55,12 @@
 			JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
 		);
 	}
-	async function deleteEntity(path: string, name: string) {
+	async function deleteEntity(type: string, id: string, name: string) {
 		const conf = confirm(`Please confirm deletion of '${name}'`);
 		if (!conf) {
 			return;
 		}
-		const res = await (await apiService()).request(path, 'DELETE');
+		const res = await (await apiService()).deleteRecord(type, id);
 		if (!res.ok) {
 			addToast({ message: `failed to delete. ${res.err}` });
 		} else {
@@ -105,7 +111,7 @@
 								</div>
 							</Button>
 							<Button title="open" class="h-8 p-2" color="alternative">
-								<a href={itemPath.replace(pathField, item[pathField])} class="text-emerald-600">
+								<a href="{base}/entity?type={type}&id={item.id}" class="text-emerald-600">
 									<div class="flex flex-row items-center">
 										<LinkOutline class="m-1" />
 									</div>
@@ -116,10 +122,7 @@
 								title="delete"
 								color="alternative"
 								on:click={async () =>
-									await deleteEntity(
-										`${itemPath.replace(pathField, item[pathField])}`,
-										item.name ?? item.id
-									)}
+									await deleteEntity(entity?.name ?? '', item.id, item.name ?? item.id)}
 							>
 								<div class="text-rose-500">
 									<div class="flex flex-row items-center">
@@ -156,11 +159,16 @@
 											{/if}
 										{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
 											<!-- svelte-ignore a11y-no-static-element-interactions -->
-											<div class="" on:click={() => goto(`/${field}s/${item[field].id}`)}>
-												<a title="open" href="/{field}s/{item[field].id}">
+											<a
+												on:click|preventDefault={() =>
+													goto(`${base}/entity?type=${field}s&id=${item[field].id}`)}
+												title="open {field}"
+												href="{base}/entity?type={field}s&id={item[field].id}"
+											>
+												<div>
 													<p class="dark:text-blue-500 text-blue-700">{item[field].id}</p>
-												</a>
-											</div>
+												</div>
+											</a>
 										{:else}
 											{JSON.stringify(item[field], undefined, 2)}
 										{/if}
