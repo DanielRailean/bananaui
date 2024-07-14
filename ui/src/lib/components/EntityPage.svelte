@@ -186,14 +186,14 @@
 								color="alternative"
 								on:click={() => {
 									goto(
-										`${base}/add?type=${subEntity.name}?apiPostPath=${btoa(
+										`${base}/add?type=${subEntity.name}&apiPostPath=${btoa(
 											subEntity.entitySubPath
 										)}`
 									);
 								}}
 							>
 								<a
-									href="{base}/add?type={subEntity.name}?apiPostPath={btoa(
+									href="{base}/add?type={subEntity.name}&apiPostPath={btoa(
 										subEntity.entitySubPath
 									)}"
 								>
@@ -208,7 +208,10 @@
 					{#if subEntity.data && subEntity.data.length > 0}
 						<ArrayWrap
 							data={subEntity.data}
-							displayedFields={subEntity.displayedFields}
+							displayedFields={subEntity.displayedFields.filter(field => {
+								// this removes the link to self
+								return field+"s" != entityType
+							})}
 							type={subEntity.name}
 							entity={subEntity}
 							on:refresh={async () => await load()}

@@ -27,6 +27,7 @@
 	import { staticConfig } from '$lib/config';
 	import { capitalizeFirstLetter } from '$lib/util';
 	import { base } from '$app/paths';
+	import { userToken } from '$lib/stores';
 
 	let mounted = false;
 
@@ -64,13 +65,29 @@
 	<nav class="text-2xl text-slate-400">
 		<ul class="flex flex-col">
 			{#each items as item}
-				<li
-					class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {isCurrentPage(item)
-						? 'dark:text-slate-50 text-slate-700'
-						: ''}"
-				>
-					<a href="{base}{item.appPath}">{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a>
-				</li>
+				{#if item.name == 'profile'}
+					{#if $userToken}
+						<li
+							class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {isCurrentPage(item)
+								? 'dark:text-slate-50 text-slate-700'
+								: ''}"
+						>
+							<a href="{base}{item.appPath}"
+								>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a
+							>
+						</li>
+					{/if}
+				{:else}
+					<li
+						class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {isCurrentPage(item)
+							? 'dark:text-slate-50 text-slate-700'
+							: ''}"
+					>
+						<a href="{base}{item.appPath}"
+							>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a
+						>
+					</li>
+				{/if}
 			{/each}
 		</ul>
 	</nav>

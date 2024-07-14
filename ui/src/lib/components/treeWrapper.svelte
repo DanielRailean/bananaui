@@ -4,6 +4,7 @@
 	import { writeToClipboard } from '$lib/util';
 	import JSONTree from 'svelte-json-tree';
 	import { DateTime } from 'luxon';
+	import { base } from '$app/paths';
 	export let data: any;
 	export let expandLevel = 0;
 	export let allowCopy = true;
@@ -56,7 +57,7 @@
 									<!-- svelte-ignore a11y-no-static-element-interactions -->
 									<div
 										class=""
-										on:click|stopPropagation={() => goto(`${base}/${key}s/${data[key].id}`)}
+										on:click|stopPropagation={() => goto(`${base}/entity?type=${key}s&id=${data[key].id}`)}
 									>
 										<p class="dark:text-blue-500 text-blue-700">{data[key].id}</p>
 									</div>

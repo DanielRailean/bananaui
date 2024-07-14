@@ -102,7 +102,7 @@
 				return;
 			}
 			if (res.data.id) {
-				goto(`${base}/${entityKindToAdd}/${res.data.id}`);
+				goto(`${base}/entities?type=${entityKindToAdd}&id=${res.data.id}`);
 			}
 		} catch (error: any) {
 			const err = error.response.data as any as Error;

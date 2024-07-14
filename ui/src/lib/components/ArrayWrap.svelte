@@ -159,11 +159,8 @@
 											{/if}
 										{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
 											<!-- svelte-ignore a11y-no-static-element-interactions -->
-											<div
-												class=""
-												on:click={() => goto(`${base}/entity?type=${field}s&id=${item[field].id}`)}
-											>
-												<a title="open" href="{base}/entity?type={field}s&id={item[field].id}">
+											<div>
+												<a on:click|stopPropagation title="open" href="{base}/entity?type={field}s&id={item[field].id}">
 													<p class="dark:text-blue-500 text-blue-700">{item[field].id}</p>
 												</a>
 											</div>
