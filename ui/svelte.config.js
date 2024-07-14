@@ -1,5 +1,5 @@
 import adapter from '@sveltejs/adapter-node';
-import * as staticAd from "@sveltejs/adapter-static"
+import * as staticAd from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -16,9 +16,7 @@ let config = {
 	}
 };
 
-
-if(process.env.SVELTE_BUILD_STATIC === "true")
-{
+if (process.env.SVELTE_BUILD_STATIC === 'true') {
 	config = {
 		preprocess: vitePreprocess(),
 		kit: {
@@ -32,7 +30,7 @@ if(process.env.SVELTE_BUILD_STATIC === "true")
 				strict: false
 			})
 		}
-	};	
+	};
 }
 
 export default config;

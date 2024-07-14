@@ -14,7 +14,7 @@ export const kongEntities: IKongEntity[] = [
 		displayedFields: ['name', 'host', 'port', 'path', 'enabled', 'updated_at'],
 		apiPath: 'services',
 		subEntities: ['routes', 'plugins'],
-		sortBy: "updated_at",
+		sortBy: 'updated_at',
 		sortAscending: false
 	},
 	{

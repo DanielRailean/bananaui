@@ -37,22 +37,21 @@
 
 	$: $page, load();
 
-	let isMounted = false
+	let isMounted = false;
 
-	onMount(()=>{
-		isMounted = true
-		load()
-	})
+	onMount(() => {
+		isMounted = true;
+		load();
+	});
 
 	async function load() {
-		if(!isMounted)
-		{
-			return
+		if (!isMounted) {
+			return;
 		}
 		data = undefined;
-		const searchParams = new URLSearchParams(window.location.search)
-		entityType = searchParams.get("type") ?? "none";
-		id = searchParams.get('id') ?? "none";
+		const searchParams = new URLSearchParams(window.location.search);
+		entityType = searchParams.get('type') ?? 'none';
+		id = searchParams.get('id') ?? 'none';
 		{
 			data = undefined;
 			const res = await (await apiService()).findRecord(entityType, id);
@@ -81,7 +80,7 @@
 		}
 	}
 
-	async function deleteEntity(type:string, id: string, name: string) {
+	async function deleteEntity(type: string, id: string, name: string) {
 		const conf = confirm(`Please confirm deletion of '${name}'`);
 		if (!conf) {
 			return;

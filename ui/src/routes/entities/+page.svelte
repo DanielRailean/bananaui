@@ -14,24 +14,22 @@
 
 	let data: any | undefined;
 	let entity: string;
-	let kongEntity: IKongEntity | undefined
-	let isMounted = false
+	let kongEntity: IKongEntity | undefined;
+	let isMounted = false;
 
 	$: $page, load();
 
-
-	onMount(()=>{
-		isMounted = true
-		load()
-	})
+	onMount(() => {
+		isMounted = true;
+		load();
+	});
 
 	async function load() {
-		if(!isMounted)
-		{
-			return
+		if (!isMounted) {
+			return;
 		}
 		data = undefined;
-		entity = new URLSearchParams(window.location.search).get('type') ?? "none";
+		entity = new URLSearchParams(window.location.search).get('type') ?? 'none';
 		try {
 			kongEntity = kongEntities.find((i) => i.name == entity);
 			if (!kongEntity) {

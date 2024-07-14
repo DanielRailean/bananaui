@@ -8,7 +8,7 @@
 	let source = '';
 
 	function getLoginUrl() {
-		const oidcConfig = $config?.config.oidc
+		const oidcConfig = $config?.config.oidc;
 		if (!oidcConfig) {
 			alert('config not loaded');
 			throw new Error('no config loaded');
@@ -21,8 +21,8 @@
 	}
 
 	onMount(async () => {
-		const searchParams = new URLSearchParams(window.location.search)
-		const sourceParam = searchParams.get("source")
+		const searchParams = new URLSearchParams(window.location.search);
+		const sourceParam = searchParams.get('source');
 		if (sourceParam) {
 			source = sourceParam;
 		}

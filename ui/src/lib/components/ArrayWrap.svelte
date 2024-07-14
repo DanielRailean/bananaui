@@ -4,11 +4,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import { DateTime } from 'luxon';
-	import {
-		FileCopyOutline,
-		LinkOutline,
-		TrashBinOutline
-	} from 'flowbite-svelte-icons';
+	import { FileCopyOutline, LinkOutline, TrashBinOutline } from 'flowbite-svelte-icons';
 	import { dateFields, kongEntities } from '$lib/config';
 	import { apiService } from '$lib/requests';
 	import { addToast } from '$lib/stores';
@@ -46,7 +42,7 @@
 					return (b[sortKey] - a[sortKey]) as number;
 				}
 			}
-			return b.updated_at - a.updated_at
+			return b.updated_at - a.updated_at;
 		});
 	});
 
@@ -58,7 +54,7 @@
 			JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
 		);
 	}
-	async function deleteEntity(type:string, id: string, name: string) {
+	async function deleteEntity(type: string, id: string, name: string) {
 		const conf = confirm(`Please confirm deletion of '${name}'`);
 		if (!conf) {
 			return;
@@ -114,7 +110,7 @@
 								</div>
 							</Button>
 							<Button title="open" class="h-8 p-2" color="alternative">
-								<a href={`/entity?type=${type}`+`&id=${item.id}`} class="text-emerald-600">
+								<a href={`/entity?type=${type}` + `&id=${item.id}`} class="text-emerald-600">
 									<div class="flex flex-row items-center">
 										<LinkOutline class="m-1" />
 									</div>
@@ -125,11 +121,7 @@
 								title="delete"
 								color="alternative"
 								on:click={async () =>
-									await deleteEntity(
-										entity?.name ?? "",
-										item.id,
-										item.name ?? item.id
-									)}
+									await deleteEntity(entity?.name ?? '', item.id, item.name ?? item.id)}
 							>
 								<div class="text-rose-500">
 									<div class="flex flex-row items-center">
@@ -166,7 +158,10 @@
 											{/if}
 										{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
 											<!-- svelte-ignore a11y-no-static-element-interactions -->
-											<div class="" on:click={() => goto(`/entity?type=${field}s&id=${item[field].id}`)}>
+											<div
+												class=""
+												on:click={() => goto(`/entity?type=${field}s&id=${item[field].id}`)}
+											>
 												<a title="open" href="/entity?type={field}s&id={item[field].id}">
 													<p class="dark:text-blue-500 text-blue-700">{item[field].id}</p>
 												</a>

@@ -32,5 +32,5 @@ export const dismissToast = (id: number) => {
 	toasts.update((all) => all.filter((t) => t.id !== id));
 };
 
-export const errorToast = (message: string) => addToast({message, type: "error"})
-export const infoToast = (message: string) => addToast({message, type: "info"})
+export const errorToast = (message: string) => addToast({ message, type: 'error' });
+export const infoToast = (message: string) => addToast({ message, type: 'info' });

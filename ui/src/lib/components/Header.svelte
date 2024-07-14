@@ -3,10 +3,10 @@
 	import { page } from '$app/stores';
 
 	type HeaderItem = {
-		name: string,
-		appPath: string
-	}
-	let items: HeaderItem[]= [
+		name: string;
+		appPath: string;
+	};
+	let items: HeaderItem[] = [
 		{
 			name: 'profile',
 			appPath: '/profile'
@@ -16,38 +16,39 @@
 			appPath: '/'
 		}
 	];
-	let itemsEnd: HeaderItem [] = [
+	let itemsEnd: HeaderItem[] = [
 		{
 			name: 'settings',
 			appPath: '/settings'
 		}
-	]
+	];
 	import { onMount } from 'svelte';
 	import { kongEntities } from '$lib/config';
 	import { staticConfig } from '$lib/config';
 	import { capitalizeFirstLetter } from '$lib/util';
 
-	let mounted = false
+	let mounted = false;
 
 	$: $page, triggerLoad();
 
-	function triggerLoad()
-	{
-		items = items
+	function triggerLoad() {
+		items = items;
 	}
-	function isCurrentPage (item: HeaderItem){
-		if(!mounted) return false
-		
-		if(!window) return false;
-		return window.location.pathname == item.appPath || window.location.search.includes(`=${item.name}`)
+	function isCurrentPage(item: HeaderItem) {
+		if (!mounted) return false;
+
+		if (!window) return false;
+		return (
+			window.location.pathname == item.appPath || window.location.search.includes(`=${item.name}`)
+		);
 	}
 
 	onMount(() => {
-		mounted = true
+		mounted = true;
 		const entities = kongEntities.map((i) => {
 			return { name: i.name, appPath: `/entities?type=${i.name.toLowerCase()}` };
 		});
-		items = [...items, ...entities, ... itemsEnd];
+		items = [...items, ...entities, ...itemsEnd];
 	});
 </script>
 
@@ -63,8 +64,7 @@
 		<ul class="flex flex-col">
 			{#each items as item}
 				<li
-					class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {
-					isCurrentPage(item)
+					class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {isCurrentPage(item)
 						? 'dark:text-slate-50 text-slate-700'
 						: ''}"
 				>

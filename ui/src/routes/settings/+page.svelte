@@ -23,11 +23,10 @@
 	let editableConfig = '';
 
 	onMount(async () => {
-    while($config == undefined)
-    {
-      await delay(100)
-    }
-		if ($config && $config.source == "remote") {
+		while ($config == undefined) {
+			await delay(100);
+		}
+		if ($config && $config.source == 'remote') {
 			goto('/');
 		}
 		const localSettings = localStorage.getItem(LOCALSTORAGE_CONFIG_KEY);

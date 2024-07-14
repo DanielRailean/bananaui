@@ -41,8 +41,8 @@ export interface IConfig {
 }
 
 export interface IConfigWrap {
-	config: IConfig,
-	source: "local" | "remote"
+	config: IConfig;
+	source: 'local' | 'remote';
 }
 
 export interface IOidc {
@@ -66,7 +66,7 @@ export interface IKongEntity {
 	name: string;
 	apiPath: string;
 	sortBy?: string;
-	sortAscending?: boolean
+	sortAscending?: boolean;
 	displayedFields: string[];
 	defaultJson?: string;
 	subEntities?: string[];
