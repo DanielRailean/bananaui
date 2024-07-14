@@ -10,8 +10,7 @@
 
 	const defaultConfig: IConfig = {
 		auth: {
-			enabled: false,
-			autoLogin: false
+			enabled: false
 		},
 		kongApi: {
 			endpoint: 'http://localhost:8001',
