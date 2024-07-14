@@ -148,10 +148,10 @@
 				format and validate JSON
 			</Button>
 			<Button class="ml-3" color="alternative">
-				<a href="https://docs.konghq.com/gateway/3.7.x/admin-api/">
+				<a target="_blank" href="https://docs.konghq.com/gateway/3.7.x/admin-api/">
 					<div class="flex flex-row items-center">
 						<LinkOutline class="m-2" />
-						Open Admin API Docs
+						Open Admin API Docs in new tab
 					</div>
 				</a>
 			</Button>
@@ -173,8 +173,14 @@
 {/if}
 
 <textarea class="dark:bg-slate-900 w-full min-h-[30vh]" bind:value={json}></textarea>
-<TreeWrapper data={testSchema} expandLevel={0} allowCopy={false} allowKeyCopy={true} />
 {#if pluginSchema}
-	<h2 class="m-4">Configuration parameters:</h2>
+	<h2 class="text-xl m-4">plugin 'config' fields:</h2>
 	<TreeWrapper data={pluginSchema} expandLevel={0} allowCopy={false} allowKeyCopy={true} />
 {/if}
+<br />
+{#if entityKindToAdd}
+	<h2 class="text-xl mx-4 mb-4">
+		{entityKindToAdd.substring(0, entityKindToAdd.length - 1)} schema
+	</h2>
+{/if}
+<TreeWrapper data={testSchema} expandLevel={0} allowCopy={false} allowKeyCopy={true} />

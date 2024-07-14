@@ -208,9 +208,9 @@
 					{#if subEntity.data && subEntity.data.length > 0}
 						<ArrayWrap
 							data={subEntity.data}
-							displayedFields={subEntity.displayedFields.filter(field => {
+							displayedFields={subEntity.displayedFields.filter((field) => {
 								// this removes the link to self
-								return field+"s" != entityType
+								return field + 's' != entityType;
 							})}
 							type={subEntity.name}
 							entity={subEntity}

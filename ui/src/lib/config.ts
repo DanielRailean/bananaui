@@ -38,3 +38,14 @@ export const kongEntities: IKongEntity[] = [
 	{ name: 'snis', displayedFields: [], apiPath: 'snis' },
 	{ name: 'dataplanes', displayedFields: [], apiPath: 'clustering/data-planes' }
 ];
+
+export const preferences = {
+	copyElementOnSingleElementArray: {
+		type: 'boolean',
+		default: true
+	},
+	showSelfLinkOnSubEntities: {
+		type: 'boolean',
+		default: false
+	}
+};
