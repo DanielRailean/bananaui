@@ -52,6 +52,7 @@ jobs:
 
           git add --force ui/build
           git commit -m "Automated publish"
+      - run: git push -f origin `git subtree add -P pages`:refs/heads/pages
 
       - name: Push the build output to github pages
         shell: bash
