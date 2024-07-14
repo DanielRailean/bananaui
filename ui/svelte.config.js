@@ -28,7 +28,11 @@ if (process.env.SVELTE_BUILD_STATIC === 'true') {
 				// fallback: "index.html",
 				precompress: false,
 				strict: false
-			})
+			}),
+			paths: {
+				base: '/bananaui',
+				relative: true
+			}
 		}
 	};
 }
