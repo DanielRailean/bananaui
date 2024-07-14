@@ -55,13 +55,16 @@
 								{#if data[key] && Object.keys(data[key]).includes('id') && kongEntities.find((i) => i.apiPath == `${key}s`)}
 									<!-- svelte-ignore a11y-click-events-have-key-events -->
 									<!-- svelte-ignore a11y-no-static-element-interactions -->
-									<div
-										class=""
-										on:click|stopPropagation={() =>
-											goto(`${base}/entity?type=${key}s&id=${data[key].id}`)}
-									>
-										<p class="dark:text-blue-500 text-blue-700">{data[key].id}</p>
-									</div>
+									<a href="{base}/entity?type={key}s&id={data[key].id}" on:click|preventDefault>
+										<div
+											class=""
+											title="open {key}"
+											on:click|stopPropagation|preventDefault={() =>
+												goto(`${base}/entity?type=${key}s&id=${data[key].id}`)}
+										>
+											<p class="dark:text-blue-500 text-blue-700">{data[key].id}</p>
+										</div>
+									</a>
 									<!-- </a> -->
 								{:else if typeof data[key] == 'object' && data[key] != null}
 									<div class="cursor-pointer">
