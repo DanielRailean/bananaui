@@ -50,7 +50,7 @@ jobs:
           # which Github Pages depends on. So we use a normal filename here.
           date > ui/build/publish_date.txt
 
-          git add --force pages
+          git add --force ui/build
           git commit -m "Automated publish"
 
       - name: Push the build output to github pages
@@ -60,4 +60,4 @@ jobs:
         # so that there is even a 3rd-party github action to do that
         # (https://github.com/marketplace/actions/conditional-value-for-github-action)
         # But that seems like an overkill. So, we'd use "if" in bash instead.
-        run: git push -f origin `git subtree split -P ui/build`:refs/heads/ui/build
+        run: git push -f origin `git subtree split -P pages`:refs/heads/pages
