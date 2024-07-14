@@ -3,7 +3,7 @@ import type { IConfig, IConfigWrap, IToast } from './types';
 
 export const isDark = writable(0);
 export const userToken: Writable<string | undefined> = writable(undefined);
-export const config: Writable<IConfigWrap | undefined> = writable(undefined);
+export const config: Writable<IConfigWrap | undefined | null> = writable(undefined);
 
 export const toasts: Writable<any[]> = writable([]);
 

@@ -19,6 +19,7 @@
 	} from 'flowbite-svelte-icons';
 	import { kongEntities } from '$lib/config';
 	import type { IKongEntity } from '$lib/types';
+	import { base } from '$app/paths';
 
 	let stateJson = '';
 	let json = '';
@@ -90,7 +91,7 @@
 			addToast({ message: `failed to delete. ${res.err}` });
 		} else {
 			addToast({ message: `ok`, type: `info` });
-			goto(`/entities?type=${entityType}`);
+			goto(`${base}/entities?type=${entityType}`);
 		}
 	}
 
@@ -184,10 +185,18 @@
 							<Button
 								color="alternative"
 								on:click={() => {
-									goto(`/add?type=${subEntity.name}?apiPostPath=${btoa(subEntity.entitySubPath)}`);
+									goto(
+										`${base}/add?type=${subEntity.name}?apiPostPath=${btoa(
+											subEntity.entitySubPath
+										)}`
+									);
 								}}
 							>
-								<a href="/add?type={subEntity.name}?apiPostPath={btoa(subEntity.entitySubPath)}">
+								<a
+									href="{base}/add?type={subEntity.name}?apiPostPath={btoa(
+										subEntity.entitySubPath
+									)}"
+								>
 									<div class="flex flex-row items-center">
 										<CirclePlusOutline class="m-2" />
 										add

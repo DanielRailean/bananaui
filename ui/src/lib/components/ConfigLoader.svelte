@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
 	import { addToast, config, infoToast } from '$lib/stores';
 	import type { IConfig } from '$lib/types';
 	import { delay, getLocalStorageConfig } from '$lib/util';
@@ -13,6 +14,7 @@
 				config.set({ config: appConfig, source: 'remote' });
 			}
 		} else {
+			config.set(null);
 			// addToast({message: "failed to fetch a default config, trying a local one!"})
 			const localConfig = getLocalStorageConfig();
 			if (localConfig) {
@@ -21,7 +23,7 @@
 			} else {
 				await delay(1000);
 				infoToast('app config not found, please create one to use the app!');
-				goto('/settings');
+				goto(`${base}/settings`);
 			}
 		}
 	});

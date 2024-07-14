@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
 
 	let mounted = false;
 
@@ -14,7 +15,7 @@
 		if (token) {
 			userToken.set(token);
 			if (state) {
-				goto(state);
+				goto(base + state);
 			}
 		}
 	});

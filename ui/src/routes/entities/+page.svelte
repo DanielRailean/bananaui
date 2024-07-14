@@ -11,6 +11,7 @@
 	import { page } from '$app/stores';
 	import { kongEntities } from '$lib/config';
 	import { capitalizeFirstLetter } from '$lib/util';
+	import { base } from '$app/paths';
 
 	let data: any | undefined;
 	let entity: string;
@@ -58,10 +59,10 @@
 		class="h-8 w-20 border-slate-300"
 		color="alternative"
 		on:click={() => {
-			goto(`/add?type=${entity}`);
+			goto(`${base}/add?type=${entity}`);
 		}}
 	>
-		<a href="/add?type={entity}">
+		<a href="{base}/add?type={entity}">
 			<div class="flex flex-row items-center">
 				<CirclePlusOutline class="m-2" />
 				add

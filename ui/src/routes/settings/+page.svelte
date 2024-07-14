@@ -6,6 +6,7 @@
 	import { Button } from 'flowbite-svelte';
 	import type { IConfig } from '$lib/types.ts';
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
 
 	const defaultConfig: IConfig = {
 		auth: {
@@ -23,11 +24,12 @@
 	let editableConfig = '';
 
 	onMount(async () => {
-		while ($config == undefined) {
-			await delay(100);
+		while ($config === undefined) {
+			await delay(50);
 		}
 		if ($config && $config.source == 'remote') {
-			goto('/');
+			goto(base);
+			return;
 		}
 		const localSettings = localStorage.getItem(LOCALSTORAGE_CONFIG_KEY);
 		if (localSettings) {
@@ -57,7 +59,7 @@
 	}
 	function writeConfig() {
 		localStorage.setItem(LOCALSTORAGE_CONFIG_KEY, editableConfig);
-		config.set(JSON.parse(editableConfig));
+		config.set({ config: JSON.parse(editableConfig), source: 'local' });
 		addToast({ message: 'config successfully created!', type: 'info' });
 	}
 </script>

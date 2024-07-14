@@ -161,9 +161,9 @@
 											<!-- svelte-ignore a11y-no-static-element-interactions -->
 											<div
 												class=""
-												on:click={() => goto(`/entity?type=${field}s&id=${item[field].id}`)}
+												on:click={() => goto(`${base}/entity?type=${field}s&id=${item[field].id}`)}
 											>
-												<a title="open" href="/entity?type={field}s&id={item[field].id}">
+												<a title="open" href="{base}/entity?type={field}s&id={item[field].id}">
 													<p class="dark:text-blue-500 text-blue-700">{item[field].id}</p>
 												</a>
 											</div>

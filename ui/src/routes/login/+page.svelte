@@ -6,7 +6,6 @@
 	import { onMount } from 'svelte';
 	import logo from '$lib/assets/favicon.png';
 
-
 	let source = '';
 
 	function getLoginUrl() {

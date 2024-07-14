@@ -11,6 +11,7 @@
 	import { Button, Label, Select } from 'flowbite-svelte';
 	import { addToast } from '$lib/stores';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
+	import { base } from '$app/paths';
 
 	let entityKindToAdd: string;
 
@@ -101,7 +102,7 @@
 				return;
 			}
 			if (res.data.id) {
-				goto(`/${entityKindToAdd}/${res.data.id}`);
+				goto(`${base}/${entityKindToAdd}/${res.data.id}`);
 			}
 		} catch (error: any) {
 			const err = error.response.data as any as Error;

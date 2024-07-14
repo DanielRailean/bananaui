@@ -26,6 +26,7 @@
 	import { kongEntities } from '$lib/config';
 	import { staticConfig } from '$lib/config';
 	import { capitalizeFirstLetter } from '$lib/util';
+	import { base } from '$app/paths';
 
 	let mounted = false;
 
@@ -68,7 +69,7 @@
 						? 'dark:text-slate-50 text-slate-700'
 						: ''}"
 				>
-					<a href={item.appPath}>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a>
+					<a href="{base}{item.appPath}">{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a>
 				</li>
 			{/each}
 		</ul>
