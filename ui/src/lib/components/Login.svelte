@@ -6,7 +6,7 @@
 
 	onMount(() => {
 		config.subscribe((v) => {
-			if (v && v.auth.enabled && !$userToken) {
+			if (v && v.config.auth.enabled && !$userToken) {
 				const path = $page.url.pathname;
 				if (path != '/login') goto(`/login?source=${path}`);
 			}

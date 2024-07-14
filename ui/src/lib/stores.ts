@@ -1,9 +1,9 @@
 import { writable, type Writable } from 'svelte/store';
-import type { IConfig, IToast } from './types';
+import type { IConfig, IConfigWrap, IToast } from './types';
 
 export const isDark = writable(0);
 export const userToken: Writable<string | undefined> = writable(undefined);
-export const config: Writable<IConfig | undefined> = writable(undefined);
+export const config: Writable<IConfigWrap | undefined> = writable(undefined);
 
 export const toasts: Writable<any[]> = writable([]);
 
@@ -31,3 +31,6 @@ export const addToast = (toast: IToast) => {
 export const dismissToast = (id: number) => {
 	toasts.update((all) => all.filter((t) => t.id !== id));
 };
+
+export const errorToast = (message: string) => addToast({message, type: "error"})
+export const infoToast = (message: string) => addToast({message, type: "info"})

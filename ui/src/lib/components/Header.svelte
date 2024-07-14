@@ -12,6 +12,12 @@
 			appPath: '/'
 		}
 	];
+	let itemsEnd = [
+		{
+			name: 'settings',
+			appPath: '/settings'
+		}
+	]
 	import { onMount } from 'svelte';
 	import { kongEntities } from '$lib/config';
 	import { staticConfig } from '$lib/config';
@@ -21,7 +27,7 @@
 		const entities = kongEntities.map((i) => {
 			return { name: i.name, appPath: `/entities?type=${i.name.toLowerCase()}` };
 		});
-		items = [...items, ...entities];
+		items = [...items, ...entities, ... itemsEnd];
 	});
 </script>
 

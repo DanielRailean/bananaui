@@ -37,7 +37,12 @@ export interface IConfig {
 		endpoint: string;
 		requestHeaders: Record<string, string>;
 	};
-	oidc: IOidc;
+	oidc?: IOidc;
+}
+
+export interface IConfigWrap {
+	config: IConfig,
+	source: "local" | "remote"
 }
 
 export interface IOidc {

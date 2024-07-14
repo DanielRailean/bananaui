@@ -188,7 +188,7 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 		return apiInstance;
 	}
 	const token = get(userToken);
-	const conf = get(config);
+	const conf = get(config)?.config;
 	if (!conf) {
 		await delay(200);
 		return await apiService(retryNo ? retryNo + 1 : 0);
