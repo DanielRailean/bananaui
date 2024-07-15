@@ -49,6 +49,7 @@
 		if (!displayedFields || displayedFields.length == 0) {
 			displayedFields = Object.keys(data[0]);
 		}
+		sortItems()
 		setInterval(()=>{
 			sortItems()
 		}, 1000)
