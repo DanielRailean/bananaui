@@ -3,7 +3,7 @@
 	import { CirclePlusOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
 	import { Button } from 'flowbite-svelte';
-	import { addToast, currentItems } from '$lib/stores';
+	import { addToast } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '../../lib/components/ArrayWrap.svelte';
 	import { apiService } from '$lib/requests';
