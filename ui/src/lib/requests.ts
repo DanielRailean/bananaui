@@ -83,7 +83,7 @@ class ApiService {
 		path: string,
 		method: string = 'GET',
 		body?: object,
-		headers?: Record<string, string>
+		headers: Record<string, string> = this.headers
 	): Promise<ResWrapped<T, E>> {
 		return requestWithResponseBody<T, E>(
 			`${this.endpoint}${path.startsWith('/') ? path : `/${path}`}`,

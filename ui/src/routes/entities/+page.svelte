@@ -1,16 +1,16 @@
 <script lang="ts">
-	import type { IKongEntity } from '$lib/types.ts';
+	import type { IKongEntity } from '$lib/types';
 	import { CirclePlusOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
 	import { Button } from 'flowbite-svelte';
-	import { addToast } from '$lib/stores';
+	import { addToast, currentItems } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '../../lib/components/ArrayWrap.svelte';
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { kongEntities } from '$lib/config';
-	import { capitalizeFirstLetter } from '$lib/util';
+	import { capitalizeFirstLetter, delay } from '$lib/util';
 	import { base } from '$app/paths';
 
 	let data: any | undefined;
@@ -36,9 +36,15 @@
 			if (!kongEntity) {
 				return;
 			}
-			const res = await (await apiService()).findAll<any>(kongEntity.apiPath, {});
+			let res = await (await apiService()).findAll<any>(kongEntity.apiPath, {});
 			data = res.data.data;
-			// console.log(entity)
+			while (res.data.next) {
+				res = await (await apiService()).request<any>(res.data.next ?? '', undefined, undefined);
+				if(res.ok)
+				{
+					data = data.concat(res.data.data);
+				}
+			}
 		} catch (error: any) {
 			console.log(error);
 			addToast({ message: `Failed fetching the ${entity}. ${error.message ? error.message : ''}` });
