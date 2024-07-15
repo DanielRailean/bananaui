@@ -27,7 +27,8 @@
 	import { staticConfig } from '$lib/config';
 	import { capitalizeFirstLetter } from '$lib/util';
 	import { base } from '$app/paths';
-	import { userToken } from '$lib/stores';
+	import { config, userToken } from '$lib/stores';
+	import { get } from 'svelte/store';
 
 	let mounted = false;
 
@@ -67,6 +68,18 @@
 			{#each items as item}
 				{#if item.name == 'profile'}
 					{#if $userToken}
+						<li
+							class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {isCurrentPage(item)
+								? 'dark:text-slate-50 text-slate-700'
+								: ''}"
+						>
+							<a href="{base}{item.appPath}"
+								>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a
+							>
+						</li>
+					{/if}
+				{:else if item.name === 'settings'}
+					{#if $config && get(config)?.source !== 'remote'}
 						<li
 							class="mx-4 hover:dark:text-slate-200 hover:text-slate-600 mt-2 {isCurrentPage(item)
 								? 'dark:text-slate-50 text-slate-700'

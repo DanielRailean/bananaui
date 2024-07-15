@@ -10,7 +10,8 @@
 
 	const defaultConfig: IConfig = {
 		auth: {
-			enabled: false
+			enabled: false,
+			autoLogin: false,
 		},
 		kongApi: {
 			endpoint: 'http://localhost:8001',
@@ -26,8 +27,9 @@
 		while ($config === undefined) {
 			await delay(50);
 		}
-		if ($config && $config.source == 'remote') {
-			goto(base);
+		if ($config && $config.source === 'remote') {
+			infoToast("settings not available if a remote config is present!")
+			goto(`${base}/`);
 			return;
 		}
 		const localSettings = localStorage.getItem(LOCALSTORAGE_CONFIG_KEY);
