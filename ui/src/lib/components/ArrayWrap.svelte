@@ -50,9 +50,6 @@
 			displayedFields = Object.keys(data[0]);
 		}
 		sortItems()
-		setInterval(()=>{
-			sortItems()
-		}, 1000)
 	});
 
 	function search() {
@@ -87,6 +84,7 @@
 			on:input={search}
 			placeholder="search any field"
 		/>
+		<Button class="ml-4" on:click={sortItems}>sort</Button>
 	</div>
 	<table class="w-full text-sm text-left rtl:text-right text-slate-800 dark:text-slate-400">
 		<thead
