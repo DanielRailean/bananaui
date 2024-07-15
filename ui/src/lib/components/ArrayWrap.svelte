@@ -7,7 +7,7 @@
 	import { FileCopyOutline, LinkOutline, TrashBinOutline } from 'flowbite-svelte-icons';
 	import { dateFields, kongEntities } from '$lib/config';
 	import { apiService } from '$lib/requests';
-	import { addToast, currentItems } from '$lib/stores';
+	import { addToast } from '$lib/stores';
 	import { createEventDispatcher } from 'svelte';
 	import type { IKongEntity } from '$lib/types';
 	import { base } from '$app/paths';
@@ -44,13 +44,14 @@
 		});
 	}
 
-	$: $currentItems, sortItems()
 
 	onMount(() => {
 		if (!displayedFields || displayedFields.length == 0) {
 			displayedFields = Object.keys(data[0]);
 		}
-		// sortItems()
+		setInterval(()=>{
+			sortItems()
+		}, 1000)
 	});
 
 	function search() {
