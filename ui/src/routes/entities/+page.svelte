@@ -3,9 +3,9 @@
 	import { CirclePlusOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
 	import { Button } from 'flowbite-svelte';
-	import { addToast } from '$lib/stores';
+	import { addToast, triggerSort } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
-	import ArrayWrap from '../../lib/components/ArrayWrap.svelte';
+	import ArrayWrap from '$lib/components/ArrayWrap.svelte';
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
@@ -51,6 +51,7 @@
 					data = data.concat(res.data.data);
 				}
 			}
+			triggerSort.set(DateTime.now())
 		} catch (error: any) {
 			console.log(error);
 			addToast({ message: `Failed fetching the ${entity}. ${error.message ? error.message : ''}` });

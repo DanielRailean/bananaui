@@ -7,7 +7,7 @@
 	import { FileCopyOutline, LinkOutline, TrashBinOutline } from 'flowbite-svelte-icons';
 	import { dateFields, kongEntities } from '$lib/config';
 	import { apiService } from '$lib/requests';
-	import { addToast } from '$lib/stores';
+	import { addToast, triggerSort } from '$lib/stores';
 	import { createEventDispatcher } from 'svelte';
 	import type { IKongEntity } from '$lib/types';
 	import { base } from '$app/paths';
@@ -44,6 +44,7 @@
 		});
 	}
 
+ $: $triggerSort, sortItems()
 
 	onMount(() => {
 		if (!displayedFields || displayedFields.length == 0) {
@@ -84,7 +85,7 @@
 			on:input={search}
 			placeholder="search any field"
 		/>
-		<Button class="ml-4" on:click={sortItems}>sort</Button>
+		<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
 	</div>
 	<table class="w-full text-sm text-left rtl:text-right text-slate-800 dark:text-slate-400">
 		<thead
