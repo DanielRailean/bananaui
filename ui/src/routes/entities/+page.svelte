@@ -49,9 +49,9 @@
 				}
 				if (res.ok) {
 					data = data.concat(res.data.data);
+					triggerSort.set(DateTime.now())
 				}
 			}
-			triggerSort.set(DateTime.now())
 		} catch (error: any) {
 			console.log(error);
 			addToast({ message: `Failed fetching the ${entity}. ${error.message ? error.message : ''}` });
