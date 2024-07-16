@@ -12,6 +12,7 @@
 	import { kongEntities } from '$lib/config';
 	import { capitalizeFirstLetter, delay } from '$lib/util';
 	import { base } from '$app/paths';
+	import { DateTime } from 'luxon';
 
 	let data: any | undefined;
 	let entity: string;
@@ -24,12 +25,14 @@
 		isMounted = true;
 		load();
 	});
+	let loadStart: DateTime | undefined;
 
 	async function load() {
 		if (!isMounted) {
 			return;
 		}
 		data = undefined;
+		loadStart = DateTime.now();
 		entity = new URLSearchParams(window.location.search).get('type') ?? 'none';
 		try {
 			kongEntity = kongEntities.find((i) => i.name == entity);
@@ -38,10 +41,13 @@
 			}
 			let res = await (await apiService()).findAll<any>(kongEntity.apiPath, {});
 			data = res.data.data;
+			var loopStarted = loadStart;
 			while (res.data.next) {
 				res = await (await apiService()).request<any>(res.data.next ?? '', undefined, undefined);
-				if(res.ok)
-				{
+				if (loopStarted != loadStart) {
+					break;
+				}
+				if (res.ok) {
 					data = data.concat(res.data.data);
 				}
 			}
