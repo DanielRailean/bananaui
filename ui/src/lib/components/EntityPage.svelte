@@ -124,6 +124,7 @@
 			addToast({ message: err.message });
 		}
 	}
+	
 </script>
 
 <div class="mb-2">
