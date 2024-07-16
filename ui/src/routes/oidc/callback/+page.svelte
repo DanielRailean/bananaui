@@ -15,7 +15,8 @@
 		if (token) {
 			userToken.set(token);
 			if (state) {
-				goto(base + state);
+				const target = atob(state);
+				goto(target);
 			}
 		}
 	});

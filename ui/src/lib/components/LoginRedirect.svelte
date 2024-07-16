@@ -9,7 +9,10 @@
 		config.subscribe((v) => {
 			if (v && v.config.auth.enabled && !$userToken) {
 				const path = $page.url.pathname;
-				if (!path.includes('/login')) goto(`${base}/login?source=${path}`);
+				const search = $page.url.search;
+				if (!path.includes('/login')) {
+					goto(`${base}/login?source=${btoa(path + search)}`);
+				}
 			}
 		});
 	});

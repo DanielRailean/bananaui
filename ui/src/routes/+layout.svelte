@@ -2,8 +2,8 @@
 	import { staticConfig } from '$lib/config';
 	import { page } from '$app/stores';
 	import ConfigLoader from '$lib/components/ConfigLoader.svelte';
-	import Header from '../lib/components/Header.svelte';
-	import Login from '../lib/components/Login.svelte';
+	import Header from '$lib/components/Header.svelte';
+	import Login from '$lib/components/LoginRedirect.svelte';
 	import './styles.css';
 	import Toasts from '$lib/components/Toasts.svelte';
 </script>
