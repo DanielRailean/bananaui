@@ -1,11 +1,9 @@
 <script>
-	import { addToast } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import { page } from '$app/stores';
 	import ConfigLoader from '$lib/components/ConfigLoader.svelte';
-	import { userToken } from '$lib/stores';
-	import Header from '../lib/components/Header.svelte';
-	import Login from '../lib/components/Login.svelte';
+	import Header from '$lib/components/Header.svelte';
+	import Login from '$lib/components/LoginRedirect.svelte';
 	import './styles.css';
 	import Toasts from '$lib/components/Toasts.svelte';
 </script>
@@ -24,7 +22,7 @@
 
 	<main class="w-full h-full">
 		<div
-			class="flex flex-col m-8 border border-slate-300 dark:border-zinc-800 bg-white rounded-xl dark:bg-slate-900 dark:text-slate-50"
+			class="flex flex-col m-8 shadow shadow-stone-300 dark:shadow-zinc-800 bg-white rounded-xl dark:bg-slate-900 dark:text-slate-50"
 		>
 			<slot />
 		</div>

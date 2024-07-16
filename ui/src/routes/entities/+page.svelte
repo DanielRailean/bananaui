@@ -1,17 +1,18 @@
 <script lang="ts">
-	import type { IKongEntity } from '$lib/types.ts';
+	import type { IKongEntity } from '$lib/types';
 	import { CirclePlusOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
 	import { Button } from 'flowbite-svelte';
-	import { addToast } from '$lib/stores';
+	import { addToast, triggerSort } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
-	import ArrayWrap from '../../lib/components/ArrayWrap.svelte';
+	import ArrayWrap from '$lib/components/ArrayWrap.svelte';
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { kongEntities } from '$lib/config';
-	import { capitalizeFirstLetter } from '$lib/util';
+	import { capitalizeFirstLetter, delay } from '$lib/util';
 	import { base } from '$app/paths';
+	import { DateTime } from 'luxon';
 
 	let data: any | undefined;
 	let entity: string;
@@ -24,21 +25,33 @@
 		isMounted = true;
 		load();
 	});
+	let loadStart: DateTime | undefined;
 
 	async function load() {
 		if (!isMounted) {
 			return;
 		}
 		data = undefined;
+		loadStart = DateTime.now();
 		entity = new URLSearchParams(window.location.search).get('type') ?? 'none';
 		try {
 			kongEntity = kongEntities.find((i) => i.name == entity);
 			if (!kongEntity) {
 				return;
 			}
-			const res = await (await apiService()).findAll<any>(kongEntity.apiPath, {});
+			let res = await (await apiService()).findAll<any>(kongEntity.apiPath, {});
 			data = res.data.data;
-			// console.log(entity)
+			var loopStarted = loadStart;
+			while (res.data.next) {
+				res = await (await apiService()).request<any>(res.data.next ?? '', undefined, undefined);
+				if (loopStarted != loadStart) {
+					break;
+				}
+				if (res.ok) {
+					data = data.concat(res.data.data);
+					triggerSort.set(DateTime.now())
+				}
+			}
 		} catch (error: any) {
 			console.log(error);
 			addToast({ message: `Failed fetching the ${entity}. ${error.message ? error.message : ''}` });
