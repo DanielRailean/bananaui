@@ -1,0 +1,42 @@
+name: '[CI] Try Build'
+
+on:
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  build-node:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: yarn install
+        working-directory: ui
+        run: yarn
+
+      - name: build
+        working-directory: ui
+        env:
+          SVELTE_BUILD_STATIC: true
+        run: yarn build
+
+  build-static:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: yarn install
+        working-directory: ui
+        run: yarn
+
+      - name: build
+        working-directory: ui
+        env:
+        run: yarn build
