@@ -5,7 +5,7 @@ export const staticConfig = {
 	name: 'Banana UI'
 };
 
-export const paginationSize = 200;
+export const paginationSize = 1000;
 
 export const dateFields = ['created_at', 'updated_at'];
 export const kongEntities: IKongEntity[] = [
