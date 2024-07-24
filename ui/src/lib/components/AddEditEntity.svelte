@@ -172,7 +172,7 @@
 	</div>
 {/if}
 
-<textarea class="dark:bg-slate-900 w-full min-h-[30vh]" bind:value={json}></textarea>
+<textarea class="dark:bg-[#1E2021] w-full min-h-[30vh]" bind:value={json}></textarea>
 {#if pluginSchema}
 	<h2 class="text-xl m-4">plugin 'config' fields:</h2>
 	<TreeWrapper data={pluginSchema} expandLevel={0} allowCopy={false} allowKeyCopy={true} />

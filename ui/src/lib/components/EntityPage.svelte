@@ -124,7 +124,6 @@
 			addToast({ message: err.message });
 		}
 	}
-	
 </script>
 
 <div class="mb-2">
@@ -175,7 +174,7 @@
 	</div>
 	{#if data}
 		{#if isEdited}
-			<textarea class="dark:bg-slate-900 w-full min-h-[70vh]" bind:value={json}></textarea>
+			<textarea class="dark:bg-[#1E2021] w-full min-h-[70vh]" bind:value={json}></textarea>
 		{:else}
 			<TreeWrapper {data} rounded={false} />
 			{#if subEntities}

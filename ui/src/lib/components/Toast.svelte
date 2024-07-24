@@ -17,7 +17,7 @@
 </script>
 
 <article
-	class="dark:bg-slate-800 bg-gray-200 max-w-[35rem] flex my-1 p-2 px-4 rounded items-center dark:border-slate-700 shadow"
+	class="dark:bg-[#1E2021] bg-gray-200 max-w-[35rem] flex my-1 p-2 px-4 rounded items-center dark:border-stone-700 shadow"
 	role="alert"
 	transition:fade
 >

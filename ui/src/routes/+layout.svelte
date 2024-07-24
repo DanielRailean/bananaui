@@ -22,7 +22,7 @@
 
 	<main class="w-full h-full">
 		<div
-			class="flex flex-col m-8 shadow shadow-stone-300 dark:shadow-zinc-800 bg-white rounded-xl dark:bg-slate-900 dark:text-slate-50"
+			class="flex flex-col m-8 shadow shadow-stone-300 dark:shadow-zinc-800 bg-white rounded-xl dark:bg-[#1E2021] dark:text-stone-50"
 		>
 			<slot />
 		</div>

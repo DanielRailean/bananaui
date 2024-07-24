@@ -19,9 +19,6 @@
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
 
-	let searchText = '';
-	let filteredData: any[];
-
 	function copy(data: any) {
 		let result = JSON.stringify(data, undefined, 2);
 		if (typeof data == 'string') {
@@ -31,7 +28,7 @@
 	}
 
 	function sortItems() {
-		filteredData = data.sort((a, b) => {
+		data = data.sort((a, b) => {
 			if (entity && entity.sortBy) {
 				const sortKey = entity.sortBy;
 				if (entity.sortAscending === true) {
@@ -44,23 +41,15 @@
 		});
 	}
 
- $: $triggerSort, sortItems()
+	$: $triggerSort, sortItems();
 
 	onMount(() => {
 		if (!displayedFields || displayedFields.length == 0) {
 			displayedFields = Object.keys(data[0]);
 		}
-		sortItems()
+		sortItems();
 	});
 
-	function search() {
-		if (searchText.length == 0) {
-			filteredData = data;
-		}
-		filteredData = data.filter((item) =>
-			JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
-		);
-	}
 	async function deleteEntity(type: string, id: string, name: string) {
 		const conf = confirm(`Please confirm deletion of '${name}'`);
 		if (!conf) {
@@ -77,19 +66,9 @@
 </script>
 
 <div class="w-full">
-	<div class="flex flex-row m-4 h-8">
-		<input
-			class="bg-transparent rounded-lg dark:border-slate-700 border-slate-300"
-			type="text"
-			bind:value={searchText}
-			on:input={search}
-			placeholder="search any field"
-		/>
-		<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
-	</div>
-	<table class="w-full text-sm text-left rtl:text-right text-slate-800 dark:text-slate-400">
+	<table class="w-full text-sm text-left rtl:text-right text-stone-800 dark:text-stone-400">
 		<thead
-			class="text-xs text-slate-800 uppercase dark:bg-gray-800 bg-gray-200 dark:text-slate-400"
+			class="text-stone-800 dark:bg-stone-800 bg-gray-200 dark:text-stone-400"
 		>
 			<tr>
 				<th><p class="pl-4">Actions</p></th>
@@ -101,8 +80,13 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each searchText.length > 0 ? filteredData : data as item}
-				<tr class="border-t dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-900">
+			{#each data as item}
+				<tr class="border-t hover:scale-[100.5%] dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
+				on:auxclick={
+					() => {
+						window.open(`${base}/entity?type=${type}&id=${item.id}`, "_blank")
+					}
+				}>
 					<td class="py-3">
 						<div class="ml-4">
 							<Button
