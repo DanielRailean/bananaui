@@ -38,5 +38,4 @@ jobs:
 
       - name: build
         working-directory: ui
-        env:
         run: yarn build
