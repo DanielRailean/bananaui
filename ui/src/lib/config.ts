@@ -6,8 +6,9 @@ export const staticConfig = {
 };
 
 export const paginationSize = 1000;
+export const paginationAwaitBetweenPages = 0;
 
-export const dateFields = ['created_at', 'updated_at'];
+export const dateFields = ['created_at', 'updated_at', 'last_seen'];
 export const kongEntities: IKongEntity[] = [
 	{
 		name: 'services',
@@ -36,7 +37,11 @@ export const kongEntities: IKongEntity[] = [
 	{ name: 'consumers', displayedFields: [], apiPath: 'consumers' },
 	{ name: 'keysets', displayedFields: [], apiPath: 'key-sets' },
 	{ name: 'snis', displayedFields: [], apiPath: 'snis' },
-	{ name: 'dataplanes', displayedFields: [], apiPath: 'clustering/data-planes' }
+	{
+		name: 'dataplanes',
+		displayedFields: ['last_seen', 'ip', 'sync_status', 'version', 'hostname', 'config_hash'],
+		apiPath: 'clustering/data-planes'
+	}
 ];
 
 export const preferences = {

@@ -11,7 +11,7 @@
 	const defaultConfig: IConfig = {
 		auth: {
 			enabled: false,
-			autoLogin: false,
+			autoLogin: false
 		},
 		kongApi: {
 			endpoint: 'http://localhost:8001',
@@ -28,7 +28,7 @@
 			await delay(50);
 		}
 		if ($config && $config.source === 'remote') {
-			infoToast("settings not available if a remote config is present!")
+			infoToast('settings not available if a remote config is present!');
 			goto(`${base}/`);
 			return;
 		}
@@ -82,6 +82,6 @@
 			</Button>
 		</div>
 	</div>
-	<textarea class="w-full min-h-72 dark:bg-slate-900" name="" id="" bind:value={editableConfig}
+	<textarea class="w-full min-h-96 rounded-lg dark:bg-stone-900" name="" id="" bind:value={editableConfig}
 	></textarea>
 </div>

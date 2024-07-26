@@ -15,23 +15,15 @@
 <div class="tree">
 	{#if data}
 		<div
-			class="relative overflow-x-auto {rounded ? 'rounded-xl' : ''} border-b dark:border-slate-800"
+			class="relative overflow-x-auto {rounded ? 'rounded-xl' : ''} border-b dark:border-stone-800"
 		>
 			<table class="w-full text-sm text-left rtl:text-right text-gray-800 dark:text-zinc-300">
-				<!-- <thead
-					class="text-xs text-gray-800 uppercase bg-slate-100 dark:bg-gray-900 dark:text-gray-400"
-				>
-					<tr>
-						<th scope="col" class="px-6 py-3"> Key </th>
-						<th scope="col" class="px-6 py-3"> Value </th>
-					</tr>
-				</thead> -->
 				<tbody>
 					{#each Object.entries(data) as [key, value]}
-						<tr class="bg-white border-t dark:bg-gray-900 dark:border-gray-700">
+						<tr class="bg-white border-t dark:bg-[#1E2021] dark:border-gray-700">
 							<th
 								scope="row"
-								class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-zinc-300 {allowKeyCopy
+								class="px-6 py-4 font-medium text-stone-900 whitespace-nowrap dark:text-zinc-300 {allowKeyCopy
 									? 'cursor-pointer'
 									: ''}"
 								title={allowKeyCopy ? `copy ${key}` : ''}
