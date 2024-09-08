@@ -58,6 +58,11 @@
 										</div>
 									</a>
 									<!-- </a> -->
+									<button
+										on:click={() => {
+											console.log(data[key]);
+										}}>test</button
+									>
 								{:else if typeof data[key] == 'object' && data[key] != null}
 									<div class="cursor-pointer">
 										<JSONTree value={data[key]} defaultExpandedLevel={expandLevel}></JSONTree>
@@ -71,6 +76,8 @@
 									{:else}
 										{data[key]}
 									{/if}
+								{:else if data[key] == null}
+									-
 								{:else}
 									{data[key]}
 								{/if}

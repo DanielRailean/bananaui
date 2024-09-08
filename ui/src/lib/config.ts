@@ -20,13 +20,13 @@ export const kongEntities: IKongEntity[] = [
 	},
 	{
 		name: 'routes',
-		displayedFields: ['name', 'paths', 'methods', 'service', 'updated_at'],
+		displayedFields: ['name', 'paths', 'methods', 'service', 'enabled', 'updated_at'],
 		apiPath: 'routes',
 		subEntities: ['plugins']
 	},
 	{
 		name: 'plugins',
-		displayedFields: ['name', 'service', 'route', 'updated_at'],
+		displayedFields: ['name', 'service', 'route', 'enabled', 'updated_at'],
 		apiPath: 'plugins'
 	},
 	{ name: 'keys', displayedFields: ['name', 'kid', 'updated_at'], apiPath: 'keys' },
