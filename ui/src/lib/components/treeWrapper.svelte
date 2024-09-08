@@ -20,7 +20,7 @@
 			<table class="w-full text-sm text-left rtl:text-right text-gray-800 dark:text-zinc-300">
 				<tbody>
 					{#each Object.entries(data) as [key, value]}
-						<tr class="bg-white border-t dark:bg-[#1E2021] dark:border-gray-700">
+						<tr class="bg-white border-t dark:bg-[#1E2021] dark:border-gray-700 hoveritem">
 							<th
 								scope="row"
 								class="px-6 py-4 font-medium text-stone-900 whitespace-nowrap dark:text-zinc-300 {allowKeyCopy
@@ -99,5 +99,8 @@
 
 		--json-tree-font-size: 15px;
 		--json-tree-font-family: 'Courier New', Courier, monospace;
+	}
+	.hoveritem:hover {
+		@apply dark:bg-blue-900 bg-blue-300
 	}
 </style>

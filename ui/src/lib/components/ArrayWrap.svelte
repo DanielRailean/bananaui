@@ -85,7 +85,7 @@
 		<tbody>
 			{#each data as item}
 				<tr
-					class="border-t hover:border-zinc-800 dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
+					class="hoveritem dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
 					on:auxclick={() => {
 						window.open(`${base}/entity?type=${type}&id=${item.id}`, '_blank');
 					}}
@@ -178,3 +178,9 @@
 		</tbody>
 	</table>
 </div>
+
+<style lang="postcss">
+	.hoveritem:hover {
+		@apply dark:bg-blue-900 bg-blue-300
+	}
+</style>
