@@ -12,7 +12,7 @@
 	} from 'flowbite-svelte-icons';
 	import { dateFields, kongEntities } from '$lib/config';
 	import { apiService } from '$lib/requests';
-	import { addToast, triggerSort } from '$lib/stores';
+	import { addToast, infoToast, triggerSort } from '$lib/stores';
 	import { createEventDispatcher } from 'svelte';
 	import type { IKongEntity } from '$lib/types';
 	import { base } from '$app/paths';
@@ -54,6 +54,14 @@
 		}
 		sortItems();
 	});
+
+	async function disable(id: string, current: boolean) {
+		const res = await (await apiService()).updateRecord(type, id, { enabled: !current });
+		if (res.ok) {
+			dispatch('refresh');
+			infoToast(`item ${current ? "disabled": "enabled"}`)
+		}
+	}
 
 	async function deleteEntity(type: string, id: string, name: string) {
 		const conf = confirm(`Please confirm deletion of '${name}'`);
@@ -140,8 +148,24 @@
 											copy(item[field]);
 										}}
 									>
-										{#if typeof item[field] == 'string' || typeof item[field] == 'boolean'}
+										{#if typeof item[field] == 'string'}
 											{item[field]}
+										{:else if typeof item[field] == 'boolean'}
+											{#if field === 'enabled'}
+												<p
+													on:click|stopPropagation={async () => {
+														let ok = confirm('confirm action');
+														if (ok) {
+															await disable(item['id'], item[field]);
+														}
+													}}
+													title={item[field] ? 'disable' : 'enable'}
+												>
+													{item[field]}
+												</p>
+											{:else}
+												{item[field]}
+											{/if}
 										{:else if typeof item[field] == 'number'}
 											{#if dateFields.includes(field)}
 												{DateTime.fromSeconds(item[field]).toLocaleString({
@@ -181,6 +205,6 @@
 
 <style lang="postcss">
 	.hoveritem:hover {
-		@apply dark:bg-blue-900 bg-blue-300
+		@apply dark:bg-blue-900 bg-blue-300;
 	}
 </style>
