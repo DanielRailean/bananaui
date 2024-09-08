@@ -140,7 +140,7 @@
 											copy(item[field]);
 										}}
 									>
-										{#if typeof item[field] == 'string' || typeof item[field] == "boolean"}
+										{#if typeof item[field] == 'string' || typeof item[field] == 'boolean'}
 											{item[field]}
 										{:else if typeof item[field] == 'number'}
 											{#if dateFields.includes(field)}
