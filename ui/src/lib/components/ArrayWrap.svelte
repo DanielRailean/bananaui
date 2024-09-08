@@ -4,7 +4,12 @@
 	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import { DateTime } from 'luxon';
-	import { FileCopyOutline, LinkOutline, TrashBinOutline } from 'flowbite-svelte-icons';
+	import {
+		ArrowUpRightFromSquareOutline,
+		FileCopyOutline,
+		LinkOutline,
+		TrashBinOutline
+	} from 'flowbite-svelte-icons';
 	import { dateFields, kongEntities } from '$lib/config';
 	import { apiService } from '$lib/requests';
 	import { addToast, triggerSort } from '$lib/stores';
@@ -67,9 +72,7 @@
 
 <div class="w-full">
 	<table class="w-full text-sm text-left rtl:text-right text-stone-800 dark:text-stone-400">
-		<thead
-			class="text-stone-800 dark:bg-stone-800 bg-gray-200 dark:text-stone-400"
-		>
+		<thead class="text-stone-800 dark:bg-stone-800 bg-gray-200 dark:text-stone-400">
 			<tr>
 				<th><p class="pl-4">Actions</p></th>
 				{#each displayedFields as field}
@@ -81,12 +84,12 @@
 		</thead>
 		<tbody>
 			{#each data as item}
-				<tr class="border-t hover:scale-[100.5%] dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
-				on:auxclick={
-					() => {
-						window.open(`${base}/entity?type=${type}&id=${item.id}`, "_blank")
-					}
-				}>
+				<tr
+					class="border-t hover:border-zinc-800 dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
+					on:auxclick={() => {
+						window.open(`${base}/entity?type=${type}&id=${item.id}`, '_blank');
+					}}
+				>
 					<td class="py-3">
 						<div class="ml-4">
 							<Button
@@ -104,7 +107,7 @@
 							<Button title="open" class="h-8 p-2" color="alternative">
 								<a href="{base}/entity?type={type}&id={item.id}" class="text-emerald-600">
 									<div class="flex flex-row items-center">
-										<LinkOutline class="m-1" />
+										<ArrowUpRightFromSquareOutline class="m-1" />
 									</div>
 								</a>
 							</Button>
@@ -137,7 +140,7 @@
 											copy(item[field]);
 										}}
 									>
-										{#if typeof item[field] == 'string'}
+										{#if typeof item[field] == 'string' || typeof item[field] == "boolean"}
 											{item[field]}
 										{:else if typeof item[field] == 'number'}
 											{#if dateFields.includes(field)}
@@ -160,6 +163,8 @@
 													<p class="dark:text-blue-500 text-blue-700">{item[field].id}</p>
 												</div>
 											</a>
+										{:else if Object.is(item[field], null)}
+											-
 										{:else}
 											{JSON.stringify(item[field], undefined, 2)}
 										{/if}
