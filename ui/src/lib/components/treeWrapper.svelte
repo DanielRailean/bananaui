@@ -61,7 +61,7 @@
 									<button
 										on:click={() => {
 											console.log(data[key]);
-										}}>test</button
+										}}></button
 									>
 								{:else if typeof data[key] == 'object' && data[key] != null}
 									<div class="cursor-pointer">
