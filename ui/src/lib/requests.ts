@@ -179,7 +179,8 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 	}
 	if (!token && conf.auth.enabled) {
 		goto(`${base}/login`);
-		throw new Error('no token');
+		await delay(200);
+		return await apiService(retryNo ? retryNo + 1 : 0);
 	}
 	apiInstance = new ApiService(conf.kongApi.endpoint, token, conf.kongApi.requestHeaders);
 	return apiInstance;
