@@ -122,7 +122,7 @@ class ApiService {
 		pathPrefix: string = ''
 	) {
 		return requestWithResponseBody<T>(
-			`${this.endpoint}${pathPrefix}/${entity}?size=${paginationSize}`,
+			`${this.endpoint}${pathPrefix}/${entity}?size=${paginationSize}&sort_by=updated_at`,
 			undefined,
 			undefined,
 			this.headers
