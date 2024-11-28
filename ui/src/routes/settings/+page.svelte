@@ -9,10 +9,6 @@
 	import { base } from '$app/paths';
 
 	const defaultConfig: IConfig = {
-		auth: {
-			enabled: false,
-			autoLogin: false
-		},
 		kongApi: {
 			endpoint: 'http://localhost:8001',
 			requestHeaders: {

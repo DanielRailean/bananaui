@@ -27,7 +27,7 @@
 		if (sourceParam) {
 			source = sourceParam;
 		}
-		if ($config?.config.auth.autoLogin) {
+		if ($config?.config.oidc?.autoLogin) {
 			await delay(staticConfig.autoLoginDelayMs);
 			if (!$userToken) {
 				tryLogin();

@@ -7,7 +7,6 @@
 	import {
 		ArrowUpRightFromSquareOutline,
 		FileCopyOutline,
-		LinkOutline,
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import { dateFields, kongEntities } from '$lib/config';
@@ -20,7 +19,6 @@
 	const dispatch = createEventDispatcher();
 
 	export let data: any[];
-	export let displayedFields: any;
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
 
@@ -32,7 +30,7 @@
 		writeToClipboard(result);
 	}
 
-	function sortItems() {
+	function updateEvent() {
 		data = data.sort((a, b) => {
 			if (entity && entity.sortBy) {
 				const sortKey = entity.sortBy;
@@ -46,20 +44,17 @@
 		});
 	}
 
-	$: $triggerSort, sortItems();
+	$: $triggerSort, updateEvent();
 
 	onMount(() => {
-		if (!displayedFields || displayedFields.length == 0) {
-			displayedFields = Object.keys(data[0]);
-		}
-		sortItems();
+		updateEvent();
 	});
 
 	async function disable(id: string, current: boolean) {
 		const res = await (await apiService()).updateRecord(type, id, { enabled: !current });
 		if (res.ok) {
 			dispatch('refresh');
-			infoToast(`item ${current ? "disabled": "enabled"}`)
+			infoToast(`item ${current ? 'disabled' : 'enabled'}`);
 		}
 	}
 
@@ -72,7 +67,7 @@
 		if (!res.ok) {
 			addToast({ message: `failed to delete. ${res.err}` });
 		} else {
-			addToast({ message: `ok`, type: `info` });
+			addToast({ message: `successfully deleted the ${type}`, type: `info` });
 		}
 		dispatch('refresh');
 	}
@@ -83,7 +78,7 @@
 		<thead class="text-stone-800 dark:bg-stone-800 bg-gray-200 dark:text-stone-400">
 			<tr>
 				<th><p class="pl-4">Actions</p></th>
-				{#each displayedFields as field}
+				{#each entity?.displayedFields ?? Object.keys(data[0]) as field}
 					{#if Object.keys(data[0]).includes(field)}
 						<th scope="col" class="py-3"> {field} </th>
 					{/if}
@@ -135,7 +130,7 @@
 						</div>
 					</td>
 
-					{#each displayedFields as field}
+					{#each entity?.displayedFields ?? Object.keys(data[0]) as field}
 						{#if Object.keys(item).includes(field)}
 							<td class="py-3">
 								<div class="flex flex-row items-center justify-between">

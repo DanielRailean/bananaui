@@ -29,10 +29,6 @@ export interface IKongService extends IEntityBase {
 }
 
 export interface IConfig {
-	auth: {
-		enabled: boolean;
-		autoLogin: boolean;
-	};
 	kongApi: {
 		endpoint: string;
 		requestHeaders: Record<string, string>;
@@ -46,6 +42,8 @@ export interface IConfigWrap {
 }
 
 export interface IOidc {
+	enabled: boolean;
+	autoLogin: boolean;
 	authorizeEndpoint: string;
 	clientId: string;
 	selfUrl: string;
@@ -67,7 +65,7 @@ export interface IKongEntity {
 	apiPath: string;
 	sortBy?: string;
 	sortAscending?: boolean;
-	displayedFields: string[];
+	displayedFields?: string[];
 	defaultJson?: string;
 	subEntities?: string[];
 }

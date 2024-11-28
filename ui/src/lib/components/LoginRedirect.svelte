@@ -7,7 +7,7 @@
 
 	onMount(() => {
 		config.subscribe((v) => {
-			if (v && v.config.auth.enabled && !$userToken) {
+			if (v && v.config.oidc?.enabled && !$userToken) {
 				const path = $page.url.pathname;
 				const search = $page.url.search;
 				if (!path.includes('/login')) {

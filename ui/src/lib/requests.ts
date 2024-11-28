@@ -177,7 +177,7 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 		await delay(200);
 		return await apiService(retryNo ? retryNo + 1 : 0);
 	}
-	if (!token && conf.auth.enabled) {
+	if (!token && conf.oidc?.enabled) {
 		goto(`${base}/login`);
 		await delay(200);
 		return await apiService(retryNo ? retryNo + 1 : 0);

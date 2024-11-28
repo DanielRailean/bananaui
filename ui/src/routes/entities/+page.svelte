@@ -136,7 +136,6 @@
 </div>
 {#if filteredData && filteredData.length > 0}
 	<ArrayWrap
-		displayedFields={kongEntities.find((item) => item.name == entity)?.displayedFields}
 		data={filteredData}
 		type={entity}
 		entity={kongEntity}
