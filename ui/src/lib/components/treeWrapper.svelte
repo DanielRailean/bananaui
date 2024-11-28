@@ -10,6 +10,7 @@
 	export let allowCopy = true;
 	export let allowKeyCopy = false;
 	export let rounded = true;
+	export let expandFields = ['config'];
 </script>
 
 <div class="tree">
@@ -61,8 +62,12 @@
 									<button
 										on:click={() => {
 											console.log(data[key]);
-										}}></button
-									>
+										}}
+									></button>
+								{:else if typeof data[key] == 'object' && data[key] != null && expandFields.includes(key)}
+									<div class="cursor-pointer">
+										<JSONTree value={data[key]} defaultExpandedLevel={100}></JSONTree>
+									</div>
 								{:else if typeof data[key] == 'object' && data[key] != null}
 									<div class="cursor-pointer">
 										<JSONTree value={data[key]} defaultExpandedLevel={expandLevel}></JSONTree>
@@ -101,6 +106,6 @@
 		--json-tree-font-family: 'Courier New', Courier, monospace;
 	}
 	.hoveritem:hover {
-		@apply dark:bg-blue-900 bg-blue-300
+		@apply dark:bg-blue-900 bg-blue-300;
 	}
 </style>

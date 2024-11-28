@@ -38,11 +38,10 @@
 		data = undefined;
 		const params = new URLSearchParams(window.location.search);
 		loadStart = DateTime.now();
-		const oldEntity = entity
+		const oldEntity = entity;
 		entity = params.get('type') ?? 'none';
-		if(oldEntity != entity) 
-		{
-			filteredData = undefined
+		if (oldEntity != entity) {
+			filteredData = undefined;
 			// infoToast(`Loading ${entity}`)
 		}
 		searchText = params.get('search') ?? '';
@@ -99,7 +98,7 @@
 
 <div class="flex flex-col mx-4 mt-4">
 	<h1 class="text-xl mb-3 ml-1 dark:text-zinc-300">
-		{filteredData ? filteredData.length : "Loading"}
+		{filteredData ? filteredData.length : 'Loading'}
 		{capitalizeFirstLetter(entity)}
 	</h1>
 	<div class="flex flex-row mb-2 h-10">
@@ -126,19 +125,20 @@
 			</a>
 		</Button>
 	</div>
-	<div class="w-20 mb-2">
-		<input
-			class="bg-transparent rounded-lg dark:border-stone-700 border-stone-300"
-			type="text"
-			bind:value={searchText}
-			on:input={() => {
-				updateSearchQueryParam();
-				search();
-			}}
-			placeholder="search any field"
-		/>
-		<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
-	</div>
+		<div class="w-20 mb-2">
+			<input
+				class="bg-transparent rounded-lg dark:border-stone-700 border-stone-300"
+				type="text"
+				disabled={!(data && data.length > 0)}
+				bind:value={searchText}
+				on:input={() => {
+					updateSearchQueryParam();
+					search();
+				}}
+				placeholder="search any field"
+			/>
+			<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
+		</div>
 </div>
 {#if filteredData && filteredData.length > 0}
 	<ArrayWrap
