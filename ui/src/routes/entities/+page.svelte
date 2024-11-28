@@ -29,7 +29,7 @@
 	let loadStart: DateTime | undefined;
 
 	let searchText = '';
-	let filteredData: any[];
+	let filteredData: any[] | undefined;
 
 	async function load() {
 		if (!isMounted) {
@@ -38,7 +38,13 @@
 		data = undefined;
 		const params = new URLSearchParams(window.location.search);
 		loadStart = DateTime.now();
+		const oldEntity = entity
 		entity = params.get('type') ?? 'none';
+		if(oldEntity != entity) 
+		{
+			filteredData = undefined
+			// infoToast(`Loading ${entity}`)
+		}
 		searchText = params.get('search') ?? '';
 		try {
 			kongEntity = kongEntities.find((i) => i.name == entity);
@@ -93,7 +99,7 @@
 
 <div class="flex flex-col mx-4 mt-4">
 	<h1 class="text-xl mb-3 ml-1 dark:text-zinc-300">
-		{filteredData ? filteredData.length : 0}
+		{filteredData ? filteredData.length : "Loading"}
 		{capitalizeFirstLetter(entity)}
 	</h1>
 	<div class="flex flex-row mb-2 h-10">
@@ -141,8 +147,4 @@
 		entity={kongEntity}
 		on:refresh={async () => await load()}
 	></ArrayWrap>
-{:else}
-	<div class="flex w-full justify-center items-center">
-		<h2 class="text-xl text-center mb-10">No entries</h2>
-	</div>
 {/if}

@@ -73,8 +73,8 @@
 	}
 </script>
 
-<div class="w-full">
-	<table class="w-full text-sm text-left rtl:text-right text-stone-800 dark:text-stone-400">
+<div class="w-full text-sm text-left rtl:text-right text-stone-800 dark:text-stone-400">
+	<table class="">
 		<thead class="text-stone-800 dark:bg-stone-800 bg-gray-200 dark:text-stone-400">
 			<tr>
 				<th><p class="pl-4">Actions</p></th>
