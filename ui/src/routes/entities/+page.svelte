@@ -42,7 +42,6 @@
 		entity = params.get('type') ?? 'none';
 		if (oldEntity != entity) {
 			filteredData = undefined;
-			// infoToast(`Loading ${entity}`)
 		}
 		searchText = params.get('search') ?? '';
 		try {
@@ -89,6 +88,7 @@
 		filteredData = data.filter((item: any) =>
 			JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
 		);
+		triggerSort.set(DateTime.now());
 	}
 </script>
 
@@ -125,20 +125,20 @@
 			</a>
 		</Button>
 	</div>
-		<div class="w-20 mb-2">
-			<input
-				class="bg-transparent rounded-lg dark:border-stone-700 border-stone-300"
-				type="text"
-				disabled={!(data && data.length > 0)}
-				bind:value={searchText}
-				on:input={() => {
-					updateSearchQueryParam();
-					search();
-				}}
-				placeholder="search any field"
-			/>
-			<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
-		</div>
+	<div class="w-20 mb-2">
+		<input
+			class="bg-transparent rounded-lg dark:border-stone-700 border-stone-300"
+			type="text"
+			disabled={!(data && data.length > 0)}
+			bind:value={searchText}
+			on:input={() => {
+				updateSearchQueryParam();
+				search();
+			}}
+			placeholder="search any field"
+		/>
+		<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
+	</div>
 </div>
 {#if filteredData && filteredData.length > 0}
 	<ArrayWrap

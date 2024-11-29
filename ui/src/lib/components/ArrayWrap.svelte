@@ -9,7 +9,7 @@
 		FileCopyOutline,
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
-	import { dateFields, kongEntities } from '$lib/config';
+	import { dateFields, kongEntities, paginationSizeUi } from '$lib/config';
 	import { apiService } from '$lib/requests';
 	import { addToast, infoToast, triggerSort } from '$lib/stores';
 	import { createEventDispatcher } from 'svelte';
@@ -22,6 +22,9 @@
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
 
+	let arrayStart = 0;
+	let arrayEnd = paginationSizeUi;
+
 	function copy(data: any) {
 		let result = JSON.stringify(data, undefined, 2);
 		if (typeof data == 'string') {
@@ -31,6 +34,7 @@
 	}
 
 	function updateEvent() {
+		resetPagination();
 		data = data.sort((a, b) => {
 			if (entity && entity.sortBy) {
 				const sortKey = entity.sortBy;
@@ -71,12 +75,37 @@
 		}
 		dispatch('refresh');
 	}
+	function scrollNext() {
+		if (arrayEnd >= data.length) {
+			return;
+		}
+		arrayStart = arrayEnd;
+		arrayEnd = arrayEnd + paginationSizeUi;
+	}
+	function scrollPrevious() {
+		if (arrayStart < paginationSizeUi) {
+			return;
+		}
+		arrayStart = arrayStart - paginationSizeUi;
+		arrayEnd = arrayEnd - paginationSizeUi;
+	}
+	function resetPagination() {
+		arrayStart = 0;
+		arrayEnd = paginationSizeUi;
+	}
 </script>
 
 <div class="w-full text-sm text-left rtl:text-right text-stone-800 dark:text-stone-400">
+	<div class="info p-2 m-2 flex flex-row items-center space-x-4">
+		<button class="p-2 dark:bg-stone-800" on:click={resetPagination}>reset</button>
+		<p class="w-20 text-center text-md">{arrayStart} to {arrayEnd}</p>
+		<button class="p-2 dark:bg-stone-800" on:click={scrollPrevious}>previous</button>
+		<button class="p-2 dark:bg-stone-800" on:click={scrollNext}>next</button>
+	</div>
 	<table class="">
 		<thead class="text-stone-800 dark:bg-stone-800 bg-gray-200 dark:text-stone-400">
 			<tr>
+				<th><p class="pl-4">No.</p></th>
 				<th><p class="pl-4">Actions</p></th>
 				{#each entity?.displayedFields ?? Object.keys(data[0]) as field}
 					{#if Object.keys(data[0]).includes(field)}
@@ -86,13 +115,18 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each data as item}
+			{#each data.slice(arrayStart, arrayEnd) as item, index}
 				<tr
 					class="hoveritem dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
 					on:auxclick={() => {
 						window.open(`${base}/entity?type=${type}&id=${item.id}`, '_blank');
 					}}
 				>
+					<td class="py-3">
+						<p class="text-center">
+							{index + 1 + arrayStart}
+						</p></td
+					>
 					<td class="py-3">
 						<div class="ml-4">
 							<Button
