@@ -29,7 +29,7 @@
 	<div class="flex items-center cursor-pointer ">
 		<button
 			use:melt={$root}
-			class="relative h-6 rounded-full bg-slate-600 transition-colors data-[state=checked]:bg-emerald-800"
+			class="relative h-6 rounded-full bg-slate-300 dark:bg-slate-600 transition-colors data-[state=checked]:dark:bg-emerald-800 data-[state=checked]:bg-emerald-500"
 			id="airplane-mode"
 			aria-labelledby="airplane-mode-label"
 		>

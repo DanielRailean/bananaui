@@ -151,7 +151,7 @@
 				updateSearchQueryParam();
 				search();
 			}}
-			title="Seaches the JSON representation for the text in the search. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'"
+			title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'"
 			placeholder="search (hover for info)"
 		/>
 		<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->

@@ -19,7 +19,7 @@
 
 <div>
 	<h1 class="text-xl text-center p-2">
-		{info ? 'Control-plane info' : 'Loading Kong Control-Plane info'}
+		{info ? 'Kong Control-Plane info' : 'Loading Kong Control-Plane info'}
 	</h1>
 
 	<TreeWrapper data={info} expandFields={[]}></TreeWrapper>

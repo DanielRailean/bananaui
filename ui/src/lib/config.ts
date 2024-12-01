@@ -14,6 +14,8 @@ export const fieldOrder = [
 	// common
 	"name",
 	"id",
+	"enabled",
+
 	// sub entities of service
 	"service",
 	"route",
@@ -36,7 +38,6 @@ export const fieldOrder = [
 	"methods",
 
 	// common
-	"enabled",
 
 	// plugins
 	"config",
