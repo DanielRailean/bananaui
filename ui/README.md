@@ -9,7 +9,7 @@ export BANANA_UI_CONFIG=
 ```json
 {
  "oidc": {
-  "enabled": "true",
+  "enabled": false,
   "authorizeEndpoint": "https://localhost/oauth2/authorize",
   "clientId": "my_client_id",
   "selfUrl": "http://localhost:8080/oidc/callback",
@@ -18,7 +18,7 @@ export BANANA_UI_CONFIG=
   "response_mode": "fragment"
  },
  "kongApi": {
-  "endpoint": "https://localhost/api/local",
+  "endpoint": "http://localhost:8001",
   "requestHeaders": {
    "apikeyheader": "apikeyvalue"
   }

@@ -102,7 +102,7 @@
 		<button class="p-2 dark:bg-stone-800" on:click={scrollPrevious}>previous</button>
 		<button class="p-2 dark:bg-stone-800" on:click={scrollNext}>next</button>
 	</div>
-	<table class="">
+	<table class="w-full">
 		<thead class="text-stone-800 dark:bg-stone-800 bg-gray-200 dark:text-stone-400">
 			<tr>
 				<th><p class="pl-4">No.</p></th>
