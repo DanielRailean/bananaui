@@ -139,10 +139,9 @@
 					>
 					<td class="py-3">
 						<div class=" space-x-1 flex flex-row">
-							<Button
-								class="h-8 p-2"
-								title="copy entire object as json ({item.name ?? item.id})"
-								color="alternative"
+							<button
+								class="h-8"
+								title="copy entire object as json"
 								on:click={() => {
 									copy(JSON.stringify(item));
 								}}
@@ -150,18 +149,17 @@
 								<div class="flex flex-row items-center">
 									<FileCopyOutline class="m-1" />
 								</div>
-							</Button>
-							<Button title="open" class="h-8 p-2" color="alternative">
+							</button>
+							<button title="open" class="h-8" color="alternative">
 								<a href="{base}/entity?type={type}&id={item.id}" class="text-emerald-600">
 									<div class="flex flex-row items-center">
 										<ArrowUpRightFromSquareOutline class="m-1" />
 									</div>
 								</a>
-							</Button>
-							<Button
-								class="h-8 p-2"
+							</button>
+							<button
+								class="h-8"
 								title="delete"
-								color="alternative"
 								on:click={async () =>
 									await deleteEntity(entity?.name ?? '', item.id, item.name ?? item.id)}
 							>
@@ -170,7 +168,7 @@
 										<TrashBinOutline class="m-1" />
 									</div>
 								</div>
-							</Button>
+							</button>
 						</div>
 					</td>
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { paginationAwaitBetweenPages } from '$lib/config';
 	import type { IKongEntity } from '$lib/types';
-	import { CirclePlusOutline } from 'flowbite-svelte-icons';
+	import { CirclePlusOutline, RefreshOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
 	import { Button } from 'flowbite-svelte';
 	import { addToast, triggerSort, infoToast } from '$lib/stores';
@@ -102,32 +102,35 @@
 		{capitalizeFirstLetter(entity)}
 	</h1>
 	<div class="flex flex-row mb-2 h-10">
-		<Button
+		<button
 			color="alternative"
-			class="mr-2"
+			class=" flex flex-row mr-2 text-emerald-600 items-center"
 			on:click={() => {
 				load();
 				infoToast('refreshed!');
 			}}
-			>Refresh
-		</Button><Button
-			class="border-stone-300 mr-2"
+			>
+				<RefreshOutline></RefreshOutline>
+			Refresh
+		</button>
+		<button
+			class="flex flex-row mr-2 text-blue-700 items-center"
 			color="alternative"
 			on:click={() => {
 				goto(`${base}/add?type=${entity}`);
 			}}
 		>
 			<a href="{base}/add?type={entity}">
-				<div class="flex flex-row items-center">
-					<CirclePlusOutline class="m-2" />
-					add
+				<div class="flex flex-row items-center space-x-1">
+					<CirclePlusOutline class="mr-1" />
+					Add
 				</div>
 			</a>
-		</Button>
+		</button>
 	</div>
 	<div class="w-20 mb-2">
 		<input
-			class="bg-transparent rounded-lg dark:border-stone-700 border-stone-300"
+			class="bg-transparent rounded-lg border-none outline-none focus:[box-shadow:none] ml-[-8px]"
 			type="text"
 			disabled={!(data && data.length > 0)}
 			bind:value={searchText}
