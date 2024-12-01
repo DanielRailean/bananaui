@@ -18,14 +18,14 @@
 	import Toggle from './Toggle.svelte';
 	import { writable } from 'svelte/store';
 
+	import { createPagination, melt } from '@melt-ui/svelte';
+	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
+
 	const dispatch = createEventDispatcher();
 
 	export let data: any[];
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
-
-	let arrayStart = 0;
-	let arrayEnd = paginationSizeUi;
 
 	function copy(data: any) {
 		let result = JSON.stringify(data, undefined, 2);
@@ -85,33 +85,52 @@
 		}
 		dispatch('refresh');
 	}
-	function scrollNext() {
-		if (arrayEnd >= data.length) {
-			return;
-		}
-		arrayStart = arrayEnd;
-		arrayEnd = arrayEnd + paginationSizeUi;
-	}
-	function scrollPrevious() {
-		if (arrayStart < paginationSizeUi) {
-			return;
-		}
-		arrayStart = arrayStart - paginationSizeUi;
-		arrayEnd = arrayEnd - paginationSizeUi;
-	}
+	const {
+		elements: { root, pageTrigger, prevButton, nextButton },
+		states: { pages, range, page }
+	} = createPagination({
+		count: data.length,
+		perPage: paginationSizeUi,
+		defaultPage: 1,
+		siblingCount: 1
+	});
+
 	function resetPagination() {
-		arrayStart = 0;
-		arrayEnd = paginationSizeUi;
+		page.set(1);
 	}
 </script>
 
 <div class="w-full text-sm text-left rtl:text-right text-stone-800 dark:text-stone-400">
-	<div class="info p-2 m-2 flex flex-row items-center space-x-4">
-		<button class="p-2 dark:bg-stone-800" on:click={resetPagination}>reset</button>
-		<p class="w-24 text-center text-md">{arrayStart} to {arrayEnd}</p>
-		<button class="p-2 dark:bg-stone-800" on:click={scrollPrevious}>previous</button>
-		<button class="p-2 dark:bg-stone-800" on:click={scrollNext}>next</button>
-	</div>
+	<nav class="flex flex-row items-center ml-4 gap-4 mb-3" aria-label="pagination" use:melt={$root}>
+		<div class="flex items-center gap-2">
+			<button
+				class="grid h-8 items-center rounded-md bg-stone-200 dark:bg-stone-800 px-3 text-sm text-magnum-900 shadow-sm
+      hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 data-[selected]:bg-magnum-900
+      data-[selected]:text-black data-[selected]:dark:text-white"
+				use:melt={$prevButton}><ChevronLeftOutline class="size-4" /></button
+			>
+			{#each $pages as page (page.key)}
+				{#if page.type === 'ellipsis'}
+					<span>...</span>
+				{:else}
+					<button
+						class="grid h-8 items-center rounded-md bg-stone-200 dark:bg-stone-800 px-3 text-sm text-magnum-900 shadow-sm
+          hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 data-[selected]:bg-magnum-900
+        data-[selected]:text-black data-[selected]:dark:text-white"
+						use:melt={$pageTrigger(page)}>{page.value}</button
+					>
+				{/if}
+			{/each}
+			<button
+				class="grid h-8 items-center rounded-md bg-stone-200 dark:bg-stone-800 px-3 text-sm text-magnum-900 shadow-sm
+      hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 data-[selected]:bg-magnum-900
+    data-[selected]:text-white"
+				use:melt={$nextButton}><ChevronRightOutline class="size-4" /></button
+			>
+		</div>
+		Showing {type}
+		{$range.start + 1} - {$range.end}
+	</nav>
 	<table class="w-full">
 		<thead class="text-stone-800 dark:bg-stone-800 bg-gray-200 dark:text-stone-400">
 			<tr>
@@ -125,7 +144,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each data.slice(arrayStart, arrayEnd) as item, index}
+			{#each data.slice($range.start, $range.end) as item, index}
 				<tr
 					class="hoveritem dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
 					on:auxclick={() => {
@@ -134,7 +153,7 @@
 				>
 					<td class="py-3">
 						<p class="text-center">
-							{index + 1 + arrayStart}
+							{index + 1 + $range.start}
 						</p></td
 					>
 					<td class="py-3">
@@ -195,15 +214,17 @@
 											{item[field]}
 										{:else if typeof item[field] == 'boolean'}
 											{#if field === 'enabled'}
-											<div on:click|stopPropagation>
-												<Toggle isChecked={writable(item[field])} on:change={async()=> {
-													let ok = confirm('confirm action');
-														if (ok) {
-															await disable(item['id'], item[field]);
-														}
-												}}/>
-											</div>
-
+												<div on:click|stopPropagation>
+													<Toggle
+														isChecked={writable(item[field])}
+														on:change={async () => {
+															let ok = confirm('confirm action');
+															if (ok) {
+																await disable(item['id'], item[field]);
+															}
+														}}
+													/>
+												</div>
 											{:else}
 												{item[field]}
 											{/if}
