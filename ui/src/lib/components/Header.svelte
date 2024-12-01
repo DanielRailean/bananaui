@@ -41,9 +41,11 @@
 		if (!mounted) return false;
 
 		if (!window) return false;
-		return (
-			window.location.pathname == item.appPath || window.location.search.includes(`=${item.name}`)
-		);
+
+		const searchParams = new URLSearchParams(window.location.search);
+		const entityType = searchParams.get('type') ?? 'none';
+
+		return entityType === item.name;
 	}
 
 	onMount(() => {

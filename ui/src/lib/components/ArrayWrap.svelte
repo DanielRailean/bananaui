@@ -7,20 +7,23 @@
 	import {
 		ArrowUpRightFromSquareOutline,
 		FileCopyOutline,
-		LinkOutline,
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
-	import { dateFields, kongEntities } from '$lib/config';
+	import { dateFields, kongEntities, paginationSizeUi } from '$lib/config';
 	import { apiService } from '$lib/requests';
 	import { addToast, infoToast, triggerSort } from '$lib/stores';
 	import { createEventDispatcher } from 'svelte';
 	import type { IKongEntity } from '$lib/types';
 	import { base } from '$app/paths';
+	import Toggle from './Toggle.svelte';
+	import { writable } from 'svelte/store';
+
+	import { createPagination, melt } from '@melt-ui/svelte';
+	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
 
 	const dispatch = createEventDispatcher();
 
 	export let data: any[];
-	export let displayedFields: any;
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
 
@@ -29,10 +32,19 @@
 		if (typeof data == 'string') {
 			result = data;
 		}
+		if (Array.isArray(data) && data.length == 1) {
+			const first = data[0];
+			if (typeof first == 'string') {
+				result = data[0];
+			} else {
+				result = JSON.stringify(data[0], undefined, 2);
+			}
+		}
 		writeToClipboard(result);
 	}
 
-	function sortItems() {
+	function updateEvent() {
+		resetPagination();
 		data = data.sort((a, b) => {
 			if (entity && entity.sortBy) {
 				const sortKey = entity.sortBy;
@@ -46,20 +58,17 @@
 		});
 	}
 
-	$: $triggerSort, sortItems();
+	$: $triggerSort, updateEvent();
 
 	onMount(() => {
-		if (!displayedFields || displayedFields.length == 0) {
-			displayedFields = Object.keys(data[0]);
-		}
-		sortItems();
+		updateEvent();
 	});
 
 	async function disable(id: string, current: boolean) {
 		const res = await (await apiService()).updateRecord(type, id, { enabled: !current });
 		if (res.ok) {
 			dispatch('refresh');
-			infoToast(`item ${current ? "disabled": "enabled"}`)
+			infoToast(`item ${current ? 'disabled' : 'enabled'}`);
 		}
 	}
 
@@ -72,18 +81,62 @@
 		if (!res.ok) {
 			addToast({ message: `failed to delete. ${res.err}` });
 		} else {
-			addToast({ message: `ok`, type: `info` });
+			addToast({ message: `successfully deleted the ${type}`, type: `info` });
 		}
 		dispatch('refresh');
 	}
+	const {
+		elements: { root, pageTrigger, prevButton, nextButton },
+		states: { pages, range, page }
+	} = createPagination({
+		count: data.length,
+		perPage: paginationSizeUi,
+		defaultPage: 1,
+		siblingCount: 1
+	});
+
+	function resetPagination() {
+		page.set(1);
+	}
 </script>
 
-<div class="w-full">
-	<table class="w-full text-sm text-left rtl:text-right text-stone-800 dark:text-stone-400">
+<div class="w-full text-sm text-left rtl:text-right text-stone-800 dark:text-stone-400">
+	<nav class="flex flex-row items-center ml-4 gap-4 mb-3" aria-label="pagination" use:melt={$root}>
+		<div class="flex items-center gap-2">
+			<button
+				class="grid h-8 items-center rounded-md bg-stone-200 dark:bg-stone-800 px-3 text-sm text-magnum-900 shadow-sm
+      hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 data-[selected]:bg-magnum-900
+      data-[selected]:text-black data-[selected]:dark:text-white"
+				use:melt={$prevButton}><ChevronLeftOutline class="size-4" /></button
+			>
+			{#each $pages as page (page.key)}
+				{#if page.type === 'ellipsis'}
+					<span>...</span>
+				{:else}
+					<button
+						class="grid h-8 items-center rounded-md bg-stone-200 dark:bg-stone-800 px-3 text-sm text-magnum-900 shadow-sm
+          hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 data-[selected]:bg-magnum-900
+        data-[selected]:text-black data-[selected]:dark:text-white"
+						use:melt={$pageTrigger(page)}>{page.value}</button
+					>
+				{/if}
+			{/each}
+			<button
+				class="grid h-8 items-center rounded-md bg-stone-200 dark:bg-stone-800 px-3 text-sm text-magnum-900 shadow-sm
+      hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 data-[selected]:bg-magnum-900
+    data-[selected]:text-white"
+				use:melt={$nextButton}><ChevronRightOutline class="size-4" /></button
+			>
+		</div>
+		Showing {type}
+		{$range.start + 1} - {$range.end}
+	</nav>
+	<table class="w-full">
 		<thead class="text-stone-800 dark:bg-stone-800 bg-gray-200 dark:text-stone-400">
 			<tr>
+				<th><p class="pl-4">No.</p></th>
 				<th><p class="pl-4">Actions</p></th>
-				{#each displayedFields as field}
+				{#each entity?.displayedFields ?? Object.keys(data[0]) as field}
 					{#if Object.keys(data[0]).includes(field)}
 						<th scope="col" class="py-3"> {field} </th>
 					{/if}
@@ -91,7 +144,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each data as item}
+			{#each data.slice($range.start, $range.end) as item, index}
 				<tr
 					class="hoveritem dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
 					on:auxclick={() => {
@@ -99,11 +152,15 @@
 					}}
 				>
 					<td class="py-3">
-						<div class="ml-4">
-							<Button
-								class="h-8 p-2"
-								title="copy as json"
-								color="alternative"
+						<p class="text-center">
+							{index + 1 + $range.start}
+						</p></td
+					>
+					<td class="py-3">
+						<div class=" space-x-1 flex flex-row">
+							<button
+								class="h-8"
+								title="copy entire object as json"
 								on:click={() => {
 									copy(JSON.stringify(item));
 								}}
@@ -111,18 +168,17 @@
 								<div class="flex flex-row items-center">
 									<FileCopyOutline class="m-1" />
 								</div>
-							</Button>
-							<Button title="open" class="h-8 p-2" color="alternative">
+							</button>
+							<button title="open" class="h-8" color="alternative">
 								<a href="{base}/entity?type={type}&id={item.id}" class="text-emerald-600">
 									<div class="flex flex-row items-center">
 										<ArrowUpRightFromSquareOutline class="m-1" />
 									</div>
 								</a>
-							</Button>
-							<Button
-								class="h-8 p-2"
+							</button>
+							<button
+								class="h-8"
 								title="delete"
-								color="alternative"
 								on:click={async () =>
 									await deleteEntity(entity?.name ?? '', item.id, item.name ?? item.id)}
 							>
@@ -131,11 +187,11 @@
 										<TrashBinOutline class="m-1" />
 									</div>
 								</div>
-							</Button>
+							</button>
 						</div>
 					</td>
 
-					{#each displayedFields as field}
+					{#each entity?.displayedFields ?? Object.keys(data[0]) as field}
 						{#if Object.keys(item).includes(field)}
 							<td class="py-3">
 								<div class="flex flex-row items-center justify-between">
@@ -143,8 +199,14 @@
 									<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 									<p
 										class="mr-2 cursor-pointer"
-										title="click to copy"
+										title={field == 'name'
+											? `open ${item.name ?? ''} (${item.id})`
+											: `click to copy '${field}'`}
 										on:click|stopPropagation={() => {
+											if (field == 'name') {
+												goto(`${base}/entity?type=${type}&id=${item.id}`);
+												return;
+											}
 											copy(item[field]);
 										}}
 									>
@@ -152,17 +214,17 @@
 											{item[field]}
 										{:else if typeof item[field] == 'boolean'}
 											{#if field === 'enabled'}
-												<p
-													on:click|stopPropagation={async () => {
-														let ok = confirm('confirm action');
-														if (ok) {
-															await disable(item['id'], item[field]);
-														}
-													}}
-													title={item[field] ? 'disable' : 'enable'}
-												>
-													{item[field]}
-												</p>
+												<div on:click|stopPropagation>
+													<Toggle
+														isChecked={writable(item[field])}
+														on:change={async () => {
+															let ok = confirm('confirm action');
+															if (ok) {
+																await disable(item['id'], item[field]);
+															}
+														}}
+													/>
+												</div>
 											{:else}
 												{item[field]}
 											{/if}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Toggle from './../lib/components/Toggle.svelte';
 	import { addToast } from '$lib/stores';
 	import TreeWrapper from '../lib/components/treeWrapper.svelte';
 
@@ -17,5 +18,9 @@
 </script>
 
 <div>
-	<TreeWrapper data={info}></TreeWrapper>
+	<h1 class="text-xl text-center p-2">
+		{info ? 'Kong Control-Plane info' : 'Loading Kong Control-Plane info'}
+	</h1>
+
+	<TreeWrapper data={info} expandFields={[]}></TreeWrapper>
 </div>

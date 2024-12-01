@@ -1,25 +1,27 @@
 # BANANA UI
 
-appconfig (read from the BANANA_UI_CONFIG env var):
+## Configuration
+
+```sh
+export BANANA_UI_CONFIG=
+```
 
 ```json
 {
-	"oidc": {
-		"authorizeEndpoint": "https://login.microsoftonline.com/{tenant}/oauth2/authorize",
-		"clientId": "any",
-		"selfUrl": "http://localhost:8080/oidc/callback",
-		"scope": "openid email",
-		"responseType": "id_token",
-		"response_mode": "fragment"
-	},
-	"auth": {
-		"enabled": false
-	},
-	"kongApi": {
-		"endpoint": "http://localhost:8001",
-		"requestHeaders": {
-			"test": "value"
-		}
-	}
+ "oidc": {
+  "enabled": false,
+  "authorizeEndpoint": "https://localhost/oauth2/authorize",
+  "clientId": "my_client_id",
+  "selfUrl": "http://localhost:8080/oidc/callback",
+  "scope": "openid email",
+  "responseType": "id_token",
+  "response_mode": "fragment"
+ },
+ "kongApi": {
+  "endpoint": "http://localhost:8001",
+  "requestHeaders": {
+   "apikeyheader": "apikeyvalue"
+  }
+ }
 }
 ```

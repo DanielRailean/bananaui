@@ -17,7 +17,7 @@
 		PaletteOutline,
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
-	import { kongEntities } from '$lib/config';
+	import { fieldOrder, kongEntities, sortObjectFieldsByOrder } from '$lib/config';
 	import type { IKongEntity } from '$lib/types';
 	import { base } from '$app/paths';
 
@@ -57,6 +57,7 @@
 			data = undefined;
 			const res = await (await apiService()).findRecord(entityType, id);
 			data = res.data;
+			data = sortObjectFieldsByOrder(data, fieldOrder);
 			json = JSON.stringify(data, undefined, 2);
 			stateJson = json;
 
@@ -176,7 +177,14 @@
 		{#if isEdited}
 			<textarea class="dark:bg-[#1E2021] w-full min-h-[70vh]" bind:value={json}></textarea>
 		{:else}
-			<TreeWrapper {data} rounded={false} />
+			<TreeWrapper
+				{data}
+				rounded={false}
+				type={entityType}
+				on:refresh={() => {
+					load();
+				}}
+			/>
 			{#if subEntities}
 				{#each subEntities as subEntity}
 					<div class="flex flex-row m-4 h-8 items-center">
@@ -208,10 +216,6 @@
 					{#if subEntity.data && subEntity.data.length > 0}
 						<ArrayWrap
 							data={subEntity.data}
-							displayedFields={subEntity.displayedFields.filter((field) => {
-								// this removes the link to self
-								return field + 's' != entityType;
-							})}
 							type={subEntity.name}
 							entity={subEntity}
 							on:refresh={async () => await load()}

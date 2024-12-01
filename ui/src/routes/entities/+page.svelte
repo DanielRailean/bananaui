@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { paginationAwaitBetweenPages } from '$lib/config';
 	import type { IKongEntity } from '$lib/types';
-	import { CirclePlusOutline } from 'flowbite-svelte-icons';
+	import { CirclePlusOutline, RefreshOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
 	import { Button } from 'flowbite-svelte';
 	import { addToast, triggerSort, infoToast } from '$lib/stores';
@@ -29,7 +29,7 @@
 	let loadStart: DateTime | undefined;
 
 	let searchText = '';
-	let filteredData: any[];
+	let filteredData: any[] | undefined;
 
 	async function load() {
 		if (!isMounted) {
@@ -38,7 +38,11 @@
 		data = undefined;
 		const params = new URLSearchParams(window.location.search);
 		loadStart = DateTime.now();
+		const oldEntity = entity;
 		entity = params.get('type') ?? 'none';
+		if (oldEntity != entity) {
+			filteredData = undefined;
+		}
 		searchText = params.get('search') ?? '';
 		try {
 			kongEntity = kongEntities.find((i) => i.name == entity);
@@ -81,9 +85,23 @@
 		if (searchText.length == 0) {
 			filteredData = data;
 		}
-		filteredData = data.filter((item: any) =>
-			JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
-		);
+		const many = searchText.split(/\s*&&\s*/);
+		if (many.length > 1) {
+			filteredData = data.filter((item: any) => {
+				for (const condition of many) {
+					const conditionPassed = JSON.stringify(Object.values(item))
+						.toLowerCase()
+						.includes(condition.toLowerCase());
+					if (!conditionPassed) return false;
+				}
+				return true;
+			});
+		} else {
+			filteredData = data.filter((item: any) =>
+				JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
+			);
+		}
+		triggerSort.set(DateTime.now());
 	}
 </script>
 
@@ -93,57 +111,57 @@
 
 <div class="flex flex-col mx-4 mt-4">
 	<h1 class="text-xl mb-3 ml-1 dark:text-zinc-300">
-		{filteredData ? filteredData.length : 0}
+		{filteredData ? filteredData.length : 'Loading'}
 		{capitalizeFirstLetter(entity)}
 	</h1>
 	<div class="flex flex-row mb-2 h-10">
-		<Button
+		<button
 			color="alternative"
-			class="mr-2"
+			class=" flex flex-row mr-2 text-emerald-600 items-center"
 			on:click={() => {
 				load();
 				infoToast('refreshed!');
 			}}
-			>Refresh
-		</Button><Button
-			class="border-stone-300 mr-2"
+		>
+			<RefreshOutline></RefreshOutline>
+			Refresh
+		</button>
+		<button
+			class="flex flex-row mr-2 text-blue-700 items-center"
 			color="alternative"
 			on:click={() => {
 				goto(`${base}/add?type=${entity}`);
 			}}
 		>
 			<a href="{base}/add?type={entity}">
-				<div class="flex flex-row items-center">
-					<CirclePlusOutline class="m-2" />
-					add
+				<div class="flex flex-row items-center space-x-1">
+					<CirclePlusOutline class="mr-1" />
+					Add
 				</div>
 			</a>
-		</Button>
+		</button>
 	</div>
 	<div class="w-20 mb-2">
 		<input
-			class="bg-transparent rounded-lg dark:border-stone-700 border-stone-300"
+			class="bg-transparent rounded-lg border-none outline-none focus:[box-shadow:none] ml-[-8px]"
 			type="text"
+			disabled={!(data && data.length > 0)}
 			bind:value={searchText}
 			on:input={() => {
 				updateSearchQueryParam();
 				search();
 			}}
-			placeholder="search any field"
+			title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'"
+			placeholder="search (hover for info)"
 		/>
 		<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
 	</div>
 </div>
 {#if filteredData && filteredData.length > 0}
 	<ArrayWrap
-		displayedFields={kongEntities.find((item) => item.name == entity)?.displayedFields}
 		data={filteredData}
 		type={entity}
 		entity={kongEntity}
 		on:refresh={async () => await load()}
 	></ArrayWrap>
-{:else}
-	<div class="flex w-full justify-center items-center">
-		<h2 class="text-xl text-center mb-10">No entries</h2>
-	</div>
 {/if}

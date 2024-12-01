@@ -5,11 +5,28 @@
 	import JSONTree from 'svelte-json-tree';
 	import { DateTime } from 'luxon';
 	import { base } from '$app/paths';
+	import { writable } from 'svelte/store';
+	import Toggle from './Toggle.svelte';
+	import { createEventDispatcher } from 'svelte';
+	import { infoToast } from '$lib/stores';
+	import { apiService } from '$lib/requests';
 	export let data: any;
 	export let expandLevel = 0;
 	export let allowCopy = true;
 	export let allowKeyCopy = false;
 	export let rounded = true;
+	export let type = "";
+	export let expandFields = ['config'];
+
+	const dispatch = createEventDispatcher()
+
+	async function disable(id: string, current: boolean) {
+		const res = await (await apiService()).updateRecord(type, id, { enabled: !current });
+		if (res.ok) {
+			dispatch('refresh');
+			infoToast(`item ${current ? 'disabled' : 'enabled'}`);
+		}
+	}
 </script>
 
 <div class="tree">
@@ -61,12 +78,32 @@
 									<button
 										on:click={() => {
 											console.log(data[key]);
-										}}></button
-									>
+										}}
+									></button>
+								{:else if typeof data[key] == 'object' && data[key] != null && expandFields.includes(key)}
+									<div class="cursor-pointer">
+										<JSONTree value={data[key]} defaultExpandedLevel={100}></JSONTree>
+									</div>
 								{:else if typeof data[key] == 'object' && data[key] != null}
 									<div class="cursor-pointer">
 										<JSONTree value={data[key]} defaultExpandedLevel={expandLevel}></JSONTree>
 									</div>
+								{:else if typeof data[key] == 'boolean'}
+									{#if key === 'enabled'}
+										<div on:click|stopPropagation>
+											<Toggle
+												isChecked={writable(data[key])}
+												on:change={async () => {
+													let ok = confirm('confirm action');
+													if (ok) {
+														await disable(data['id'], data[key]);
+													}
+												}}
+											/>
+										</div>
+									{:else}
+										{data[key]}
+									{/if}
 								{:else if typeof data[key] == 'number'}
 									{#if dateFields.includes(key)}
 										{DateTime.fromSeconds(data[key]).toLocaleString({
@@ -101,6 +138,6 @@
 		--json-tree-font-family: 'Courier New', Courier, monospace;
 	}
 	.hoveritem:hover {
-		@apply dark:bg-blue-900 bg-blue-300
+		@apply dark:bg-blue-900 bg-blue-300;
 	}
 </style>
