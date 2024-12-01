@@ -17,9 +17,9 @@
 </script>
 
 <div>
-	{#if info}
-		<TreeWrapper data={info}></TreeWrapper>
-	{:else}
-		<h1 class="text-xl text-center p-2">Loading Kong Control-Plane info</h1>
-	{/if}
+	<h1 class="text-xl text-center p-2">
+		{info ? 'Control-plane info' : 'Loading Kong Control-Plane info'}
+	</h1>
+
+	<TreeWrapper data={info} expandFields={[]}></TreeWrapper>
 </div>

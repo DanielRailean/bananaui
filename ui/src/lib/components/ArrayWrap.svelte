@@ -30,6 +30,14 @@
 		if (typeof data == 'string') {
 			result = data;
 		}
+		if (Array.isArray(data) && data.length == 1) {
+			const first = data[0];
+			if (typeof first == 'string') {
+				result = data[0];
+			} else {
+				result = JSON.stringify(data[0], undefined, 2);
+			}
+		}
 		writeToClipboard(result);
 	}
 
@@ -131,7 +139,7 @@
 						<div class="ml-4">
 							<Button
 								class="h-8 p-2"
-								title="copy as json"
+								title="copy entire object as json ({item.name ?? item.id})"
 								color="alternative"
 								on:click={() => {
 									copy(JSON.stringify(item));
@@ -172,8 +180,14 @@
 									<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 									<p
 										class="mr-2 cursor-pointer"
-										title="click to copy"
+										title={field == 'name'
+											? `open ${item.name ?? ''} (${item.id})`
+											: `click to copy '${field}'`}
 										on:click|stopPropagation={() => {
+											if (field == 'name') {
+												goto(`${base}/entity?type=${type}&id=${item.id}`);
+												return;
+											}
 											copy(item[field]);
 										}}
 									>
@@ -188,7 +202,7 @@
 															await disable(item['id'], item[field]);
 														}
 													}}
-													title={item[field] ? 'disable' : 'enable'}
+													title={item[field] ? 'click to disable' : 'click to enable'}
 												>
 													{item[field]}
 												</p>
