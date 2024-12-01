@@ -85,9 +85,23 @@
 		if (searchText.length == 0) {
 			filteredData = data;
 		}
-		filteredData = data.filter((item: any) =>
-			JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
-		);
+		const many = searchText.split(/\s*&&\s*/);
+		console.log(many);
+		if (many.length > 1) {
+			filteredData = data.filter((item: any) => {
+				for (const condition of many) {
+					const conditionPassed = JSON.stringify(Object.values(item))
+						.toLowerCase()
+						.includes(condition.toLowerCase());
+					if (!conditionPassed) return false;
+				}
+				return true;
+			});
+		} else {
+			filteredData = data.filter((item: any) =>
+				JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
+			);
+		}
 		triggerSort.set(DateTime.now());
 	}
 </script>
@@ -109,8 +123,8 @@
 				load();
 				infoToast('refreshed!');
 			}}
-			>
-				<RefreshOutline></RefreshOutline>
+		>
+			<RefreshOutline></RefreshOutline>
 			Refresh
 		</button>
 		<button
@@ -138,7 +152,8 @@
 				updateSearchQueryParam();
 				search();
 			}}
-			placeholder="search any field"
+			title="Seaches the JSON representation for the text in the search. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'"
+			placeholder="search (hover for info)"
 		/>
 		<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
 	</div>
