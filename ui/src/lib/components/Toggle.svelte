@@ -24,11 +24,11 @@
   })
 </script>
 
-<form>
-	<div class="flex items-center">
+<form class="">
+	<div class="flex items-center cursor-pointer">
 		<button
 			use:melt={$root}
-			class="relative h-6 cursor-default rounded-full bg-stone-600 transition-colors data-[state=checked]:bg-stone-900"
+			class="relative h-6 rounded-full bg-stone-600 transition-colors data-[state=checked]:bg-stone-900"
 			id="airplane-mode"
 			aria-labelledby="airplane-mode-label"
 		>
