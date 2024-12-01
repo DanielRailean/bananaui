@@ -86,7 +86,6 @@
 			filteredData = data;
 		}
 		const many = searchText.split(/\s*&&\s*/);
-		console.log(many);
 		if (many.length > 1) {
 			filteredData = data.filter((item: any) => {
 				for (const condition of many) {

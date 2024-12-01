@@ -177,7 +177,14 @@
 		{#if isEdited}
 			<textarea class="dark:bg-[#1E2021] w-full min-h-[70vh]" bind:value={json}></textarea>
 		{:else}
-			<TreeWrapper {data} rounded={false} />
+			<TreeWrapper
+				{data}
+				rounded={false}
+				type={entityType}
+				on:refresh={() => {
+					load();
+				}}
+			/>
 			{#if subEntities}
 				{#each subEntities as subEntity}
 					<div class="flex flex-row m-4 h-8 items-center">
