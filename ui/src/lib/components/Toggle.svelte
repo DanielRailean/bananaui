@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createSwitch, melt } from '@melt-ui/svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import { writable, type Writable } from 'svelte/store';
 
 	const handleChange = ({ curr, next }) => {
 		// console.log(curr);
@@ -9,13 +10,14 @@
 		return next;
 	};
 
-  export let isChecked: boolean = false
+  export let isChecked: Writable<boolean> = writable(false)
+	export let title: string | undefined
 
 	let {
 		elements: { root, input }
 	} = createSwitch({
 		onCheckedChange: handleChange,
-    defaultChecked: isChecked
+    checked: isChecked
 	});
 
 	const dispatch = createEventDispatcher();
@@ -24,11 +26,11 @@
   })
 </script>
 
-<form class="">
-	<div class="flex items-center cursor-pointer">
+<form class="" title="{title ?? `click to ${$isChecked ? "disable" : "enable"}`}">
+	<div class="flex items-center cursor-pointer ">
 		<button
 			use:melt={$root}
-			class="relative h-6 rounded-full bg-stone-600 transition-colors data-[state=checked]:bg-stone-900"
+			class="relative h-6 rounded-full bg-slate-600 transition-colors data-[state=checked]:bg-purple-900"
 			id="airplane-mode"
 			aria-labelledby="airplane-mode-label"
 		>

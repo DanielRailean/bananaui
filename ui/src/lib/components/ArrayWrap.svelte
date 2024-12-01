@@ -16,6 +16,7 @@
 	import type { IKongEntity } from '$lib/types';
 	import { base } from '$app/paths';
 	import Toggle from './Toggle.svelte';
+	import { writable } from 'svelte/store';
 
 	const dispatch = createEventDispatcher();
 
@@ -137,7 +138,7 @@
 						</p></td
 					>
 					<td class="py-3">
-						<div class="ml-4">
+						<div class=" space-x-1 flex flex-row">
 							<Button
 								class="h-8 p-2"
 								title="copy entire object as json ({item.name ?? item.id})"
@@ -197,7 +198,7 @@
 										{:else if typeof item[field] == 'boolean'}
 											{#if field === 'enabled'}
 											<div on:click|stopPropagation>
-												<Toggle isChecked={item[field]} on:change={async()=> {
+												<Toggle isChecked={writable(item[field])} on:change={async()=> {
 													let ok = confirm('confirm action');
 														if (ok) {
 															await disable(item['id'], item[field]);
