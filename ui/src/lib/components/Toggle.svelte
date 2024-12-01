@@ -11,7 +11,7 @@
 	};
 
   export let isChecked: Writable<boolean> = writable(false)
-	export let title: string | undefined
+	export let title: string | undefined = undefined
 
 	let {
 		elements: { root, input }
