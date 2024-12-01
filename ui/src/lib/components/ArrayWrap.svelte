@@ -98,7 +98,7 @@
 <div class="w-full text-sm text-left rtl:text-right text-stone-800 dark:text-stone-400">
 	<div class="info p-2 m-2 flex flex-row items-center space-x-4">
 		<button class="p-2 dark:bg-stone-800" on:click={resetPagination}>reset</button>
-		<p class="w-20 text-center text-md">{arrayStart} to {arrayEnd}</p>
+		<p class="w-24 text-center text-md">{arrayStart} to {arrayEnd}</p>
 		<button class="p-2 dark:bg-stone-800" on:click={scrollPrevious}>previous</button>
 		<button class="p-2 dark:bg-stone-800" on:click={scrollNext}>next</button>
 	</div>
