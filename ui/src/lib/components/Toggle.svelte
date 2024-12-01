@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { createSwitch, melt } from '@melt-ui/svelte';
+	import { createSwitch, melt, type CreateDialogProps } from '@melt-ui/svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
 
-	const handleChange = ({ curr, next }) => {
-		// console.log(curr);
-		// console.log(next);
+	const handleChange: CreateDialogProps['onOpenChange'] = ({ curr, next }) => {
+		// todo next still set if not confirmed
     dispatch("change" , next)
 		return next;
 	};
@@ -30,11 +29,11 @@
 	<div class="flex items-center cursor-pointer ">
 		<button
 			use:melt={$root}
-			class="relative h-6 rounded-full bg-slate-600 transition-colors data-[state=checked]:bg-purple-900"
+			class="relative h-6 rounded-full bg-slate-600 transition-colors data-[state=checked]:bg-emerald-800"
 			id="airplane-mode"
 			aria-labelledby="airplane-mode-label"
 		>
-			<span class="thumb block rounded-full bg-white transition" />
+			<span class="thumb block rounded-full dark:bg-slate-900 bg-white transition" />
 		</button>
 		<input use:melt={$input} />
 	</div>
