@@ -15,6 +15,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import type { IKongEntity } from '$lib/types';
 	import { base } from '$app/paths';
+	import Toggle from './Toggle.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -195,17 +196,15 @@
 											{item[field]}
 										{:else if typeof item[field] == 'boolean'}
 											{#if field === 'enabled'}
-												<p
-													on:click|stopPropagation={async () => {
-														let ok = confirm('confirm action');
+											<div on:click|stopPropagation>
+												<Toggle isChecked={item[field]} on:change={async()=> {
+													let ok = confirm('confirm action');
 														if (ok) {
 															await disable(item['id'], item[field]);
 														}
-													}}
-													title={item[field] ? 'click to disable' : 'click to enable'}
-												>
-													{item[field]}
-												</p>
+												}}/>
+											</div>
+
 											{:else}
 												{item[field]}
 											{/if}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Toggle from './../lib/components/Toggle.svelte';
 	import { addToast } from '$lib/stores';
 	import TreeWrapper from '../lib/components/treeWrapper.svelte';
 
