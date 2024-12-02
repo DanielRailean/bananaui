@@ -58,7 +58,7 @@
 </script>
 
 <header
-	class="flex flex-col shadow shadow-zinc-300 dark:shadow-zinc-800 p-4 pt-10 bg-stone-100 dark:bg-[#1E2021] rounded-r-xl"
+	class="flex flex-col shadow shadow-zinc-300 dark:shadow-zinc-800 p-4 pt-10 bg-stone-100 dark:bg-[#1E2021] rounded-r-xl font-light"
 >
 	<div class="flex flex-row items-center min-w-[200px]">
 		<DarkToggle div_class="" />
