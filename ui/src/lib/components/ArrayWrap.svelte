@@ -16,8 +16,6 @@
 	import { base } from '$app/paths';
 	import Toggle from './Toggle.svelte';
 	import { writable } from 'svelte/store';
-
-	import { createPagination, melt } from '@melt-ui/svelte';
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
 
 	const dispatch = createEventDispatcher();
@@ -149,7 +147,6 @@
 		if (Math.abs(currentPage - page) <= 1) {
 			return true;
 		}
-		// todo: show 4 pages  at the end when last page is selected
 		return false;
 	}
 </script>
