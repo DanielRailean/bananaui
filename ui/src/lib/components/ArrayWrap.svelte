@@ -151,7 +151,7 @@
 	}
 </script>
 
-<div class="w-full text-sm text-left rtl:text-right text-stone-800 dark:text-stone-300">
+<div class="w-full text-sm text-left rtl:text-right text-stone-800 font-light dark:text-stone-300">
 	<div class="info p-2 m-2 flex flex-row items-center space-x-4">
 		<button class="p-2 dark:bg-stone-700" on:click={scrollPrevious}>
 			<ChevronLeftOutline class="size-4" />
@@ -160,7 +160,7 @@
 		{#each intervalsIterable as interval, index}
 			{#if isVisiblePage(interval, pageNumber)}
 				<button
-					class="p-2 dark:bg-stone-700 w-10 h-10 rounded-lg font-medium"
+					class="p-2 dark:bg-stone-700 w-10 h-10 rounded-lg"
 					on:click={() => {
 						loadPage(interval);
 					}}
@@ -199,7 +199,7 @@
 					}}
 				>
 					<td class="py-3 pl-4">
-						<p class="text-center font-bold">
+						<p class="text-center font-light">
 							{index + 1 + arrayStart}
 						</p></td
 					>

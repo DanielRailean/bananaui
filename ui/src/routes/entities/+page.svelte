@@ -108,7 +108,7 @@
 	<title>{staticConfig.name} - {capitalizeFirstLetter(entity)}</title>
 </svelte:head>
 
-<div class="flex flex-col mx-4 mt-4">
+<div class="flex flex-col mx-4 mt-4 font-light">
 	<h1 class="text-xl mb-3 ml-1 dark:text-zinc-300">
 		{filteredData ? filteredData.length : 'Loading'}
 		{capitalizeFirstLetter(entity)}
