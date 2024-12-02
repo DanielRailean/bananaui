@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { writeToClipboard } from '$lib/util';
 	import { goto } from '$app/navigation';
-	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import { DateTime } from 'luxon';
 	import {
@@ -27,6 +26,27 @@
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
 
+	let arrayStart = 0;
+	let arrayEnd = paginationSizeUi;
+	let pageNumber = 1;
+
+	let intervalsIterable: number[] = [];
+	let intervals = data.length / paginationSizeUi;
+
+	function calculatePagination() {
+		intervals = data.length / paginationSizeUi;
+
+		if (Math.floor(intervals) != intervals) {
+			intervals = Math.floor(intervals) + 1;
+		}
+
+		for (let index = 0; index < intervals; index++) {
+			intervalsIterable[index] = index + 1;
+		}
+	}
+
+	calculatePagination();
+
 	function copy(data: any) {
 		let result = JSON.stringify(data, undefined, 2);
 		if (typeof data == 'string') {
@@ -45,6 +65,7 @@
 
 	function updateEvent() {
 		resetPagination();
+		calculatePagination();
 		data = data.sort((a, b) => {
 			if (entity && entity.sortBy) {
 				const sortKey = entity.sortBy;
@@ -85,52 +106,81 @@
 		}
 		dispatch('refresh');
 	}
-	const {
-		elements: { root, pageTrigger, prevButton, nextButton },
-		states: { pages, range, page }
-	} = createPagination({
-		count: data.length,
-		perPage: paginationSizeUi,
-		defaultPage: 1,
-		siblingCount: 1
-	});
-
+	function scrollNext() {
+		if (arrayEnd >= data.length) {
+			return;
+		}
+		pageNumber += 1;
+		arrayStart = arrayEnd;
+		arrayEnd = arrayEnd + paginationSizeUi;
+	}
+	function scrollPrevious() {
+		if (arrayStart < paginationSizeUi) {
+			return;
+		}
+		pageNumber -= 1;
+		arrayStart = arrayStart - paginationSizeUi;
+		arrayEnd = arrayEnd - paginationSizeUi;
+	}
 	function resetPagination() {
-		page.set(1);
+		arrayStart = 0;
+		pageNumber = 1;
+		arrayEnd = paginationSizeUi;
+	}
+
+	function loadPage(page: number) {
+		arrayStart = (page -1) * paginationSizeUi
+		arrayEnd = page * paginationSizeUi
+		pageNumber = page;
+		console.log(page);
+	}
+
+	function isVisiblePage(page: number, currentPage: number): boolean {
+		if (currentPage < 4 && page <= 4) {
+			return true;
+		}
+		const last = intervalsIterable.at(-1) ?? currentPage;
+		if (page === 1 || page === last) {
+			return true;
+		}
+		if ((currentPage === last || currentPage === last - 1) && page > last - 4) {
+			return true;
+		}
+		if (Math.abs(currentPage - page) <= 1) {
+			return true;
+		}
+		// todo: show 4 pages  at the end when last page is selected
+		return false;
 	}
 </script>
 
-<div class="w-full text-sm text-left rtl:text-right text-stone-800 dark:text-stone-400">
-	<nav class="flex flex-row items-center ml-4 gap-4 mb-3" aria-label="pagination" use:melt={$root}>
-		<div class="flex items-center gap-2">
-			<button
-				class="grid h-8 items-center rounded-md bg-stone-200 dark:bg-stone-800 px-3 text-sm text-magnum-900 shadow-sm
-      hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 data-[selected]:bg-magnum-900
-      data-[selected]:text-black data-[selected]:dark:text-white"
-				use:melt={$prevButton}><ChevronLeftOutline class="size-4" /></button
-			>
-			{#each $pages as page (page.key)}
-				{#if page.type === 'ellipsis'}
-					<span>...</span>
-				{:else}
-					<button
-						class="grid h-8 items-center rounded-md bg-stone-200 dark:bg-stone-800 px-3 text-sm text-magnum-900 shadow-sm
-          hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 data-[selected]:bg-magnum-900
-        data-[selected]:text-black data-[selected]:dark:text-white"
-						use:melt={$pageTrigger(page)}>{page.value}</button
-					>
-				{/if}
-			{/each}
-			<button
-				class="grid h-8 items-center rounded-md bg-stone-200 dark:bg-stone-800 px-3 text-sm text-magnum-900 shadow-sm
-      hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50 data-[selected]:bg-magnum-900
-    data-[selected]:text-white"
-				use:melt={$nextButton}><ChevronRightOutline class="size-4" /></button
-			>
-		</div>
-		Showing {type}
-		{$range.start + 1} - {$range.end}
-	</nav>
+<div class="w-full text-sm text-left rtl:text-right text-stone-800 dark:text-stone-300">
+	<div class="info p-2 m-2 flex flex-row items-center space-x-4">
+		<button class="p-2 dark:bg-stone-700" on:click={scrollPrevious}>
+			<ChevronLeftOutline class="size-4" />
+		</button>
+
+		{#each intervalsIterable as interval, index}
+			{#if isVisiblePage(interval, pageNumber)}
+				<button
+					class="p-2 dark:bg-stone-700 w-10 h-10 rounded-lg font-medium"
+					on:click={() => {
+						loadPage(interval);
+					}}
+				>
+					<p>{interval}</p>
+				</button>
+			{/if}
+			{#if isVisiblePage(interval, pageNumber) && !isVisiblePage(interval + 1, pageNumber) && !(interval == intervalsIterable.at(-1))}
+				<p>...</p>
+			{/if}
+			<!-- content here -->
+		{/each}
+		<button class="p-2 dark:bg-stone-700" on:click={scrollNext}
+			><ChevronRightOutline class="size-4" /></button
+		>
+		<p class="w-36 text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
+	</div>
 	<table class="w-full">
 		<thead class="text-stone-800 dark:bg-stone-800 bg-gray-200 dark:text-stone-400">
 			<tr>
@@ -144,16 +194,16 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each data.slice($range.start, $range.end) as item, index}
+			{#each data.slice(arrayStart, arrayEnd) as item, index}
 				<tr
 					class="hoveritem dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
 					on:auxclick={() => {
 						window.open(`${base}/entity?type=${type}&id=${item.id}`, '_blank');
 					}}
 				>
-					<td class="py-3">
-						<p class="text-center">
-							{index + 1 + $range.start}
+					<td class="py-3 pl-4">
+						<p class="text-center font-bold">
+							{index + 1 + arrayStart}
 						</p></td
 					>
 					<td class="py-3">

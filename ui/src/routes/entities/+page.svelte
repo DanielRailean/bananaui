@@ -3,7 +3,6 @@
 	import type { IKongEntity } from '$lib/types';
 	import { CirclePlusOutline, RefreshOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
-	import { Button } from 'flowbite-svelte';
 	import { addToast, triggerSort, infoToast } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '$lib/components/ArrayWrap.svelte';
@@ -141,9 +140,9 @@
 			</a>
 		</button>
 	</div>
-	<div class="w-20 mb-2">
+	<div class="w-full mb-2">
 		<input
-			class="bg-transparent rounded-lg border-none outline-none focus:[box-shadow:none] ml-[-8px]"
+			class="bg-transparent rounded-lg border-none outline-none focus:[box-shadow:none] ml-[-8px] w-full"
 			type="text"
 			disabled={!(data && data.length > 0)}
 			bind:value={searchText}
