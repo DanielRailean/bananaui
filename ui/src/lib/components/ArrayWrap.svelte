@@ -60,20 +60,31 @@
 		}
 		writeToClipboard(result);
 	}
+	let sortKey = entity?.sortBy ?? 'updated_at';
+	let sortAscending = entity?.sortAscending ?? true;
 
 	function updateEvent() {
 		resetPagination();
 		calculatePagination();
 		data = data.sort((a, b) => {
-			if (entity && entity.sortBy) {
-				const sortKey = entity.sortBy;
-				if (entity.sortAscending === true) {
-					return (a[sortKey] - b[sortKey]) as number;
-				} else {
-					return (b[sortKey] - a[sortKey]) as number;
-				}
+			let fieldA = a[sortKey];
+			let fieldB = b[sortKey];
+			if (typeof fieldA == 'object') {
+				fieldA = JSON.stringify(fieldA);
+				fieldB = JSON.stringify(fieldB);
 			}
-			return b.updated_at - a.updated_at;
+
+			if (typeof fieldA == 'string') {
+				if (sortAscending === true) {
+					return fieldA.localeCompare(fieldB);
+				}
+				return fieldB.localeCompare(fieldA);
+			}
+			if (sortAscending === true) {
+				return (fieldA - fieldB) as number;
+			} else {
+				return (fieldB - fieldA) as number;
+			}
 		});
 	}
 
@@ -127,8 +138,8 @@
 	}
 
 	function loadPage(page: number) {
-		arrayStart = (page -1) * paginationSizeUi
-		arrayEnd = page * paginationSizeUi
+		arrayStart = (page - 1) * paginationSizeUi;
+		arrayEnd = page * paginationSizeUi;
 		pageNumber = page;
 		console.log(page);
 	}
@@ -152,6 +163,33 @@
 </script>
 
 <div class="w-full text-sm text-left rtl:text-right text-stone-800 font-light dark:text-stone-300">
+	<div class="flex flex-row items-center space-x-2 pl-4">
+		<p>Sort by:</p>
+		<select
+			bind:value={sortKey}
+			on:change={() => {
+				console.log(sortKey);
+				updateEvent();
+			}}
+			class="dark:bg-stone-700 border-none w-52 rounded focus:border-none focus:[box-shadow:none]"
+		>
+			{#each Object.keys(data[0] ?? {}) as key}
+				<option value={key} selected={key == sortKey}>{key}</option>
+			{/each}
+		</select>
+		<p>Sort ascending:</p>
+		<select
+			bind:value={sortAscending}
+			on:change={() => {
+				console.log(sortAscending);
+				updateEvent();
+			}}
+			class="dark:bg-stone-700 border-none rounded focus:border-none focus:[box-shadow:none]"
+		>
+			<option value={true} selected={sortAscending}>true</option>
+			<option value={false} selected={!sortAscending}>false</option>
+		</select>
+	</div>
 	<div class="info p-2 m-2 flex flex-row items-center space-x-4">
 		<button class="p-2 dark:bg-stone-700" on:click={scrollPrevious}>
 			<ChevronLeftOutline class="size-4" />
