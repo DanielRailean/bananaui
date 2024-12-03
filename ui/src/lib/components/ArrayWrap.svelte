@@ -343,10 +343,10 @@
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 										<p
-											class="mr-2 cursor-pointer"
+											class="mr-2 cursor-pointer overflow-hidden max-h-20"
 											title={field == 'name'
 												? `open ${item.name ?? ''} (${item.id})`
-												: `click to copy '${field}' `}
+												: `click to copy '${field}'\n${JSON.stringify(item[field], undefined, 2)} `}
 											on:click|stopPropagation={() => {
 												if (field == 'name') {
 													goto(`${base}/entity?type=${type}&id=${item.id}`);
