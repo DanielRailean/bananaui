@@ -188,8 +188,7 @@
 			{#if subEntities}
 				{#each subEntities as subEntity}
 					<div class="flex flex-row m-4 h-8 items-center">
-						<h2>{subEntity.name}</h2>
-						<div class="flex flex-row m-4 h-8">
+						<div class="flex flex-row h-8">
 							<Button
 								color="alternative"
 								on:click={() => {
@@ -215,7 +214,7 @@
 					</div>
 					{#if subEntity.data && subEntity.data.length > 0}
 						<ArrayWrap
-							data={subEntity.data}
+							dataRaw={subEntity.data}
 							type={subEntity.name}
 							entity={subEntity}
 							on:refresh={async () => await load()}
