@@ -376,8 +376,8 @@
 											{:else if typeof item[field] == 'number'}
 												{#if dateFields.includes(field)}
 													{DateTime.fromSeconds(item[field]).toLocaleString({
-														...DateTime.DATETIME_MED,
-														weekday: 'short'
+														...DateTime.DATETIME_SHORT_WITH_SECONDS,
+														hour12: false
 													})}
 												{:else}
 													{item[field]}

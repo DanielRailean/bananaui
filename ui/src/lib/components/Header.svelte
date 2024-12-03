@@ -5,6 +5,8 @@
 	type HeaderItem = {
 		name: string;
 		appPath: string;
+		uiSpaceAfter?: boolean;
+		uiSpaceBefore?: boolean;
 	};
 	let items: HeaderItem[] = [
 		{
@@ -51,7 +53,7 @@
 	onMount(() => {
 		mounted = true;
 		const entities = kongEntities.map((i) => {
-			return { name: i.name, appPath: `/entities?type=${i.name.toLowerCase()}` };
+			return { appPath: `/entities?type=${i.name.toLowerCase()}`, ...i };
 		});
 		items = [...items, ...entities, ...itemsEnd];
 	});
@@ -68,6 +70,9 @@
 	<nav class="text-2xl text-stone-400">
 		<ul class="flex flex-col">
 			{#each items as item}
+			{#if item.uiSpaceBefore}
+				<br/>
+			{/if}
 				{#if item.name == 'profile'}
 					{#if $userToken}
 						<li
@@ -103,6 +108,9 @@
 						>
 					</li>
 				{/if}
+				{#if item.uiSpaceAfter}
+				<br/>
+			{/if}
 			{/each}
 		</ul>
 	</nav>

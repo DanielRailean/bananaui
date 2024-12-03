@@ -68,4 +68,6 @@ export interface IKongEntity {
 	displayedFields?: string[];
 	defaultJson?: string;
 	subEntities?: string[];
+	uiSpaceAfter?: boolean
+	uiSpaceBefore?: boolean
 }

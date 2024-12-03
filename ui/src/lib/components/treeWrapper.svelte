@@ -135,7 +135,7 @@
 		--json-tree-li-line-height: 1.3;
 
 		--json-tree-font-size: 15px;
-		--json-tree-font-family: 'Courier New', Courier, monospace;
+		--json-tree-font-family: "JetBrains Mono", monospace;;
 	}
 	.hoveritem:hover {
 		@apply dark:bg-blue-900 bg-blue-300;
