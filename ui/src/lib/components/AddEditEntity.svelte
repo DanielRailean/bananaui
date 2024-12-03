@@ -34,6 +34,7 @@
 	}
 
 	onMount(async () => {
+		init();
 		let query = new URLSearchParams(window.location.search);
 		let path = query.get('apiPostPath');
 		let type = query.get('type');
@@ -134,7 +135,53 @@
 			console.log(res.data);
 		}
 	}
+
+	function init() {
+		let html = document.querySelector('#html');
+		let css = document.querySelector('#css');
+		let js = document.querySelector('#js');
+		let result = document.querySelector('#result');
+
+		function inputHandler(event) {
+			// Only run on our three fields
+			if (event.target !== html && event.target !== css && event.target !== js) return;
+
+			// Clone text into pre immediately
+			let code = event.target.previousElementSibling.firstChild;
+			if (!code) return;
+			let content = event.target.value;
+			console.log(content);
+			content = content.replace(/\t/g, '  ');
+			console.log(content);
+			code.textContent = content;
+			const text = document.getElementById('js');
+			console.log(text);
+			text.value = content;
+
+			// Highlight the syntax
+			Prism.highlightElement(code);
+		}
+
+		// Listen for input events
+		document.addEventListener('input', inputHandler);
+	}
 </script>
+
+<svelte:head>
+	<link rel="stylesheet" href="https://unpkg.com/dracula-prism/dist/css/dracula-prism.css" />
+</svelte:head>
+
+<div class="editor">
+	<pre class="lang-js" id="ja"><code id="jac"></code></pre>
+	<textarea
+		id="js"
+		spellcheck="false"
+		wrap="hard"
+		autocorrect="off"
+		autocapitalize="off"
+		translate="no"
+	></textarea>
+</div>
 
 {#if entityKindToAdd}
 	<div class="flex flex-col m-4">
@@ -189,3 +236,51 @@
 	</h2>
 {/if}
 <TreeWrapper data={testSchema} expandLevel={0} allowCopy={false} allowKeyCopy={true} />
+
+<style>
+	.editor {
+		display: grid;
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr;
+		gap: 0;
+	}
+
+	.editor pre,
+	.editor textarea {
+		grid-area: 1 / 1 / 2 / 2;
+	}
+
+	.editor textarea {
+		background-color: transparent;
+		border: none;
+		color: transparent;
+		caret-color: gray;
+		overflow: hidden;
+		resize: none;
+		width: 100%;
+	}
+
+	textarea,
+	pre {
+		padding: 0;
+		margin: 0;
+	}
+
+	textarea,
+	pre,
+	code {
+		outline: none;
+		border: none;
+		box-shadow: none;
+		font-family: monospace;
+		font-size: 20px;
+		line-height: 30px;
+		border-radius: 0;
+		white-space: break-spaces;
+	}
+
+	textarea,
+	pre {
+		padding: 10px;
+	}
+</style>
