@@ -105,14 +105,14 @@ export const kongEntities: IKongEntity[] = [
 		apiPath: 'plugins',
 		uiSpaceAfter: true
 	},
-	{ name: 'keys', displayedFields: ['name', 'kid', 'updated_at'], apiPath: 'keys' },
-	{ name: 'vaults', displayedFields: undefined, apiPath: 'vaults' },
-	{ name: 'upstreams', displayedFields: undefined, apiPath: 'upstreams' },
-	{ name: 'ca_certificates', displayedFields: undefined, apiPath: 'ca_certificates' },
 	{ name: 'certificates', displayedFields: undefined, apiPath: 'certificates' },
+	{ name: 'ca_certificates', displayedFields: undefined, apiPath: 'ca_certificates' },
 	{ name: 'consumers', displayedFields: undefined, apiPath: 'consumers' },
+	{ name: 'upstreams', displayedFields: undefined, apiPath: 'upstreams' },
+	{ name: 'keys', displayedFields: ['name', 'kid', 'updated_at'], apiPath: 'keys' },
 	{ name: 'keysets', displayedFields: undefined, apiPath: 'key-sets' },
 	{ name: 'snis', displayedFields: undefined, apiPath: 'snis' },
+	{ name: 'vaults', displayedFields: undefined, apiPath: 'vaults' },
 	{
 		name: 'dataplanes',
 		displayedFields: ['last_seen', 'ip', 'sync_status', 'version', 'hostname', 'config_hash'],
