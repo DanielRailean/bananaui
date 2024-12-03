@@ -227,3 +227,56 @@
 		<h2 class="text-xl text-center">Loading ...</h2>
 	{/if}
 </div>
+
+<style>
+	.editor {
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr;
+		gap: 0;
+	}
+
+	.editor pre,
+	.editor textarea {
+		grid-area: 1 / 1 / 2 / 2;
+	}
+
+	.editor textarea {
+		background-color: transparent;
+		border: none;
+		color: transparent;
+		caret-color: gray;
+		overflow: hidden;
+		resize: none;
+		width: 100%;
+	}
+
+	textarea,
+	pre {
+		padding: 0;
+		margin: 0;
+	}
+
+	textarea,
+	pre,
+	code {
+		outline: none;
+		border: none;
+		box-shadow: none;
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 20px;
+		line-height: 30px;
+		border-radius: 0;
+		white-space: break-spaces;
+	}
+
+	textarea,
+	pre {
+		padding: 10px;
+		padding-left: 60px;
+	}
+
+	code,
+	pre {
+		@apply dark:bg-zinc-900 bg-stone-800;
+	}
+</style>
