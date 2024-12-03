@@ -80,6 +80,7 @@
 				subEntities = subEntities;
 			}
 		}
+		triggerHighlight()
 	}
 
 	async function deleteEntity(type: string, id: string, name: string) {
@@ -125,7 +126,24 @@
 			addToast({ message: err.message });
 		}
 	}
+	let editorWindow: HTMLTextAreaElement;
+	let editorSyntax: HTMLElement;
+
+	async function triggerHighlight() {
+		json = json.replace(/\t/g, '  ');
+		if (!editorSyntax) {
+			return;
+		}
+		editorSyntax.textContent = json;
+
+		// Highlight the syntax
+		(globalThis as any).Prism.highlightElement(editorSyntax);
+	}
 </script>
+
+<svelte:head>
+	<link rel="stylesheet" href="https://unpkg.com/dracula-prism/dist/css/dracula-prism.css" />
+</svelte:head>
 
 <div class="mb-2">
 	<div class="flex flex-row m-4 h-8">
@@ -174,9 +192,27 @@
 		{/if}
 	</div>
 	{#if data}
-		{#if isEdited}
-			<textarea class="dark:bg-[#1E2021] w-full min-h-[70vh]" bind:value={json}></textarea>
-		{:else}
+		<div
+			class="editor dark:bg-[#1E2021] w-full min-h-[30vh] line-numbers {isEdited
+				? 'grid'
+				: 'hidden'}"
+		>
+			<pre class="language-json"><code bind:this={editorSyntax}></code></pre>
+			<textarea
+				bind:this={editorWindow}
+				spellcheck="false"
+				wrap="hard"
+				autocorrect="off"
+				autocapitalize="off"
+				translate="no"
+				class="relative"
+				bind:value={json}
+				on:input={() => {
+					triggerHighlight();
+				}}
+			></textarea>
+		</div>
+		{#if !isEdited}
 			<TreeWrapper
 				{data}
 				rounded={false}
