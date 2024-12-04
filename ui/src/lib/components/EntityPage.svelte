@@ -106,7 +106,7 @@
 			return;
 		}
 		json = JSON.stringify(parsed, undefined, 2);
-		addToast({ message: `ok`, type: 'info' });
+		addToast({ message: `json is valid`, type: 'info' });
 	}
 	async function save() {
 		const a = confirm('confirm save?');
@@ -114,18 +114,20 @@
 			return;
 		}
 		format();
-		try {
 			const res = await (await apiService()).updateRecord(entityType, id, JSON.parse(json));
+			console.log(res)
+			if(!res.ok)
+			{
+				addToast({ message: `API error (${res.code}): ` + ((res.errTyped as any)?.message ?? res.err) as string, timeout: 15000 });
+				return
+			}
 
 			isEdited = !isEdited;
 			isEdited = isEdited;
 			data = JSON.parse(json);
 			stateJson = json;
-		} catch (error: any) {
-			const err = error.response.data as any as Error;
-			addToast({ message: err.message });
-		}
-	}
+		} 
+		
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
 
@@ -147,6 +149,7 @@
 			class="mr-2"
 			on:click={() => {
 				isEdited = !isEdited;
+				triggerHighlight()
 			}}
 		>
 			<EditOutline class="m-2" />edit
