@@ -146,10 +146,6 @@
 	}
 </script>
 
-<svelte:head>
-	<link rel="stylesheet" href="https://unpkg.com/dracula-prism/dist/css/dracula-prism.css" />
-</svelte:head>
-
 {#if entityKindToAdd}
 	<div class="flex flex-col m-4">
 		<div class="flex flex-row h-8">

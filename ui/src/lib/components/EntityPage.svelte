@@ -141,10 +141,6 @@
 	}
 </script>
 
-<svelte:head>
-	<link rel="stylesheet" href="https://unpkg.com/dracula-prism/dist/css/dracula-prism.css" />
-</svelte:head>
-
 <div class="mb-2">
 	<div class="flex flex-row m-4 h-8">
 		<Button
