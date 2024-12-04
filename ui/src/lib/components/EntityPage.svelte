@@ -308,7 +308,7 @@
 	textarea,
 	pre {
 		padding: 10px;
-		padding-left: 60px;
+		padding-left: 75px;
 	}
 
 	code,
