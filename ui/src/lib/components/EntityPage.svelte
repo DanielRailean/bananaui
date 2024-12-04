@@ -106,6 +106,7 @@
 			return;
 		}
 		json = JSON.stringify(parsed, undefined, 2);
+		triggerHighlight()
 		addToast({ message: `json is valid`, type: 'info' });
 	}
 	async function save() {
