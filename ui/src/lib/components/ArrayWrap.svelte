@@ -279,7 +279,7 @@
 		<table class="w-full">
 			<thead class="text-stone-800 dark:bg-stone-800 bg-gray-200 dark:text-stone-400">
 				<tr>
-					<th><p class="pl-4">No.</p></th>
+					<th><p class="pl-4 text-center">No.</p></th>
 					<th><p class="pl-4">Actions</p></th>
 					{#each entity?.displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
 						{#if Object.keys(dataRaw[0] ?? {}).includes(field)}
@@ -376,8 +376,8 @@
 											{:else if typeof item[field] == 'number'}
 												{#if dateFields.includes(field)}
 													{DateTime.fromSeconds(item[field]).toLocaleString({
-														...DateTime.DATETIME_MED,
-														weekday: 'short'
+														...DateTime.DATETIME_SHORT_WITH_SECONDS,
+														hour12: false
 													})}
 												{:else}
 													{item[field]}

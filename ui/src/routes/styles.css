@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 :root {
+  font-family: "JetBrains Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+  font-size: 17px;
 }
 
 body {

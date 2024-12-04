@@ -4,10 +4,8 @@
 	import type { IEntityBase } from '$lib/types';
 	import type { ResWrapped } from '$lib/requests';
 	import { goto } from '$app/navigation';
-	import { kongEntities } from '$lib/config';
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
 	import { Button, Label, Select } from 'flowbite-svelte';
 	import { addToast } from '$lib/stores';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
@@ -72,6 +70,7 @@
 			}
 			dummyToJson();
 		}
+		triggerHighlight();
 	});
 
 	function format() {
@@ -134,6 +133,17 @@
 			console.log(res.data);
 		}
 	}
+
+	let editorWindow: HTMLTextAreaElement;
+	let editorSyntax: HTMLElement;
+
+	async function triggerHighlight() {
+		json = json.replace(/\t/g, '  ');
+		editorSyntax.textContent = json;
+
+		// Highlight the syntax
+		(globalThis as any).Prism.highlightElement(editorSyntax);
+	}
 </script>
 
 {#if entityKindToAdd}
@@ -172,11 +182,23 @@
 	</div>
 {/if}
 
-<div class="border-y dark:border-stone-700">
-	<textarea
-		class="dark:bg-[#1E2021] w-full min-h-[30vh] dark:text-emerald-500 text-emerald-800 p-4 border-none focus:[box-shadow:none]"
-		bind:value={json}
-	></textarea>
+<div class="dark:border-stone-700">
+	<div class="editor dark:bg-[#1E2021] w-full min-h-[30vh] line-numbers">
+		<pre class="language-json"><code bind:this={editorSyntax}></code></pre>
+		<textarea
+			bind:this={editorWindow}
+			spellcheck="false"
+			wrap="hard"
+			autocorrect="off"
+			autocapitalize="off"
+			translate="no"
+			class="relative"
+			bind:value={json}
+			on:input={() => {
+				triggerHighlight();
+			}}
+		></textarea>
+	</div>
 </div>
 {#if pluginSchema}
 	<h2 class="text-xl m-4">plugin 'config' fields:</h2>
@@ -189,3 +211,56 @@
 	</h2>
 {/if}
 <TreeWrapper data={testSchema} expandLevel={0} allowCopy={false} allowKeyCopy={true} />
+
+<style>
+	.editor {
+		display: grid;
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr;
+		gap: 0;
+	}
+
+	.editor pre,
+	.editor textarea {
+		grid-area: 1 / 1 / 2 / 2;
+	}
+
+	.editor textarea {
+		background-color: transparent;
+		border: none;
+		color: transparent;
+		caret-color: gray;
+		overflow: hidden;
+		resize: none;
+		width: 100%;
+	}
+
+	textarea,
+	pre {
+		padding: 0;
+		margin: 0;
+	}
+
+	textarea,
+	pre,
+	code {
+		outline: none;
+		border: none;
+		box-shadow: none;
+		font-family: "JetBrains Mono", monospace;;
+		font-size: 20px;
+		line-height: 30px;
+		border-radius: 0;
+		white-space: break-spaces;
+	}
+
+	textarea,
+	pre {
+		padding: 10px;
+		padding-left: 75px;
+	}
+
+	code, pre {
+		@apply dark:bg-zinc-900 bg-stone-800;
+	}
+</style>

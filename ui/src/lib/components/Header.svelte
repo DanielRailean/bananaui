@@ -5,6 +5,8 @@
 	type HeaderItem = {
 		name: string;
 		appPath: string;
+		uiSpaceAfter?: boolean;
+		uiSpaceBefore?: boolean;
 	};
 	let items: HeaderItem[] = [
 		{
@@ -51,7 +53,7 @@
 	onMount(() => {
 		mounted = true;
 		const entities = kongEntities.map((i) => {
-			return { name: i.name, appPath: `/entities?type=${i.name.toLowerCase()}` };
+			return { appPath: `/entities?type=${i.name.toLowerCase()}`, ...i };
 		});
 		items = [...items, ...entities, ...itemsEnd];
 	});
@@ -60,14 +62,17 @@
 <header
 	class="flex flex-col shadow shadow-zinc-300 dark:shadow-zinc-800 p-4 pt-10 bg-stone-100 dark:bg-[#1E2021] rounded-r-xl font-light"
 >
-	<div class="flex flex-row items-center min-w-[200px]">
+	<div class="flex flex-row items-center min-w-[230px]">
 		<DarkToggle div_class="" />
-		<h1 class="font-medium text-2xl">{staticConfig.name}</h1>
+		<h1 class="font-medium text-xl">{staticConfig.name}</h1>
 	</div>
 
-	<nav class="text-2xl text-stone-400">
+	<nav class="text-xl text-stone-400">
 		<ul class="flex flex-col">
 			{#each items as item}
+			{#if item.uiSpaceBefore}
+				<br/>
+			{/if}
 				{#if item.name == 'profile'}
 					{#if $userToken}
 						<li
@@ -103,6 +108,9 @@
 						>
 					</li>
 				{/if}
+				{#if item.uiSpaceAfter}
+				<br/>
+			{/if}
 			{/each}
 		</ul>
 	</nav>

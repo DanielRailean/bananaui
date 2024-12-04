@@ -90,7 +90,8 @@ export const kongEntities: IKongEntity[] = [
 		apiPath: 'services',
 		subEntities: ['routes', 'plugins'],
 		sortBy: 'updated_at',
-		sortAscending: false
+		sortAscending: false,
+		uiSpaceBefore: true
 	},
 	{
 		name: 'routes',
@@ -102,19 +103,22 @@ export const kongEntities: IKongEntity[] = [
 		name: 'plugins',
 		displayedFields: ['name', 'service', 'route', 'enabled', 'updated_at'],
 		apiPath: 'plugins',
+		uiSpaceAfter: true
 	},
-	{ name: 'keys', displayedFields: ['name', 'kid', 'updated_at'], apiPath: 'keys' },
-	{ name: 'vaults', displayedFields: undefined, apiPath: 'vaults' },
-	{ name: 'upstreams', displayedFields: undefined, apiPath: 'upstreams' },
-	{ name: 'ca_certificates', displayedFields: undefined, apiPath: 'ca_certificates' },
 	{ name: 'certificates', displayedFields: undefined, apiPath: 'certificates' },
+	{ name: 'ca_certificates', displayedFields: undefined, apiPath: 'ca_certificates' },
 	{ name: 'consumers', displayedFields: undefined, apiPath: 'consumers' },
+	{ name: 'upstreams', displayedFields: undefined, apiPath: 'upstreams' },
+	{ name: 'keys', displayedFields: ['name', 'kid', 'updated_at'], apiPath: 'keys' },
 	{ name: 'keysets', displayedFields: undefined, apiPath: 'key-sets' },
 	{ name: 'snis', displayedFields: undefined, apiPath: 'snis' },
+	{ name: 'vaults', displayedFields: undefined, apiPath: 'vaults' },
 	{
 		name: 'dataplanes',
 		displayedFields: ['last_seen', 'ip', 'sync_status', 'version', 'hostname', 'config_hash'],
-		apiPath: 'clustering/data-planes'
+		apiPath: 'clustering/data-planes',
+		uiSpaceAfter: true,
+		uiSpaceBefore: true
 	}
 ];
 

@@ -80,6 +80,7 @@
 				subEntities = subEntities;
 			}
 		}
+		triggerHighlight()
 	}
 
 	async function deleteEntity(type: string, id: string, name: string) {
@@ -124,6 +125,19 @@
 			const err = error.response.data as any as Error;
 			addToast({ message: err.message });
 		}
+	}
+	let editorWindow: HTMLTextAreaElement;
+	let editorSyntax: HTMLElement;
+
+	async function triggerHighlight() {
+		json = json.replace(/\t/g, '  ');
+		if (!editorSyntax) {
+			return;
+		}
+		editorSyntax.textContent = json;
+
+		// Highlight the syntax
+		(globalThis as any).Prism.highlightElement(editorSyntax);
 	}
 </script>
 
@@ -174,9 +188,27 @@
 		{/if}
 	</div>
 	{#if data}
-		{#if isEdited}
-			<textarea class="dark:bg-[#1E2021] w-full min-h-[70vh]" bind:value={json}></textarea>
-		{:else}
+		<div
+			class="editor dark:bg-[#1E2021] w-full min-h-[30vh] line-numbers {isEdited
+				? 'grid'
+				: 'hidden'}"
+		>
+			<pre class="language-json"><code bind:this={editorSyntax}></code></pre>
+			<textarea
+				bind:this={editorWindow}
+				spellcheck="false"
+				wrap="hard"
+				autocorrect="off"
+				autocapitalize="off"
+				translate="no"
+				class="relative"
+				bind:value={json}
+				on:input={() => {
+					triggerHighlight();
+				}}
+			></textarea>
+		</div>
+		{#if !isEdited}
 			<TreeWrapper
 				{data}
 				rounded={false}
@@ -227,3 +259,56 @@
 		<h2 class="text-xl text-center">Loading ...</h2>
 	{/if}
 </div>
+
+<style>
+	.editor {
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr;
+		gap: 0;
+	}
+
+	.editor pre,
+	.editor textarea {
+		grid-area: 1 / 1 / 2 / 2;
+	}
+
+	.editor textarea {
+		background-color: transparent;
+		border: none;
+		color: transparent;
+		caret-color: gray;
+		overflow: hidden;
+		resize: none;
+		width: 100%;
+	}
+
+	textarea,
+	pre {
+		padding: 0;
+		margin: 0;
+	}
+
+	textarea,
+	pre,
+	code {
+		outline: none;
+		border: none;
+		box-shadow: none;
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 20px;
+		line-height: 30px;
+		border-radius: 0;
+		white-space: break-spaces;
+	}
+
+	textarea,
+	pre {
+		padding: 10px;
+		padding-left: 75px;
+	}
+
+	code,
+	pre {
+		@apply dark:bg-zinc-900 bg-stone-800;
+	}
+</style>
