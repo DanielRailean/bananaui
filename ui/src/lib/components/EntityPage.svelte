@@ -80,7 +80,7 @@
 				subEntities = subEntities;
 			}
 		}
-		triggerHighlight()
+		triggerHighlight();
 	}
 
 	async function deleteEntity(type: string, id: string, name: string) {
@@ -106,7 +106,7 @@
 			return;
 		}
 		json = JSON.stringify(parsed, undefined, 2);
-		triggerHighlight()
+		triggerHighlight();
 		addToast({ message: `json is valid`, type: 'info' });
 	}
 	async function save() {
@@ -115,25 +115,30 @@
 			return;
 		}
 		format();
-			const res = await (await apiService()).updateRecord(entityType, id, JSON.parse(json));
-			console.log(res)
-			if(!res.ok)
-			{
-				addToast({ message: `API error (${res.code}): ` + ((res.errTyped as any)?.message ?? res.err) as string, timeout: 15000 });
-				return
-			}
+		const res = await (await apiService()).updateRecord(entityType, id, JSON.parse(json));
+		console.log(res);
+		if (!res.ok) {
+			addToast({
+				message: (`API error (${res.code}): ` +
+					((res.errTyped as any)?.message ?? res.err)) as string,
+				timeout: 15000
+			});
+			return;
+		}
 
-			isEdited = !isEdited;
-			isEdited = isEdited;
-			data = JSON.parse(json);
-			stateJson = json;
-		} 
-		
+		isEdited = !isEdited;
+		isEdited = isEdited;
+		data = JSON.parse(json);
+		stateJson = json;
+	}
+
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
 
 	async function triggerHighlight() {
 		json = json.replace(/\t/g, '  ');
+		json = json.replace(/\s\n$/g, '\n ');
+
 		if (!editorSyntax) {
 			return;
 		}
@@ -145,50 +150,54 @@
 </script>
 
 <div class="mb-2">
-	<div class="flex flex-row m-4 h-8">
+	<div class="flex flex-row flex-wrap m-2">
 		<Button
-			class="mr-2"
+			class="h-10 m-1 focus:shadow-none"
 			on:click={() => {
 				isEdited = !isEdited;
-				triggerHighlight()
+				triggerHighlight();
 			}}
 		>
 			<EditOutline class="m-2" />edit
 		</Button>
-		<Button
-			class="h-8 p-2 mr-2"
-			title="delete"
-			color="alternative"
-			on:click={async () => await deleteEntity(entityType, id, data.name ?? data.id)}
-		>
-			<div class="text-rose-500">
-				<div class="flex flex-row items-center">
-					<TrashBinOutline class="m-1" />
-					delete
+		{#if !isEdited}
+			<Button
+				class="h-10 m-1"
+				title="delete"
+				color="alternative"
+				on:click={async () => await deleteEntity(entityType, id, data.name ?? data.id)}
+			>
+				<div class="text-rose-500">
+					<div class="flex flex-row items-center">
+						<TrashBinOutline class="m-1" />
+						delete
+					</div>
 				</div>
-			</div>
-		</Button>
-		<Button
-			color="alternative"
-			class="mr-2"
-			on:click={() => {
-				writeToClipboard(stateJson);
-			}}
-		>
-			<FileCopyOutline class="m-2" />
-			copy</Button
-		>
-		{#if isEdited}
-			<Button class="mr-3" on:click={format} color="blue">
+			</Button>
+			<Button
+				color="alternative"
+				class="h-10 m-1"
+				on:click={() => {
+					writeToClipboard(stateJson);
+				}}
+			>
+				<FileCopyOutline class="m-2" />
+				copy</Button
+			>
+		{:else}
+			<Button class="h-10 m-1" on:click={format} color="blue" disabled={stateJson == json}>
 				<PaletteOutline class="m-2" />
 				format and validate JSON
 			</Button>
-			{#if stateJson != json}
-				<Button class="mr-3" on:click={async () => await save()} color="green">
-					<FloppyDiskAltOutline class="m-2" />
-					save</Button
-				>
-			{/if}
+			<Button
+				class="h-10 m-1"
+				disabled={stateJson == json}
+				on:click={async () => await save()}
+				color="green"
+			>
+				<FloppyDiskAltOutline class="m-2" />
+				save</Button
+			>
 		{/if}
 	</div>
 	{#if data}

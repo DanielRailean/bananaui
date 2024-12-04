@@ -148,17 +148,17 @@
 </script>
 
 {#if entityKindToAdd}
-	<div class="flex flex-col m-4">
-		<div class="flex flex-row h-8">
-			<Button on:click={async () => await save()} color="green">
+	<div class="flex flex-col m-2">
+		<div class="flex flex-row flex-wrap">
+			<Button class="h-10 m-1" on:click={async () => await save()} color="green">
 				<FloppyDiskAltOutline class="m-2" />
 				save {entityKindToAdd.substr(0, entityKindToAdd.length - 1)}
 			</Button>
-			<Button class="ml-3" on:click={format} color="blue">
+			<Button class="h-10 m-1" on:click={format} color="blue">
 				<PaletteOutline class="m-2" />
 				format and validate JSON
 			</Button>
-			<Button class="ml-3" color="alternative">
+			<Button class="h-10 m-1" color="alternative">
 				<a target="_blank" href="https://docs.konghq.com/gateway/3.7.x/admin-api/">
 					<div class="flex flex-row items-center">
 						<LinkOutline class="m-2" />
