@@ -235,7 +235,7 @@
 			{#if subEntities}
 				{#each subEntities as subEntity}
 					<div class="flex flex-row m-4 h-8 items-center">
-						<div class="flex flex-row h-8">
+						<div class="flex flex-row h-10">
 							<Button
 								color="alternative"
 								on:click={() => {
@@ -253,7 +253,7 @@
 								>
 									<div class="flex flex-row items-center">
 										<CirclePlusOutline class="m-2" />
-										add
+										add {subEntity.name}
 									</div>
 								</a>
 							</Button>
