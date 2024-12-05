@@ -82,6 +82,7 @@
 			return;
 		}
 		json = JSON.stringify(parsed, undefined, 2);
+		triggerHighlight();
 		addToast({ message: `ok`, type: 'info' });
 	}
 
@@ -96,12 +97,19 @@
 			} else {
 				res = await (await apiService()).createRecord(entityKindToAdd, JSON.parse(json));
 			}
-			if (!res.ok || !res.data) {
-				addToast({ message: res.errTyped?.message ?? res.err ?? 'Error occured' });
+			if (!res.ok) {
+				addToast({
+					message: (`API error (${res.code}): ` +
+						((res.errTyped as any)?.message ?? res.err)) as string,
+					timeout: 15000
+				});
 				return;
 			}
-			if (res.data.id) {
+			if (res.data?.id) {
 				goto(`${base}/entities?type=${entityKindToAdd}&id=${res.data.id}`);
+			} else {
+				addToast({ message: 'failed to read the new entity' });
+				return;
 			}
 		} catch (error: any) {
 			const err = error.response.data as any as Error;
@@ -130,7 +138,7 @@
 				}
 			}
 			setEditField('config', config);
-			console.log(res.data);
+			triggerHighlight();
 		}
 	}
 
@@ -147,17 +155,17 @@
 </script>
 
 {#if entityKindToAdd}
-	<div class="flex flex-col m-4">
-		<div class="flex flex-row h-8">
-			<Button on:click={async () => await save()} color="green">
+	<div class="flex flex-col m-2">
+		<div class="flex flex-row flex-wrap">
+			<Button class="h-10 m-1" on:click={async () => await save()} color="green">
 				<FloppyDiskAltOutline class="m-2" />
 				save {entityKindToAdd.substr(0, entityKindToAdd.length - 1)}
 			</Button>
-			<Button class="ml-3" on:click={format} color="blue">
+			<Button class="h-10 m-1" on:click={format} color="blue">
 				<PaletteOutline class="m-2" />
 				format and validate JSON
 			</Button>
-			<Button class="ml-3" color="alternative">
+			<Button class="h-10 m-1" color="alternative">
 				<a target="_blank" href="https://docs.konghq.com/gateway/3.7.x/admin-api/">
 					<div class="flex flex-row items-center">
 						<LinkOutline class="m-2" />
@@ -247,7 +255,7 @@
 		outline: none;
 		border: none;
 		box-shadow: none;
-		font-family: "JetBrains Mono", monospace;;
+		font-family: 'JetBrains Mono', monospace;
 		font-size: 20px;
 		line-height: 30px;
 		border-radius: 0;
@@ -260,7 +268,8 @@
 		padding-left: 75px;
 	}
 
-	code, pre {
+	code,
+	pre {
 		@apply dark:bg-zinc-900 bg-stone-800;
 	}
 </style>
