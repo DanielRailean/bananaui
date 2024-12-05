@@ -8,7 +8,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { writeToClipboard } from '$lib/util';
-	import { addToast } from '$lib/stores';
+	import { addToast, infoToast } from '$lib/stores';
 	import {
 		CirclePlusOutline,
 		EditOutline,
@@ -124,6 +124,8 @@
 				timeout: 15000
 			});
 			return;
+		} else {
+			infoToast(`entity successfully updated`)
 		}
 
 		isEdited = !isEdited;

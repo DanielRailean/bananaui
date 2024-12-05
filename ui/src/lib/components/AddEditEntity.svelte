@@ -82,7 +82,7 @@
 			return;
 		}
 		json = JSON.stringify(parsed, undefined, 2);
-		triggerHighlight()
+		triggerHighlight();
 		addToast({ message: `ok`, type: 'info' });
 	}
 
@@ -97,12 +97,19 @@
 			} else {
 				res = await (await apiService()).createRecord(entityKindToAdd, JSON.parse(json));
 			}
-			if (!res.ok || !res.data) {
-				addToast({ message: res.errTyped?.message ?? res.err ?? 'Error occured' });
+			if (!res.ok) {
+				addToast({
+					message: (`API error (${res.code}): ` +
+						((res.errTyped as any)?.message ?? res.err)) as string,
+					timeout: 15000
+				});
 				return;
 			}
-			if (res.data.id) {
+			if (res.data?.id) {
 				goto(`${base}/entities?type=${entityKindToAdd}&id=${res.data.id}`);
+			} else {
+				addToast({ message: 'failed to read the new entity' });
+				return;
 			}
 		} catch (error: any) {
 			const err = error.response.data as any as Error;
@@ -131,7 +138,7 @@
 				}
 			}
 			setEditField('config', config);
-			console.log(res.data);
+			triggerHighlight();
 		}
 	}
 
@@ -248,7 +255,7 @@
 		outline: none;
 		border: none;
 		box-shadow: none;
-		font-family: "JetBrains Mono", monospace;;
+		font-family: 'JetBrains Mono', monospace;
 		font-size: 20px;
 		line-height: 30px;
 		border-radius: 0;
@@ -261,7 +268,8 @@
 		padding-left: 75px;
 	}
 
-	code, pre {
+	code,
+	pre {
 		@apply dark:bg-zinc-900 bg-stone-800;
 	}
 </style>
