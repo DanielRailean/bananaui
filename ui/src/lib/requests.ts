@@ -51,12 +51,12 @@ async function requestWithResponseBody<T, E = void>(
 	if (res.ok) {
 		try {
 			result.data = (await res.json()) as T;
-		} catch {}
+		} catch { }
 	} else {
 		result.err = await res.text();
 		try {
 			result.errTyped = JSON.parse(result.err) as E;
-		} catch {}
+		} catch { }
 	}
 	return result;
 }
@@ -185,3 +185,6 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 	apiInstance = new ApiService(conf.kongApi.endpoint, token, conf.kongApi.requestHeaders);
 	return apiInstance;
 };
+
+
+export let cache: Map<string, IEntityBase[]> = new Map()
