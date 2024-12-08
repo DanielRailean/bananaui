@@ -37,13 +37,13 @@
 		entity = params.get('type') ?? 'none';
 		let willTriggerUpdate = false;
 
+		let exists = cache.get(entity);
 		if (oldEntity != entity) {
-			let exists = cache.get(entity);
 			data = exists;
 			if (exists) {
 				willTriggerUpdate = false;
 				triggerPageUpdate.set(entity + DateTime.now().toUnixInteger());
-				console.log('triggered update');
+				// console.log('triggered update');
 			} else {
 				willTriggerUpdate = true;
 			}
