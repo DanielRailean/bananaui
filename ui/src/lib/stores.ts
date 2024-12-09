@@ -5,7 +5,7 @@ import { DateTime } from 'luxon';
 export const isDark = writable(0);
 export const userToken: Writable<string | undefined> = writable(undefined);
 export const config: Writable<IConfigWrap | undefined | null> = writable(undefined);
-export const triggerPageUpdate = writable(DateTime.now());
+export const triggerPageUpdate: Writable<string> = writable(DateTime.now().toUnixInteger().toString());
 export const toasts: Writable<any[]> = writable([]);
 
 export const addToast = (toast: IToast) => {
