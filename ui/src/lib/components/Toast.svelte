@@ -28,9 +28,9 @@
 		{#if type === 'success'}
 			<CheckCircleSolid class="w-8 h-8 fill-green-500 dark:fill-green-700" />
 		{:else if type === 'error'}
-			<InfoCircleSolid class="w-8 h-8 fill-blue-600" />
-		{:else}
 			<ExclamationCircleSolid class="w-8 h-8 fill-rose-500 " />
+		{:else}
+			<InfoCircleSolid class="w-8 h-8 fill-blue-600" />
 		{/if}
 	</div>
 
