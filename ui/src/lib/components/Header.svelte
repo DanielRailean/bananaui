@@ -64,7 +64,7 @@
 >
 	<div class="flex flex-row items-center min-w-[230px]">
 		<DarkToggle div_class="" />
-		<h1 class="font-medium text-xl">{staticConfig.name}</h1>
+		<h1 class="text-2xl font-bold">{staticConfig.name}</h1>
 	</div>
 
 	<nav class="text-xl text-stone-400">

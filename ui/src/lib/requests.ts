@@ -1,6 +1,7 @@
 import { goto } from '$app/navigation';
 import { get } from 'svelte/store';
-import { addToast, config, userToken } from './stores';
+import { config, userToken } from './stores';
+import { addToast } from './toastStore';
 import { delay } from './util';
 import type { IEntityBase, IPaginationRes } from './types';
 import type { IRootRes, IResCreateError, ISchemaRes, IPluginConfig } from './responseTypes';

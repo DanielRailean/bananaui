@@ -3,7 +3,7 @@
 	import type { IKongEntity } from '$lib/types';
 	import { CirclePlusOutline, RefreshOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
-	import { addToast, triggerPageUpdate, infoToast } from '$lib/stores';
+	import { triggerPageUpdate } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '$lib/components/ArrayWrap.svelte';
 	import { apiService, cache } from '$lib/requests';
@@ -13,6 +13,7 @@
 	import { capitalizeFirstLetter, delay } from '$lib/util';
 	import { base } from '$app/paths';
 	import { DateTime } from 'luxon';
+	import { addToast, infoToast } from '$lib/toastStore';
 
 	let data: any | undefined;
 	let entity: string;

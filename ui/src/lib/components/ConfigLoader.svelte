@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import { addToast, config, infoToast } from '$lib/stores';
+	import { config } from '$lib/stores';
+	import { infoToast } from '$lib/toastStore';
 	import type { IConfig } from '$lib/types';
 	import { delay, getLocalStorageConfig } from '$lib/util';
 	import { onMount } from 'svelte';

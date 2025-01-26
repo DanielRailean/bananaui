@@ -10,13 +10,14 @@
 	} from 'flowbite-svelte-icons';
 	import { dateFields, kongEntities, paginationSizeUi } from '$lib/config';
 	import { apiService } from '$lib/requests';
-	import { addToast, infoToast, triggerPageUpdate } from '$lib/stores';
+	import { addToast, infoToast } from '$lib/toastStore';
 	import { createEventDispatcher } from 'svelte';
 	import type { IKongEntity } from '$lib/types';
 	import { base } from '$app/paths';
 	import Toggle from './Toggle.svelte';
 	import { get, writable } from 'svelte/store';
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
+	import { triggerPageUpdate } from '$lib/stores';
 
 	const dispatch = createEventDispatcher();
 

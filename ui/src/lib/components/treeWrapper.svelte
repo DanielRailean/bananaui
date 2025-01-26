@@ -8,7 +8,7 @@
 	import { writable } from 'svelte/store';
 	import Toggle from './Toggle.svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { infoToast } from '$lib/stores';
+	import { infoToast } from '$lib/toastStore';
 	import { apiService } from '$lib/requests';
 	export let data: any;
 	export let expandLevel = 0;

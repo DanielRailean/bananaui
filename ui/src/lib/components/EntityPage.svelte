@@ -8,7 +8,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { writeToClipboard } from '$lib/util';
-	import { addToast, infoToast } from '$lib/stores';
+	import { addToast, infoToast } from '$lib/toastStore';
 	import {
 		CirclePlusOutline,
 		EditOutline,

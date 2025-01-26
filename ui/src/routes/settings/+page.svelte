@@ -2,11 +2,12 @@
 	import { goto } from '$app/navigation';
 	import { LOCALSTORAGE_CONFIG_KEY, delay } from '$lib/util';
 	import { PaletteOutline, FloppyDiskAltOutline } from 'flowbite-svelte-icons';
-	import { config, addToast, infoToast } from '$lib/stores';
+	import { addToast, infoToast } from '$lib/toastStore';
 	import { Button } from 'flowbite-svelte';
 	import type { IConfig } from '$lib/types.ts';
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
+	import { config } from '$lib/stores';
 
 	const defaultConfig: IConfig = {
 		kongApi: {

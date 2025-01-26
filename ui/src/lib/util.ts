@@ -1,4 +1,4 @@
-import { addToast } from './stores';
+import { addToast } from './toastStore';
 import type { IConfig } from './types';
 
 export const delay = (delayInms: number) => {
