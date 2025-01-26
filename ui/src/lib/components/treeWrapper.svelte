@@ -8,23 +8,23 @@
 	import { writable } from 'svelte/store';
 	import Toggle from './Toggle.svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { infoToast } from '$lib/stores';
+	import { confirmToast, infoToast } from '$lib/toastStore';
 	import { apiService } from '$lib/requests';
 	export let data: any;
 	export let expandLevel = 0;
 	export let allowCopy = true;
 	export let allowKeyCopy = false;
 	export let rounded = true;
-	export let type = "";
+	export let type = '';
 	export let expandFields = ['config'];
 
-	const dispatch = createEventDispatcher()
+	const dispatch = createEventDispatcher();
 
 	async function disable(id: string, current: boolean) {
 		const res = await (await apiService()).updateRecord(type, id, { enabled: !current });
 		if (res.ok) {
 			dispatch('refresh');
-			infoToast(`item ${current ? 'disabled' : 'enabled'}`);
+			confirmToast(`item ${current ? 'disabled' : 'enabled'}`);
 		}
 	}
 </script>
@@ -135,7 +135,7 @@
 		--json-tree-li-line-height: 1.3;
 
 		--json-tree-font-size: 15px;
-		--json-tree-font-family: "JetBrains Mono", monospace;;
+		--json-tree-font-family: 'JetBrains Mono', monospace;
 	}
 	.hoveritem:hover {
 		@apply dark:bg-blue-900 bg-blue-300;

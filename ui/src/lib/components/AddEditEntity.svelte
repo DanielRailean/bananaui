@@ -7,7 +7,7 @@
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { Button, Label, Select } from 'flowbite-svelte';
-	import { addToast } from '$lib/stores';
+	import { addToast } from '$lib/toastStore';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 	import { base } from '$app/paths';
 

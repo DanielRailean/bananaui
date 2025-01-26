@@ -54,7 +54,7 @@ export interface IOidc {
 
 export interface IToast {
 	id?: number;
-	type?: 'error' | 'info' | '';
+	type?: 'error' | 'info' | 'success';
 	dismissible?: boolean;
 	timeout?: number;
 	message: string;
@@ -68,6 +68,6 @@ export interface IKongEntity {
 	displayedFields?: string[];
 	defaultJson?: string;
 	subEntities?: string[];
-	uiSpaceAfter?: boolean
-	uiSpaceBefore?: boolean
+	uiSpaceAfter?: boolean;
+	uiSpaceBefore?: boolean;
 }

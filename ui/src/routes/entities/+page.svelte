@@ -3,16 +3,17 @@
 	import type { IKongEntity } from '$lib/types';
 	import { CirclePlusOutline, RefreshOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
-	import { addToast, triggerPageUpdate, infoToast } from '$lib/stores';
+	import { triggerPageUpdate } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '$lib/components/ArrayWrap.svelte';
-	import { apiService } from '$lib/requests';
+	import { apiService, cache } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { kongEntities } from '$lib/config';
 	import { capitalizeFirstLetter, delay } from '$lib/util';
 	import { base } from '$app/paths';
 	import { DateTime } from 'luxon';
+	import { addToast, infoToast } from '$lib/toastStore';
 
 	let data: any | undefined;
 	let entity: string;
@@ -36,9 +37,17 @@
 		const oldEntity = entity;
 		entity = params.get('type') ?? 'none';
 		let willTriggerUpdate = false;
+
+		let exists = cache.get(entity);
 		if (oldEntity != entity) {
-			data = undefined;
-			willTriggerUpdate = true;
+			data = exists;
+			if (exists) {
+				willTriggerUpdate = false;
+				triggerPageUpdate.set(entity + DateTime.now().toUnixInteger());
+				// console.log('triggered update');
+			} else {
+				willTriggerUpdate = true;
+			}
 		}
 		try {
 			kongEntity = kongEntities.find((i) => i.name == entity);
@@ -58,11 +67,13 @@
 				if (res.ok) {
 					data = data.concat(res.data.data);
 					if (willTriggerUpdate) {
-						triggerPageUpdate.set(DateTime.now());
+						triggerPageUpdate.set(entity + DateTime.now().toUnixInteger());
 					}
 				}
 				await delay(paginationAwaitBetweenPages);
 			}
+			triggerPageUpdate.set(entity + DateTime.now().toUnixInteger());
+			cache.set(entity, data);
 			if (isRefresh) {
 				infoToast('refresh finished!');
 			}

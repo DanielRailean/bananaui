@@ -1,4 +1,4 @@
-import { addToast } from './stores';
+import { addToast, confirmToast } from './toastStore';
 import type { IConfig } from './types';
 
 export const delay = (delayInms: number) => {
@@ -8,7 +8,7 @@ export const delay = (delayInms: number) => {
 export const writeToClipboard = (
 	text: string,
 	onSuccess: (value: void) => void = () => {
-		addToast({ message: 'copied', type: 'info' });
+		confirmToast('copied');
 	}
 ) => {
 	navigator.clipboard.writeText(text).then(onSuccess, () => {

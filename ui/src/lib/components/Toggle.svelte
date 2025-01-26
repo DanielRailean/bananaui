@@ -5,28 +5,26 @@
 
 	const handleChange: CreateDialogProps['onOpenChange'] = ({ curr, next }) => {
 		// todo next still set if not confirmed
-    dispatch("change" , next)
+		dispatch('change', next);
 		return next;
 	};
 
-  export let isChecked: Writable<boolean> = writable(false)
-	export let title: string | undefined = undefined
+	export let isChecked: Writable<boolean> = writable(false);
+	export let title: string | undefined = undefined;
 
 	let {
 		elements: { root, input }
 	} = createSwitch({
 		onCheckedChange: handleChange,
-    checked: isChecked
+		checked: isChecked
 	});
 
 	const dispatch = createEventDispatcher();
-  onMount(() => {
-    
-  })
+	onMount(() => {});
 </script>
 
-<form class="" title="{title ?? `click to ${$isChecked ? "disable" : "enable"}`}">
-	<div class="flex items-center cursor-pointer ">
+<form class="" title={title ?? `click to ${$isChecked ? 'disable' : 'enable'}`}>
+	<div class="flex items-center cursor-pointer">
 		<button
 			use:melt={$root}
 			class="relative h-6 rounded-full bg-slate-300 dark:bg-slate-600 transition-colors data-[state=checked]:dark:bg-emerald-800 data-[state=checked]:bg-emerald-500"

@@ -3,7 +3,7 @@
 	import Header from './../../lib/components/Header.svelte';
 	import { onMount } from 'svelte';
 	import { userToken } from '$lib/stores';
-	import { addToast } from '$lib/stores';
+	import { addToast } from '$lib/toastStore';
 	let token: any = {
 		username: '',
 		header: '',
