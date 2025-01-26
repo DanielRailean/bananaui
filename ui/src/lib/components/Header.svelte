@@ -70,9 +70,9 @@
 	<nav class="text-xl text-stone-400">
 		<ul class="flex flex-col">
 			{#each items as item}
-			{#if item.uiSpaceBefore}
-				<br/>
-			{/if}
+				{#if item.uiSpaceBefore}
+					<br />
+				{/if}
 				{#if item.name == 'profile'}
 					{#if $userToken}
 						<li
@@ -109,8 +109,8 @@
 					</li>
 				{/if}
 				{#if item.uiSpaceAfter}
-				<br/>
-			{/if}
+					<br />
+				{/if}
 			{/each}
 		</ul>
 	</nav>

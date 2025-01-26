@@ -79,6 +79,10 @@
 			</Button>
 		</div>
 	</div>
-	<textarea class="w-full min-h-96 rounded-lg dark:bg-stone-900" name="" id="" bind:value={editableConfig}
+	<textarea
+		class="w-full min-h-96 rounded-lg dark:bg-stone-900"
+		name=""
+		id=""
+		bind:value={editableConfig}
 	></textarea>
 </div>

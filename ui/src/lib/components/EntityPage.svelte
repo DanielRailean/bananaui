@@ -8,7 +8,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { writeToClipboard } from '$lib/util';
-	import { addToast, infoToast } from '$lib/toastStore';
+	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import {
 		CirclePlusOutline,
 		EditOutline,
@@ -73,7 +73,7 @@
 			for (const ent of subEntities) {
 				const res2 = await (await apiService()).findAll(ent.name, {}, `/${entityType}/${id}`);
 				if (!res2.ok) {
-					addToast({ message: `failed to load ${ent.name}` });
+					errorToast(`failed to load ${ent.name}`);
 					continue;
 				}
 				ent.data = res2.data?.data as any[];
@@ -90,9 +90,9 @@
 		}
 		const res = await (await apiService()).deleteRecord(type, id);
 		if (!res.ok) {
-			addToast({ message: `failed to delete. ${res.err}` });
+			errorToast(`failed to delete. ${res.err}`);
 		} else {
-			addToast({ message: `ok`, type: `info` });
+			confirmToast(`deleted`);
 			goto(`${base}/entities?type=${entityType}`);
 		}
 	}
@@ -102,12 +102,12 @@
 		try {
 			parsed = JSON.parse(json);
 		} catch (err: any) {
-			addToast({ message: `Failed to parse JSON. ${err.message}` });
+			errorToast(`Failed to parse JSON. ${err.message}`);
 			return;
 		}
 		json = JSON.stringify(parsed, undefined, 2);
 		triggerHighlight();
-		addToast({ message: `json is valid`, type: 'info' });
+		confirmToast(`json is valid`);
 	}
 	async function save() {
 		const a = confirm('confirm save?');
@@ -118,14 +118,14 @@
 		const res = await (await apiService()).updateRecord(entityType, id, JSON.parse(json));
 		console.log(res);
 		if (!res.ok) {
-			addToast({
-				message: (`API error (${res.code}): ` +
-					((res.errTyped as any)?.message ?? res.err)) as string,
-				timeout: 15000
-			});
+			errorToast(
+				(`API error (${res.code}): ` + ((res.errTyped as any)?.message ?? res.err)) as string,
+				true,
+				15000
+			);
 			return;
 		} else {
-			infoToast(`entity successfully updated`)
+			confirmToast(`entity successfully updated`);
 		}
 
 		isEdited = !isEdited;

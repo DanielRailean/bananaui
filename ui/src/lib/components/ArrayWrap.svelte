@@ -10,7 +10,7 @@
 	} from 'flowbite-svelte-icons';
 	import { dateFields, kongEntities, paginationSizeUi } from '$lib/config';
 	import { apiService } from '$lib/requests';
-	import { addToast, infoToast } from '$lib/toastStore';
+	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { createEventDispatcher } from 'svelte';
 	import type { IKongEntity } from '$lib/types';
 	import { base } from '$app/paths';
@@ -73,11 +73,10 @@
 		// this is done so that other pages dont' trigger
 		// the update of current page in case of race condition
 		// makes it so the update happens only when you want the specific entity type to update
-		const update = get(triggerPageUpdate)
+		const update = get(triggerPageUpdate);
 		// console.log(update)
-		if(!update.startsWith(type))
-		{
-			return
+		if (!update.startsWith(type)) {
+			return;
 		}
 		filteredData = dataRaw;
 		search();
@@ -117,7 +116,7 @@
 		const res = await (await apiService()).updateRecord(type, id, { enabled: !current });
 		if (res.ok) {
 			dispatch('refresh');
-			infoToast(`item ${current ? 'disabled' : 'enabled'}`);
+			confirmToast(`item ${current ? 'disabled' : 'enabled'}`);
 		}
 	}
 
@@ -128,9 +127,9 @@
 		}
 		const res = await (await apiService()).deleteRecord(type, id);
 		if (!res.ok) {
-			addToast({ message: `failed to delete. ${res.err}` });
+			errorToast(`failed to delete. ${res.err}`);
 		} else {
-			addToast({ message: `successfully deleted the ${type}`, type: `info` });
+			confirmToast(`successfully deleted the ${type}`);
 		}
 		dispatch('refresh');
 	}
@@ -233,7 +232,7 @@
 			<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
 		</div>
 		<div class="flex flex-row items-center space-x-2 pl-1">
-			<p>Sort by:</p>
+			<p class="text-lg">Sort by:</p>
 			<select
 				bind:value={sortKey}
 				on:change={() => {
@@ -245,7 +244,6 @@
 					<option value={key} selected={key == sortKey}>{key}</option>
 				{/each}
 			</select>
-			<p>Sort ascending:</p>
 			<select
 				bind:value={sortAscending}
 				on:change={() => {
@@ -253,19 +251,34 @@
 				}}
 				class="dark:bg-stone-700 border-none rounded focus:border-none focus:[box-shadow:none]"
 			>
-				<option value={true} selected={sortAscending}>true</option>
-				<option value={false} selected={!sortAscending}>false</option>
+				<option value={true} selected={sortAscending}>ascending</option>
+				<option value={false} selected={!sortAscending}>descending</option>
 			</select>
 		</div>
 		<div class="info py-4 flex flex-row items-center space-x-4 pl-2">
-			<button disabled={pageNumber == intervalsIterable[0]} class="p-2 dark:bg-stone-700 disabled:dark:bg-stone-800 disabled:bg-stone-400 disabled:text-white bg-stone-200" on:click={scrollPrevious}>
+			<button
+				disabled={pageNumber == intervalsIterable[0]}
+				class="p-2 
+				bg-stone-300
+						dark:bg-stone-700 
+						disabled:bg-stone-200 
+						disabled:dark:text-white disabled:dark:bg-stone-800 
+				"
+				on:click={scrollPrevious}
+			>
 				<ChevronLeftOutline class="size-4" />
 			</button>
 
 			{#each intervalsIterable as interval}
 				{#if isVisiblePage(interval, pageNumber)}
 					<button
-						class="p-2 dark:bg-stone-700 w-10 h-10 rounded-lg disabled:dark:bg-stone-800 disabled:bg-stone-400 disabled:text-white bg-stone-200"
+						class="p-2 
+						w-10 h-10 rounded-lg 
+						bg-stone-300
+						dark:bg-stone-700 
+						disabled:bg-stone-200 
+						disabled:dark:text-white disabled:dark:bg-stone-800 
+						"
 						on:click={() => {
 							loadPage(interval);
 						}}
@@ -279,8 +292,16 @@
 				{/if}
 				<!-- content here -->
 			{/each}
-			<button disabled={pageNumber == intervalsIterable.at(-1)} class="p-2 dark:bg-stone-700 disabled:dark:bg-stone-800 disabled:bg-stone-400 disabled:text-white bg-stone-200" on:click={scrollNext}
-				><ChevronRightOutline class="size-4" /></button
+			<button
+				disabled={pageNumber == intervalsIterable.at(-1)}
+				class="
+				p-2 
+				bg-stone-300
+						dark:bg-stone-700 
+						disabled:bg-stone-200 
+						disabled:dark:text-white disabled:dark:bg-stone-800 
+				"
+				on:click={scrollNext}><ChevronRightOutline class="size-4" /></button
 			>
 			<p class="w-36 text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
 		</div>
@@ -288,7 +309,7 @@
 	{#if filteredData.length > 0}
 		<!-- content here -->
 		<table class="w-full mb-2">
-			<thead class="text-stone-800 dark:bg-stone-800 bg-gray-200 dark:text-stone-400">
+			<thead class="text-stone-800 text-sm dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300">
 				<tr>
 					<th><p class="pl-4 text-center">No.</p></th>
 					<th><p class="pl-4">Actions</p></th>
@@ -401,7 +422,10 @@
 													title="open {field}"
 													href="{base}/entity?type={field}s&id={item[field].id}"
 													on:auxclick={() => {
-														window.open(`${base}/entity?type=${field}s&id=${item[field].id}`, '_blank');
+														window.open(
+															`${base}/entity?type=${field}s&id=${item[field].id}`,
+															'_blank'
+														);
 													}}
 												>
 													<div>

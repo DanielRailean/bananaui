@@ -1,11 +1,14 @@
-<script>
+<script lang="ts">
 	import { Toast } from 'flowbite-svelte';
 	import {
 		CheckCircleOutline,
+		CheckCircleSolid,
 		CloseCircleSolid,
 		CloseOutline,
 		ExclamationCircleOutline,
-		InfoCircleOutline
+		ExclamationCircleSolid,
+		InfoCircleOutline,
+		InfoCircleSolid
 	} from 'flowbite-svelte-icons';
 	import { createEventDispatcher } from 'svelte';
 	import { fade } from 'svelte/transition';
@@ -17,18 +20,17 @@
 </script>
 
 <article
-	class="dark:bg-[#1E2021] bg-gray-200 max-w-[35rem] flex my-1 p-2 px-4 rounded items-center dark:border-stone-700 shadow"
+	class="dark:bg-[#1E2021] bg-gray-200 max-w-[35rem] flex my-1 p-1 px-2 rounded items-center dark:border-stone-700 shadow dark:shadow-gray-900"
 	role="alert"
 	transition:fade
 >
 	<div class="text-white">
 		{#if type === 'success'}
-			<!-- <SuccessIcon width="1.1em" /> -->
-			<CheckCircleOutline class="w-10 h-10 fill-green-700" />
+			<CheckCircleSolid class="w-8 h-8 fill-green-500 dark:fill-green-700" />
 		{:else if type === 'error'}
-			<ExclamationCircleOutline class="w-10 h-10 fill-red-700" />
+			<InfoCircleSolid class="w-8 h-8 fill-blue-600" />
 		{:else}
-			<InfoCircleOutline class="w-10 h-10 fill-blue-700" />
+			<ExclamationCircleSolid class="w-8 h-8 fill-rose-500 " />
 		{/if}
 	</div>
 

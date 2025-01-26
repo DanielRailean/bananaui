@@ -15,10 +15,13 @@
 		if (token) {
 			userToken.set(token);
 			// refresh the token in 59 minutes
-			setTimeout(async () => {
-				userToken.set(undefined);
-				goto(`${base}/login`);
-			}, 59 * 60 * 1000);
+			setTimeout(
+				async () => {
+					userToken.set(undefined);
+					goto(`${base}/login`);
+				},
+				59 * 60 * 1000
+			);
 			if (state) {
 				const target = atob(state);
 				goto(target);
