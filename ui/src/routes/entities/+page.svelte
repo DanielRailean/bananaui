@@ -6,7 +6,7 @@
 	import { triggerPageUpdate } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '$lib/components/ArrayWrap.svelte';
-	import { apiService, cache } from '$lib/requests';
+	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { kongEntities } from '$lib/config';
@@ -38,16 +38,9 @@
 		entity = params.get('type') ?? 'none';
 		let willTriggerUpdate = false;
 
-		let exists = cache.get(entity);
 		if (oldEntity != entity) {
-			data = exists;
-			if (exists) {
-				willTriggerUpdate = false;
-				triggerPageUpdate.set(entity + DateTime.now().toUnixInteger());
-				// console.log('triggered update');
-			} else {
-				willTriggerUpdate = true;
-			}
+			data = undefined
+			willTriggerUpdate = true;
 		}
 		try {
 			kongEntity = kongEntities.find((i) => i.name == entity);
@@ -73,7 +66,6 @@
 				await delay(paginationAwaitBetweenPages);
 			}
 			triggerPageUpdate.set(entity + DateTime.now().toUnixInteger());
-			cache.set(entity, data);
 			if (isRefresh) {
 				infoToast('refresh finished!');
 			}
