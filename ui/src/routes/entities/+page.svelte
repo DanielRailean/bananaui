@@ -66,7 +66,6 @@
 				await delay(paginationAwaitBetweenPages);
 			}
 			triggerPageUpdate.set(entity + DateTime.now().toUnixInteger());
-			cache.set(entity, data);
 			if (isRefresh) {
 				infoToast('refresh finished!');
 			}
