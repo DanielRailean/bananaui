@@ -70,14 +70,6 @@
 	let sortAscending = entity?.sortAscending ?? false;
 
 	function updateEvent() {
-		// this is done so that other pages dont' trigger
-		// the update of current page in case of race condition
-		// makes it so the update happens only when you want the specific entity type to update
-		const update = get(triggerPageUpdate);
-		// console.log(update)
-		if (!update.startsWith(type)) {
-			return;
-		}
 		filteredData = dataRaw;
 		search();
 		resetPagination();

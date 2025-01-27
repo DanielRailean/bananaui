@@ -186,5 +186,3 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 	apiInstance = new ApiService(conf.kongApi.endpoint, token, conf.kongApi.requestHeaders);
 	return apiInstance;
 };
-
-export let cache: Map<string, IEntityBase[]> = new Map();
