@@ -187,6 +187,16 @@
 					</div>
 				</a>
 			</Button>
+			{#if selectedPlugin}
+			<Button class="h-10 m-1" color="alternative">
+				<a target="_blank" href="https://docs.konghq.com/hub/kong-inc/{selectedPlugin}/">
+					<div class="flex flex-row items-center">
+						<LinkOutline class="m-2" />
+						{selectedPlugin} plugin - configuration reference
+					</div>
+				</a>
+			</Button>
+			{/if}
 		</div>
 		{#if pluginSelect}
 			<div class="my-2">
