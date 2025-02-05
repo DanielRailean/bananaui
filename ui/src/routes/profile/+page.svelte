@@ -1,14 +1,12 @@
 <script lang="ts">
 	import TreeWrapper from './../../lib/components/treeWrapper.svelte';
-	import Header from './../../lib/components/Header.svelte';
 	import { onMount } from 'svelte';
 	import { userToken } from '$lib/stores';
 	import { addToast } from '$lib/toastStore';
+	import { DateTime } from 'luxon';
 	let token: any = {
 		username: '',
-		header: '',
-		body: '',
-		signature: '',
+		email: '',
 		token: ''
 	};
 	onMount(() => {
@@ -18,11 +16,13 @@
 			addToast({ message: 'no token!' });
 			return;
 		}
-		token.header = JSON.parse(atob(split[0]));
-		token.body = JSON.parse(atob(split[1]));
-		token.signature = split[2];
-		token.username = token.body.name;
+		// token.header = JSON.parse(atob(split[0]));
+		const token_parsed = JSON.parse(atob(split[1]))
+		token.token_body = token_parsed;
+		token.expires_at = DateTime.fromMillis(token_parsed.exp * 1000).toLocaleString(DateTime.DATETIME_FULL)
+		token.username = token_parsed.name;
+		token.email = token_parsed.unique_name
 	});
 </script>
 
-<TreeWrapper data={token} expandLevel={2} />
+<TreeWrapper data={token} expandLevel={0} />
