@@ -83,14 +83,13 @@
 		}
 		json = JSON.stringify(parsed, undefined, 2);
 		triggerHighlight();
-		if(confirmOk)
-		{
+		if (confirmOk) {
 			addToast({ message: `json valid!`, type: 'info' });
 		}
 	}
 
 	async function save() {
-		format(false)
+		format(false);
 		try {
 			let res: ResWrapped<IEntityBase, IResCreateError> | undefined;
 
@@ -139,6 +138,17 @@
 				pluginSchema[key] = value;
 				if (value.required) {
 					config[key] = value.default ?? null;
+					const maybeFields: any = {}
+					for (const field of value.fields ?? []) {
+						const fieldEntries = Object.entries(param)[0];
+						const key = fieldEntries[0];
+						const value = fieldEntries[1];
+						maybeFields[key] = value.default ?? null;
+					}
+					if(maybeFields)
+					{
+						config[key] = maybeFields
+					}
 				}
 			}
 			setEditField('config', config);
