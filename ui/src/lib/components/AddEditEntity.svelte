@@ -73,7 +73,7 @@
 		triggerHighlight();
 	});
 
-	function format() {
+	function format(confirmOk = true) {
 		let parsed: any | undefined;
 		try {
 			parsed = JSON.parse(json);
@@ -83,10 +83,14 @@
 		}
 		json = JSON.stringify(parsed, undefined, 2);
 		triggerHighlight();
-		addToast({ message: `ok`, type: 'info' });
+		if(confirmOk)
+		{
+			addToast({ message: `json valid!`, type: 'info' });
+		}
 	}
 
 	async function save() {
+		format(false)
 		try {
 			let res: ResWrapped<IEntityBase, IResCreateError> | undefined;
 
@@ -161,7 +165,7 @@
 				<FloppyDiskAltOutline class="m-2" />
 				save {entityKindToAdd.substr(0, entityKindToAdd.length - 1)}
 			</Button>
-			<Button class="h-10 m-1" on:click={format} color="blue">
+			<Button class="h-10 m-1" on:click={() => format(true)} color="blue">
 				<PaletteOutline class="m-2" />
 				format and validate JSON
 			</Button>
