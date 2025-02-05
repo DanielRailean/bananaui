@@ -16,7 +16,6 @@
 			addToast({ message: 'no token!' });
 			return;
 		}
-		// token.header = JSON.parse(atob(split[0]));
 		const token_parsed = JSON.parse(atob(split[1]))
 		token.token_body = token_parsed;
 		token.expires_at = DateTime.fromMillis(token_parsed.exp * 1000).toLocaleString(DateTime.DATETIME_FULL)
