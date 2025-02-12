@@ -18,6 +18,7 @@
 	import { get, writable } from 'svelte/store';
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
 	import { triggerPageUpdate } from '$lib/stores';
+	import { Button } from 'flowbite-svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -408,7 +409,8 @@
 												{/if}
 											{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
 												<!-- svelte-ignore a11y-no-static-element-interactions -->
-												<a
+												<Button class="h-10 m-1" color="alternative">
+													<a class="w-full"
 													on:click|preventDefault={() =>
 														goto(`${base}/entity?type=${field}s&id=${item[field].id}`)}
 													title="open {field}"
@@ -420,10 +422,11 @@
 														);
 													}}
 												>
-													<div>
-														<p class="dark:text-blue-500 text-blue-700">{item[field].id}</p>
-													</div>
-												</a>
+												<div>
+													<p class="dark:text-blue-500 text-blue-700 px-1 truncate">{item[field].id}</p>
+												</div>
+											</a>
+												</Button>
 											{:else if Object.is(item[field], null)}
 												-
 											{:else}
