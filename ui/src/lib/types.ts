@@ -28,6 +28,16 @@ export interface IKongService extends IEntityBase {
 	name: string;
 }
 
+export interface IKongUpstream {
+	created_at: number;
+	updated_at: number;
+	id:         string;
+	tags:       string[];
+	upstream:   IEntityBase;
+	target:     string;
+	weight:     number;
+}
+
 export interface IConfig {
 	kongApi: {
 		endpoint: string;
@@ -70,4 +80,5 @@ export interface IKongEntity {
 	subEntities?: string[];
 	uiSpaceAfter?: boolean;
 	uiSpaceBefore?: boolean;
+	uiPath?: string
 }

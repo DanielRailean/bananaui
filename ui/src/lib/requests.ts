@@ -38,25 +38,25 @@ export type ResWrapped<T, E> = {
 	code: number;
 };
 
-async function requestWithResponseBody<T, E = void>(
+async function requestWithResponseBody<ResType, ErrType = void>(
 	url: string,
 	method: string = 'GET',
 	body?: object,
 	headers?: Record<string, string>
-): Promise<ResWrapped<T, E>> {
+): Promise<ResWrapped<ResType, ErrType>> {
 	const res = await request(url, method, body, headers);
-	const result: ResWrapped<T, E> = {
+	const result: ResWrapped<ResType, ErrType> = {
 		ok: res.ok,
 		code: res.status
 	};
 	if (res.ok) {
 		try {
-			result.data = (await res.json()) as T;
+			result.data = (await res.json()) as ResType;
 		} catch {}
 	} else {
 		result.err = await res.text();
 		try {
-			result.errTyped = JSON.parse(result.err) as E;
+			result.errTyped = JSON.parse(result.err) as ErrType;
 		} catch {}
 	}
 	return result;
@@ -130,9 +130,9 @@ class ApiService {
 		);
 	}
 
-	findRecord<T>(entity: string, id: string) {
+	findRecord<T>(entity: string, id: string, pathPrefix: string = '') {
 		return requestWithResponseBody<T>(
-			`${this.endpoint}/${entity}/${id}`,
+			`${this.endpoint}${pathPrefix}/${entity}/${id}`,
 			undefined,
 			undefined,
 			this.headers
