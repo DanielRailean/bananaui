@@ -25,6 +25,7 @@
 	export let dataRaw: any[];
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
+	export let pathPrefix: string | undefined = '';
 
 	let searchText = '';
 	let filteredData: any[] = [];
@@ -71,10 +72,6 @@
 	let sortAscending = entity?.sortAscending ?? false;
 
 	function updateEvent() {
-		if(!get(triggerPageUpdate).startsWith(entity?.name ?? "") )
-		{
-			return
-		}
 		filteredData = dataRaw;
 		search();
 		resetPagination();
@@ -323,7 +320,7 @@
 					<tr
 						class="hoveritem dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
 						on:auxclick={() => {
-							window.open(`${base}/entity?type=${type}&id=${item.id}`, '_blank');
+							window.open(`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`, '_blank');
 						}}
 					>
 						<td class="py-3 pl-4">
@@ -345,7 +342,7 @@
 									</div>
 								</button>
 								<button title="open" class="h-8" color="alternative">
-									<a href="{base}/entity?type={type}&id={item.id}" class="text-emerald-600">
+									<a href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}" class="text-emerald-600">
 										<div class="flex flex-row items-center">
 											<ArrowUpRightFromSquareOutline class="m-1" />
 										</div>
@@ -379,7 +376,7 @@
 												: `click to copy '${field}'\n${JSON.stringify(item[field], undefined, 2)} `}
 											on:click|stopPropagation={() => {
 												if (field == 'name') {
-													goto(`${base}/entity?type=${type}&id=${item.id}`);
+													goto(`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`);
 													return;
 												}
 												copy(item[field]);
@@ -417,12 +414,12 @@
 												<Button class="h-10 m-1" title="open {field}" color="alternative">
 													<a class="w-full"
 													on:click|preventDefault={() =>
-														goto(`${base}/entity?type=${field}s&id=${item[field].id}`)}
+														goto(`${base}/entity?type=${field}s&id=${item[field].id}&prefix=${pathPrefix}`)}
 													title="open {field}"
-													href="{base}/entity?type={field}s&id={item[field].id}"
+													href="{base}/entity?type={field}s&id={item[field].id}&prefix=${pathPrefix}"
 													on:auxclick={() => {
 														window.open(
-															`${base}/entity?type=${field}s&id=${item[field].id}`,
+															`${base}/entity?type=${field}s&id=${item[field].id}&prefix=${pathPrefix}`,
 															'_blank'
 														);
 													}}

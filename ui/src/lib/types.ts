@@ -80,5 +80,5 @@ export interface IKongEntity {
 	subEntities?: string[];
 	uiSpaceAfter?: boolean;
 	uiSpaceBefore?: boolean;
-	uiPath?: string
+	showInMenu?: boolean
 }

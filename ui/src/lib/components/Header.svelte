@@ -16,7 +16,7 @@
 		{
 			name: 'profile',
 			appPath: '/profile'
-		},
+		}
 	];
 	let itemsEnd: HeaderItem[] = [
 		{
@@ -55,9 +55,16 @@
 
 	onMount(() => {
 		mounted = true;
-		const entities = kongEntities.map((i) => {
-			return { appPath: `/entities?type=${i.name.toLowerCase()}`, ...i };
-		});
+		const entities = kongEntities
+			.filter((i) => {
+				if (i.showInMenu === undefined) {
+					return true;
+				}
+				return i.showInMenu;
+			})
+			.map((i) => {
+				return { appPath: `/entities?type=${i.name.toLowerCase()}`, ...i };
+			});
 		items = [...items, ...entities, ...itemsEnd];
 	});
 </script>

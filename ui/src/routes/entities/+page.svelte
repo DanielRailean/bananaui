@@ -19,6 +19,8 @@
 	let entity: string;
 	let kongEntity: IKongEntity | undefined;
 	let isMounted = false;
+	let pathPrefix: string  = "";
+
 
 	$: $page, load();
 
@@ -36,6 +38,7 @@
 		loadStart = DateTime.now();
 		const oldEntity = entity;
 		entity = params.get('type') ?? 'none';
+		pathPrefix = params.get("prefix") ?? ""
 		let willTriggerUpdate = false;
 
 		if (oldEntity != entity) {
@@ -47,7 +50,7 @@
 			if (!kongEntity) {
 				return;
 			}
-			let res = await (await apiService()).findAll<any>(kongEntity.apiPath, {});
+			let res = await (await apiService()).findAll<any>(kongEntity.apiPath, {}, pathPrefix);
 			data = res.data.data;
 			var loopStarted = loadStart;
 			await delay(paginationAwaitBetweenPages);

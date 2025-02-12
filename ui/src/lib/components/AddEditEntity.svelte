@@ -21,6 +21,7 @@
 	let pluginSchema: any | undefined;
 	let selectedPlugin: any;
 	let pluginSelect: any | undefined;
+	let pathPrefix: string = ''
 
 	function setEditField(name: string, value: any) {
 		dummyObject[name] = value;
@@ -35,6 +36,7 @@
 		let query = new URLSearchParams(window.location.search);
 		let path = query.get('apiPostPath');
 		let type = query.get('type');
+		pathPrefix = query.get('prefix') ?? ''
 		if (type) {
 			entityKindToAdd = type;
 		}
@@ -109,7 +111,7 @@
 				return;
 			}
 			if (res.data?.id) {
-				goto(`${base}/entities?type=${entityKindToAdd}&id=${res.data.id}`);
+				goto(`${base}/entities?type=${entityKindToAdd}&id=${res.data.id}&prefix=${pathPrefix}`);
 			} else {
 				addToast({ message: 'failed to read the new entity' });
 				return;

@@ -107,7 +107,12 @@ export const kongEntities: IKongEntity[] = [
 	{ name: 'certificates', displayedFields: undefined, apiPath: 'certificates' },
 	{ name: 'ca_certificates', displayedFields: undefined, apiPath: 'ca_certificates' },
 	{ name: 'consumers', displayedFields: undefined, apiPath: 'consumers' },
-	{ name: 'upstreams', displayedFields: undefined, apiPath: 'upstreams' },
+	{
+		name: 'upstreams', displayedFields: ['name', 'updated_at'],
+		subEntities: ['targets'],
+		apiPath: 'upstreams'
+	},
+	{ name: 'targets', displayedFields: ['target', 'weight', 'updated_at'], apiPath: 'targets', showInMenu: false },
 	{ name: 'keys', displayedFields: ['name', 'kid', 'updated_at'], apiPath: 'keys' },
 	{ name: 'keysets', displayedFields: undefined, apiPath: 'key-sets' },
 	{ name: 'snis', displayedFields: undefined, apiPath: 'snis' },

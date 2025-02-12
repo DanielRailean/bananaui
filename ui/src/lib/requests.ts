@@ -139,22 +139,22 @@ class ApiService {
 		);
 	}
 
-	createRecord(entity: string, data: Record<string, unknown>) {
+	createRecord(entity: string, data: Record<string, unknown>, pathPrefix: string = '') {
 		return requestWithResponseBody<IEntityBase, IResCreateError>(
-			`${this.endpoint}/${entity}`,
+			`${this.endpoint}${pathPrefix}/${entity}`,
 			'POST',
 			data,
 			this.headers
 		);
 	}
 
-	updateRecord(entity: string, id: string, data: Record<string, unknown>) {
-		return requestWithResponseBody(`${this.endpoint}/${entity}/${id}`, 'PATCH', data, this.headers);
+	updateRecord(entity: string, id: string, data: Record<string, unknown>, pathPrefix: string = '') {
+		return requestWithResponseBody(`${this.endpoint}${pathPrefix}/${entity}/${id}`, 'PATCH', data, this.headers);
 	}
 
-	deleteRecord(entity: string, id: string) {
+	deleteRecord(entity: string, id: string, pathPrefix: string = '') {
 		return requestWithResponseBody(
-			`${this.endpoint}/${entity}/${id}`,
+			`${this.endpoint}${pathPrefix}/${entity}/${id}`,
 			'DELETE',
 			undefined,
 			this.headers
