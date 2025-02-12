@@ -296,7 +296,7 @@
 				"
 				on:click={scrollNext}><ChevronRightOutline class="size-4" /></button
 			>
-			<p class="w-36 text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
+			<p class="text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
 		</div>
 	</div>
 	{#if filteredData.length > 0}
@@ -442,6 +442,56 @@
 			</tbody>
 		</table>
 	{/if}
+	<div class="info py-4 flex flex-row items-center space-x-4 pl-2">
+		<button
+			disabled={pageNumber == intervalsIterable[0]}
+			class="p-2 
+			bg-stone-300
+					dark:bg-stone-700 
+					disabled:bg-stone-200 
+					disabled:dark:text-white disabled:dark:bg-stone-800 
+			"
+			on:click={scrollPrevious}
+		>
+			<ChevronLeftOutline class="size-4" />
+		</button>
+
+		{#each intervalsIterable as interval}
+			{#if isVisiblePage(interval, pageNumber)}
+				<button
+					class="p-2 
+					w-10 h-10 rounded-lg 
+					bg-stone-300
+					dark:bg-stone-700 
+					disabled:bg-stone-200 
+					disabled:dark:text-white disabled:dark:bg-stone-800 
+					"
+					on:click={() => {
+						loadPage(interval);
+					}}
+					disabled={pageNumber == interval}
+				>
+					<p>{interval}</p>
+				</button>
+			{/if}
+			{#if isVisiblePage(interval, pageNumber) && !isVisiblePage(interval + 1, pageNumber) && !(interval == intervalsIterable.at(-1))}
+				<p>...</p>
+			{/if}
+			<!-- content here -->
+		{/each}
+		<button
+			disabled={pageNumber == intervalsIterable.at(-1)}
+			class="
+			p-2 
+			bg-stone-300
+					dark:bg-stone-700 
+					disabled:bg-stone-200 
+					disabled:dark:text-white disabled:dark:bg-stone-800 
+			"
+			on:click={scrollNext}><ChevronRightOutline class="size-4" /></button
+		>
+		<p class="text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
+	</div>
 </div>
 
 <style lang="postcss">
