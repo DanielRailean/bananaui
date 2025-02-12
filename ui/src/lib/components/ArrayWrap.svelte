@@ -251,60 +251,62 @@
 		</div>
 	</div>
 	{#if filteredData.length > paginationSizeUi}
-	<div class="info py-4 flex flex-row items-center space-x-4 pl-6">
-		<button
-			disabled={pageNumber == intervalsIterable[0]}
-			class="p-2
+		<div class="info py-4 flex flex-row items-center space-x-4 pl-6">
+			<button
+				disabled={pageNumber == intervalsIterable[0]}
+				class="p-2
 			bg-stone-300
 					dark:bg-stone-700
 					disabled:bg-stone-200
 					disabled:dark:text-white disabled:dark:bg-stone-800
 			"
-			on:click={scrollPrevious}
-		>
-			<ChevronLeftOutline class="size-4" />
-		</button>
+				on:click={scrollPrevious}
+			>
+				<ChevronLeftOutline class="size-4" />
+			</button>
 
-		{#each intervalsIterable as interval}
-			{#if isVisiblePage(interval, pageNumber)}
-				<button
-					class="p-2
+			{#each intervalsIterable as interval}
+				{#if isVisiblePage(interval, pageNumber)}
+					<button
+						class="p-2
 					w-10 h-10 rounded-lg
 					bg-stone-300
 					dark:bg-stone-700
 					disabled:bg-stone-200
 					disabled:dark:text-white disabled:dark:bg-stone-800
 					"
-					on:click={() => {
-						loadPage(interval);
-					}}
-					disabled={pageNumber == interval}
-				>
-					<p>{interval}</p>
-				</button>
-			{/if}
-			{#if isVisiblePage(interval, pageNumber) && !isVisiblePage(interval + 1, pageNumber) && !(interval == intervalsIterable.at(-1))}
-				<p>...</p>
-			{/if}
-			<!-- content here -->
-		{/each}
-		<button
-			disabled={pageNumber == intervalsIterable.at(-1)}
-			class="
+						on:click={() => {
+							loadPage(interval);
+						}}
+						disabled={pageNumber == interval}
+					>
+						<p>{interval}</p>
+					</button>
+				{/if}
+				{#if isVisiblePage(interval, pageNumber) && !isVisiblePage(interval + 1, pageNumber) && !(interval == intervalsIterable.at(-1))}
+					<p>...</p>
+				{/if}
+				<!-- content here -->
+			{/each}
+			<button
+				disabled={pageNumber == intervalsIterable.at(-1)}
+				class="
 			p-2
 			bg-stone-300
 					dark:bg-stone-700
 					disabled:bg-stone-200
 					disabled:dark:text-white disabled:dark:bg-stone-800
 			"
-			on:click={scrollNext}><ChevronRightOutline class="size-4" /></button
-		>
-		<p class="text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
-	</div>
+				on:click={scrollNext}><ChevronRightOutline class="size-4" /></button
+			>
+			<p class="text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
+		</div>
 	{/if}
 	{#if filteredData.length > 0}
 		<table class="w-full mb-2">
-			<thead class="text-stone-800 text-sm dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300">
+			<thead
+				class="text-stone-800 text-sm dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300"
+			>
 				<tr>
 					<th><p class="pl-4 text-center">No.</p></th>
 					<th><p class="pl-4">Actions</p></th>
@@ -320,7 +322,10 @@
 					<tr
 						class="hoveritem dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
 						on:auxclick={() => {
-							window.open(`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`, '_blank');
+							window.open(
+								`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`,
+								'_blank'
+							);
 						}}
 					>
 						<td class="py-3 pl-4">
@@ -342,7 +347,10 @@
 									</div>
 								</button>
 								<button title="open" class="h-8" color="alternative">
-									<a href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}" class="text-emerald-600">
+									<a
+										href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}"
+										class="text-emerald-600"
+									>
 										<div class="flex flex-row items-center">
 											<ArrowUpRightFromSquareOutline class="m-1" />
 										</div>
@@ -411,26 +419,38 @@
 												{/if}
 											{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
 												<!-- svelte-ignore a11y-no-static-element-interactions -->
-												<Button class="h-10 m-1" title="open {field}" color="alternative">
-													<a class="w-full"
-													on:click|preventDefault={() =>
-														goto(`${base}/entity?type=${field}s&id=${item[field].id}&prefix=${pathPrefix}`)}
-													title="open {field}"
-													href="{base}/entity?type={field}s&id={item[field].id}&prefix=${pathPrefix}"
-													on:auxclick={() => {
-														window.open(
-															`${base}/entity?type=${field}s&id=${item[field].id}&prefix=${pathPrefix}`,
-															'_blank'
-														);
-													}}
-												>
-												<div>
-													<p class="dark:text-blue-500 text-blue-700 px-1 truncate">{item[field].id}</p>
+												<div class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded">
+													<a
+														class="w-full"
+														on:click|preventDefault={() =>
+															goto(
+																`${base}/entity?type=${field}s&id=${item[field].id}&prefix=${pathPrefix}`
+															)}
+														title="open {field}"
+														href="{base}/entity?type={field}s&id={item[field]
+															.id}&prefix=${pathPrefix}"
+														on:auxclick={() => {
+															window.open(
+																`${base}/entity?type=${field}s&id=${item[field].id}&prefix=${pathPrefix}`,
+																'_blank'
+															);
+														}}
+													>
+														<div>
+															<p class="dark:text-blue-500 text-blue-700 px-1 truncate">
+																{item[field].id}
+															</p>
+														</div>
+													</a>
 												</div>
-											</a>
-												</Button>
 											{:else if Object.is(item[field], null)}
 												-
+											{:else if Array.isArray(item[field]) && item[field].length == 1}
+												<div class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded">
+													<p>
+														{item[field][0]}
+													</p>
+												</div>
 											{:else}
 												{JSON.stringify(item[field], undefined, 2)}
 											{/if}
@@ -445,56 +465,56 @@
 		</table>
 	{/if}
 	{#if filteredData.length > paginationSizeUi}
-	<div class="info py-4 flex flex-row items-center space-x-4 pl-6">
-		<button
-			disabled={pageNumber == intervalsIterable[0]}
-			class="p-2
+		<div class="info py-4 flex flex-row items-center space-x-4 pl-6">
+			<button
+				disabled={pageNumber == intervalsIterable[0]}
+				class="p-2
 			bg-stone-300
 					dark:bg-stone-700
 					disabled:bg-stone-200
 					disabled:dark:text-white disabled:dark:bg-stone-800
 			"
-			on:click={scrollPrevious}
-		>
-			<ChevronLeftOutline class="size-4" />
-		</button>
+				on:click={scrollPrevious}
+			>
+				<ChevronLeftOutline class="size-4" />
+			</button>
 
-		{#each intervalsIterable as interval}
-			{#if isVisiblePage(interval, pageNumber)}
-				<button
-					class="p-2
+			{#each intervalsIterable as interval}
+				{#if isVisiblePage(interval, pageNumber)}
+					<button
+						class="p-2
 					w-10 h-10 rounded-lg
 					bg-stone-300
 					dark:bg-stone-700
 					disabled:bg-stone-200
 					disabled:dark:text-white disabled:dark:bg-stone-800
 					"
-					on:click={() => {
-						loadPage(interval);
-					}}
-					disabled={pageNumber == interval}
-				>
-					<p>{interval}</p>
-				</button>
-			{/if}
-			{#if isVisiblePage(interval, pageNumber) && !isVisiblePage(interval + 1, pageNumber) && !(interval == intervalsIterable.at(-1))}
-				<p>...</p>
-			{/if}
-			<!-- content here -->
-		{/each}
-		<button
-			disabled={pageNumber == intervalsIterable.at(-1)}
-			class="
+						on:click={() => {
+							loadPage(interval);
+						}}
+						disabled={pageNumber == interval}
+					>
+						<p>{interval}</p>
+					</button>
+				{/if}
+				{#if isVisiblePage(interval, pageNumber) && !isVisiblePage(interval + 1, pageNumber) && !(interval == intervalsIterable.at(-1))}
+					<p>...</p>
+				{/if}
+				<!-- content here -->
+			{/each}
+			<button
+				disabled={pageNumber == intervalsIterable.at(-1)}
+				class="
 			p-2
 			bg-stone-300
 					dark:bg-stone-700
 					disabled:bg-stone-200
 					disabled:dark:text-white disabled:dark:bg-stone-800
 			"
-			on:click={scrollNext}><ChevronRightOutline class="size-4" /></button
-		>
-		<p class="text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
-	</div>
+				on:click={scrollNext}><ChevronRightOutline class="size-4" /></button
+			>
+			<p class="text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
+		</div>
 	{/if}
 </div>
 
