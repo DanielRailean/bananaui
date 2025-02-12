@@ -60,12 +60,12 @@
 				if (res.ok) {
 					data = data.concat(res.data.data);
 					if (willTriggerUpdate) {
-						triggerPageUpdate.set(entity + DateTime.now().toUnixInteger());
+						triggerPageUpdate.set(entity + DateTime.now().toMillis());
 					}
 				}
 				await delay(paginationAwaitBetweenPages);
 			}
-			triggerPageUpdate.set(entity + DateTime.now().toUnixInteger());
+			triggerPageUpdate.set(entity + DateTime.now().toMillis());
 			if (isRefresh) {
 				infoToast('refresh finished!');
 			}

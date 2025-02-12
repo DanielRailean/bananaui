@@ -10,13 +10,13 @@
 	};
 	let items: HeaderItem[] = [
 		{
+			name: 'info',
+			appPath: '/'
+		},
+		{
 			name: 'profile',
 			appPath: '/profile'
 		},
-		{
-			name: 'overview',
-			appPath: '/'
-		}
 	];
 	let itemsEnd: HeaderItem[] = [
 		{
@@ -45,9 +45,12 @@
 		if (!window) return false;
 
 		const searchParams = new URLSearchParams(window.location.search);
-		const entityType = searchParams.get('type') ?? 'none';
+		const entityType = searchParams.get('type');
 
-		return entityType === item.name;
+		if (entityType) {
+			return entityType === item.name;
+		}
+		return window.location.pathname == item.appPath;
 	}
 
 	onMount(() => {
