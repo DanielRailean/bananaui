@@ -100,7 +100,7 @@
 			errorToast(`failed to delete. ${res.err}`);
 		} else {
 			confirmToast(`deleted`);
-			goto(`${base}/entities?type=${entityType}`);
+			goto(`${base}/entities?type=${entityType}&prefix=${pathPrefix}`);
 		}
 	}
 
