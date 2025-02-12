@@ -4,7 +4,7 @@ export const staticConfig = {
 	autoLoginDelayMs: 100,
 	name: 'Banana UI'
 };
-export const paginationSizeUi = 50;
+export const paginationSizeUi = 20;
 
 export const paginationSize = 1000;
 export const paginationAwaitBetweenPages = 0;

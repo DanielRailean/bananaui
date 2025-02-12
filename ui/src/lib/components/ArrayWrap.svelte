@@ -409,7 +409,7 @@
 												{/if}
 											{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
 												<!-- svelte-ignore a11y-no-static-element-interactions -->
-												<Button class="h-10 m-1" color="alternative">
+												<Button class="h-10 m-1" title="open {field}" color="alternative">
 													<a class="w-full"
 													on:click|preventDefault={() =>
 														goto(`${base}/entity?type=${field}s&id=${item[field].id}`)}
