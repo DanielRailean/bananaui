@@ -151,6 +151,12 @@
 	}
 </script>
 
+<svelte:head>
+	{#if data}
+		<title>{data.name ?? data.id ?? entityType}</title>
+	{/if}
+</svelte:head>
+
 <div class="mb-2">
 	<div class="flex flex-row flex-wrap m-2">
 		<Button
