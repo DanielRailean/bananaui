@@ -119,7 +119,7 @@
 		if (!conf) {
 			return;
 		}
-		const res = await (await apiService()).deleteRecord(type, id);
+		const res = await (await apiService()).deleteRecord(type, id, pathPrefix);
 		if (!res.ok) {
 			errorToast(`failed to delete. ${res.err}`);
 		} else {

@@ -63,6 +63,11 @@
 		{
 			data = undefined;
 			const res = await (await apiService()).findRecord(entityType, id, pathPrefix);
+			if(!res.ok)
+			{
+				errorToast(`failed to fetch ${entityType} with id ${id}. Status code: ${res.code}`)
+				await goto(`${base}/entities?type=services`);
+			}
 			data = res.data;
 			data = sortObjectFieldsByOrder(data, fieldOrder);
 			json = JSON.stringify(data, undefined, 2);
