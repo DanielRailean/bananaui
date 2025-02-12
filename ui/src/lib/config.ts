@@ -104,9 +104,9 @@ export const kongEntities: IKongEntity[] = [
 		apiPath: 'plugins',
 		uiSpaceAfter: true
 	},
-	{ name: 'certificates', displayedFields: undefined, apiPath: 'certificates' },
-	{ name: 'ca_certificates', displayedFields: undefined, apiPath: 'ca_certificates' },
-	{ name: 'consumers', displayedFields: undefined, apiPath: 'consumers' },
+	{ name: 'certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'certificates' },
+	{ name: 'ca_certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'ca_certificates' },
+	{ name: 'consumers', displayedFields: ['username', 'custom_id', 'updated_at'], apiPath: 'consumers' },
 	{
 		name: 'upstreams', displayedFields: ['name', 'updated_at'],
 		subEntities: ['targets'],
