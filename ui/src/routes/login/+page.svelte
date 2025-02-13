@@ -24,10 +24,11 @@
 	onMount(async () => {
 		const searchParams = new URLSearchParams(window.location.search);
 		const sourceParam = searchParams.get('source');
+		const auto = searchParams.get('auto');
 		if (sourceParam) {
 			source = sourceParam;
 		}
-		if ($config?.config.oidc?.autoLogin) {
+		if ($config?.config.oidc?.autoLogin || auto === "true") {
 			await delay(staticConfig.autoLoginDelayMs);
 			if (!$userToken) {
 				tryLogin();
@@ -36,8 +37,8 @@
 	});
 </script>
 
-<div class="flex items-center justify-center h-full w-full">
-	<div class="flex flex-col h-[200px] w-[500px] my-auto">
+<div class="flex items-center justify-center h-[80vh] w-full my-auto">
+	<div class="flex flex-col items-center w-full">
 		<div class="flex flex-row mx-auto items-center">
 			<img class="h-16 w-16 mr-4" src={logo} alt="bananaui logo" />
 
@@ -45,6 +46,6 @@
 				{staticConfig.name}
 			</h1>
 		</div>
-		<Button class="my-10 w-24 mx-auto" on:click={tryLogin} color="green">Login</Button>
+		<Button class="my-10 h-16 text-xl mx-auto" on:click={tryLogin} color="green">SSO Login</Button>
 	</div>
 </div>

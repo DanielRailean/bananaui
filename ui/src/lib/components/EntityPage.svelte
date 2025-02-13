@@ -27,6 +27,8 @@
 	let isEdited = false;
 	let id: string;
 	let entityType: string;
+	let pathPrefix: string  = "";
+	let subEntityPrefix: string = ''
 
 	let currentEntity: IKongEntity | undefined;
 
@@ -53,9 +55,19 @@
 		const searchParams = new URLSearchParams(window.location.search);
 		entityType = searchParams.get('type') ?? 'none';
 		id = searchParams.get('id') ?? 'none';
+		pathPrefix = searchParams.get("prefix") ?? ""
+		if(entityType == "upstreams")
+		{
+			subEntityPrefix = `/upstreams/${id}`
+		}
 		{
 			data = undefined;
-			const res = await (await apiService()).findRecord(entityType, id);
+			const res = await (await apiService()).findRecord(entityType, id, pathPrefix);
+			if(!res.ok)
+			{
+				errorToast(`failed to fetch ${entityType} with id ${id}. Status code: ${res.code}`)
+				await goto(`${base}/entities?type=services`);
+			}
 			data = res.data;
 			data = sortObjectFieldsByOrder(data, fieldOrder);
 			json = JSON.stringify(data, undefined, 2);
@@ -88,12 +100,12 @@
 		if (!conf) {
 			return;
 		}
-		const res = await (await apiService()).deleteRecord(type, id);
+		const res = await (await apiService()).deleteRecord(type, id, pathPrefix);
 		if (!res.ok) {
 			errorToast(`failed to delete. ${res.err}`);
 		} else {
 			confirmToast(`deleted`);
-			goto(`${base}/entities?type=${entityType}`);
+			goto(`${base}/entities?type=${entityType}&prefix=${pathPrefix}`);
 		}
 	}
 
@@ -115,7 +127,7 @@
 			return;
 		}
 		format();
-		const res = await (await apiService()).updateRecord(entityType, id, JSON.parse(json));
+		const res = await (await apiService()).updateRecord(entityType, id, JSON.parse(json), pathPrefix);
 		console.log(res);
 		if (!res.ok) {
 			errorToast(
@@ -150,6 +162,12 @@
 		(globalThis as any).Prism.highlightElement(editorSyntax);
 	}
 </script>
+
+<svelte:head>
+	{#if data}
+		<title>{data.name ?? data.id ?? entityType}</title>
+	{/if}
+</svelte:head>
 
 <div class="mb-2">
 	<div class="flex flex-row flex-wrap m-2">
@@ -242,14 +260,14 @@
 									goto(
 										`${base}/add?type=${subEntity.name}&apiPostPath=${btoa(
 											subEntity.entitySubPath
-										)}`
+										)}&prefix=${subEntityPrefix}`
 									);
 								}}
 							>
 								<a
 									href="{base}/add?type={subEntity.name}&apiPostPath={btoa(
 										subEntity.entitySubPath
-									)}"
+									)}&prefix={subEntityPrefix}"
 								>
 									<div class="flex flex-row items-center">
 										<CirclePlusOutline class="m-2" />
@@ -264,6 +282,7 @@
 							dataRaw={subEntity.data}
 							type={subEntity.name}
 							entity={subEntity}
+							pathPrefix={subEntityPrefix}
 							on:refresh={async () => await load()}
 						/>
 					{/if}

@@ -10,12 +10,12 @@
 	};
 	let items: HeaderItem[] = [
 		{
-			name: 'profile',
-			appPath: '/profile'
+			name: 'info',
+			appPath: '/'
 		},
 		{
-			name: 'overview',
-			appPath: '/'
+			name: 'profile',
+			appPath: '/profile'
 		}
 	];
 	let itemsEnd: HeaderItem[] = [
@@ -45,16 +45,26 @@
 		if (!window) return false;
 
 		const searchParams = new URLSearchParams(window.location.search);
-		const entityType = searchParams.get('type') ?? 'none';
+		const entityType = searchParams.get('type');
 
-		return entityType === item.name;
+		if (entityType) {
+			return entityType === item.name;
+		}
+		return window.location.pathname == item.appPath;
 	}
 
 	onMount(() => {
 		mounted = true;
-		const entities = kongEntities.map((i) => {
-			return { appPath: `/entities?type=${i.name.toLowerCase()}`, ...i };
-		});
+		const entities = kongEntities
+			.filter((i) => {
+				if (i.showInMenu === undefined) {
+					return true;
+				}
+				return i.showInMenu;
+			})
+			.map((i) => {
+				return { appPath: `/entities?type=${i.name.toLowerCase()}`, ...i };
+			});
 		items = [...items, ...entities, ...itemsEnd];
 	});
 </script>

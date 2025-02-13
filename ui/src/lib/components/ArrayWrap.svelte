@@ -18,12 +18,16 @@
 	import { get, writable } from 'svelte/store';
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
 	import { triggerPageUpdate } from '$lib/stores';
+	import { Button } from 'flowbite-svelte';
+
+	let loadParentName = writable(false);
 
 	const dispatch = createEventDispatcher();
 
 	export let dataRaw: any[];
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
+	export let pathPrefix: string | undefined = '';
 
 	let searchText = '';
 	let filteredData: any[] = [];
@@ -31,6 +35,7 @@
 	let arrayStart = 0;
 	let arrayEnd = paginationSizeUi;
 	let pageNumber = 1;
+	let debounce: number = DateTime.now().toUnixInteger();
 
 	let intervalsIterable: number[] = [];
 	let intervals = (dataRaw?.length ?? 0) / paginationSizeUi;
@@ -71,6 +76,7 @@
 
 	function updateEvent() {
 		filteredData = dataRaw;
+		debounce = DateTime.now().toUnixInteger();
 		search();
 		resetPagination();
 		calculatePagination();
@@ -117,7 +123,7 @@
 		if (!conf) {
 			return;
 		}
-		const res = await (await apiService()).deleteRecord(type, id);
+		const res = await (await apiService()).deleteRecord(type, id, pathPrefix);
 		if (!res.ok) {
 			errorToast(`failed to delete. ${res.err}`);
 		} else {
@@ -200,10 +206,21 @@
 			);
 		}
 	}
+	async function getInfo(type: string, id: string, selfIdentifier: string): Promise<string> {
+		const res = await (await apiService()).findRecord<any>(type + 's', id);
+		if (!res.ok) {
+			errorToast(`Failed to load ${type} for '${selfIdentifier}'. Res. status code: ${res.code}!`);
+			throw new Error('failed to load');
+		}
+		if (res.data.paths && res.data.paths.length > 0) {
+			return res.data.paths[0];
+		}
+		return res.data.name;
+	}
 </script>
 
 <div class="w-full text-sm text-left rtl:text-right text-stone-800 font-light dark:text-stone-300">
-	<div class="pl-4">
+	<div class="pl-4 pb-3">
 		<h1 class="text-xl mb-3 ml-1 dark:text-zinc-300">
 			{filteredData ? filteredData.length : 'Loading'}
 			{capitalizeFirstLetter(type)}
@@ -223,6 +240,16 @@
 			/>
 			<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
 		</div>
+		<div class="flex flex-row my-4 pl-1">
+			<p class="text-lg mr-3">Load parent info </p>
+			<Toggle
+				isChecked={loadParentName}
+				on:change={async () => {
+					loadParentName.set(!get(loadParentName));
+					console.log(get(loadParentName));
+				}}
+			/>
+		</div>
 		<div class="flex flex-row items-center space-x-2 pl-1">
 			<p class="text-lg">Sort by:</p>
 			<select
@@ -230,7 +257,7 @@
 				on:change={() => {
 					updateEvent();
 				}}
-				class="dark:bg-stone-700 border-none w-52 rounded focus:border-none focus:[box-shadow:none]"
+				class="dark:bg-stone-700 shadow shadow-slate-600 border-none w-52 rounded focus:border-none focus:[box-shadow:none]"
 			>
 				{#each Object.keys(dataRaw[0] ?? {}) as key}
 					<option value={key} selected={key == sortKey}>{key}</option>
@@ -241,21 +268,23 @@
 				on:change={() => {
 					updateEvent();
 				}}
-				class="dark:bg-stone-700 border-none rounded focus:border-none focus:[box-shadow:none]"
+				class="dark:bg-stone-700 shadow shadow-slate-600 border-none rounded focus:border-none focus:[box-shadow:none]"
 			>
 				<option value={true} selected={sortAscending}>ascending</option>
 				<option value={false} selected={!sortAscending}>descending</option>
 			</select>
 		</div>
-		<div class="info py-4 flex flex-row items-center space-x-4 pl-2">
+	</div>
+	{#if filteredData.length > paginationSizeUi}
+		<div class="info py-4 flex flex-row items-center space-x-4 pl-6">
 			<button
 				disabled={pageNumber == intervalsIterable[0]}
-				class="p-2 
-				bg-stone-300
-						dark:bg-stone-700 
-						disabled:bg-stone-200 
-						disabled:dark:text-white disabled:dark:bg-stone-800 
-				"
+				class="p-2
+			bg-stone-300
+					dark:bg-stone-700
+					disabled:bg-stone-200
+					disabled:dark:text-white disabled:dark:bg-stone-800
+			"
 				on:click={scrollPrevious}
 			>
 				<ChevronLeftOutline class="size-4" />
@@ -264,13 +293,14 @@
 			{#each intervalsIterable as interval}
 				{#if isVisiblePage(interval, pageNumber)}
 					<button
-						class="p-2 
-						w-10 h-10 rounded-lg 
-						bg-stone-300
-						dark:bg-stone-700 
-						disabled:bg-stone-200 
-						disabled:dark:text-white disabled:dark:bg-stone-800 
-						"
+						class="p-2
+					w-10 h-10 rounded-lg
+					bg-stone-300
+					dark:bg-stone-700
+					disabled:bg-stone-200
+					disabled:dark:text-white disabled:dark:bg-stone-800
+					disabled:shadow disabled:shadow-slate-600
+					"
 						on:click={() => {
 							loadPage(interval);
 						}}
@@ -287,27 +317,28 @@
 			<button
 				disabled={pageNumber == intervalsIterable.at(-1)}
 				class="
-				p-2 
-				bg-stone-300
-						dark:bg-stone-700 
-						disabled:bg-stone-200 
-						disabled:dark:text-white disabled:dark:bg-stone-800 
-				"
+			p-2
+			bg-stone-300
+					dark:bg-stone-700
+					disabled:bg-stone-200
+					disabled:dark:text-white disabled:dark:bg-stone-800
+			"
 				on:click={scrollNext}><ChevronRightOutline class="size-4" /></button
 			>
-			<p class="w-36 text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
+			<p class="text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
 		</div>
-	</div>
+	{/if}
 	{#if filteredData.length > 0}
-		<!-- content here -->
 		<table class="w-full mb-2">
-			<thead class="text-stone-800 text-sm dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300">
+			<thead
+				class="text-stone-800 text-sm dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300 h-10"
+			>
 				<tr>
-					<th><p class="pl-4 text-center">No.</p></th>
+					<th><p class="pl-4">No.</p></th>
 					<th><p class="pl-4">Actions</p></th>
 					{#each entity?.displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
 						{#if Object.keys(dataRaw[0] ?? {}).includes(field)}
-							<th scope="col" class="py-3"> {field} </th>
+							<th scope="col" class="pl-4"> {field} </th>
 						{/if}
 					{/each}
 				</tr>
@@ -317,15 +348,18 @@
 					<tr
 						class="hoveritem dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
 						on:auxclick={() => {
-							window.open(`${base}/entity?type=${type}&id=${item.id}`, '_blank');
+							window.open(
+								`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`,
+								'_blank'
+							);
 						}}
 					>
-						<td class="py-3 pl-4">
+						<td class="">
 							<p class="text-center font-light">
 								{index + 1 + arrayStart}
 							</p></td
 						>
-						<td class="py-3">
+						<td class="p-2">
 							<div class=" space-x-1 flex flex-row">
 								<button
 									class="h-8"
@@ -339,7 +373,10 @@
 									</div>
 								</button>
 								<button title="open" class="h-8" color="alternative">
-									<a href="{base}/entity?type={type}&id={item.id}" class="text-emerald-600">
+									<a
+										href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}"
+										class="text-emerald-600"
+									>
 										<div class="flex flex-row items-center">
 											<ArrowUpRightFromSquareOutline class="m-1" />
 										</div>
@@ -362,7 +399,7 @@
 
 						{#each entity?.displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
 							{#if Object.keys(item).includes(field)}
-								<td class="py-3">
+								<td class="p-4">
 									<div class="flex flex-row items-center justify-between">
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
@@ -373,7 +410,7 @@
 												: `click to copy '${field}'\n${JSON.stringify(item[field], undefined, 2)} `}
 											on:click|stopPropagation={() => {
 												if (field == 'name') {
-													goto(`${base}/entity?type=${type}&id=${item.id}`);
+													goto(`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`);
 													return;
 												}
 												copy(item[field]);
@@ -408,24 +445,48 @@
 												{/if}
 											{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
 												<!-- svelte-ignore a11y-no-static-element-interactions -->
-												<a
-													on:click|preventDefault={() =>
-														goto(`${base}/entity?type=${field}s&id=${item[field].id}`)}
-													title="open {field}"
-													href="{base}/entity?type={field}s&id={item[field].id}"
-													on:auxclick={() => {
-														window.open(
-															`${base}/entity?type=${field}s&id=${item[field].id}`,
-															'_blank'
-														);
-													}}
+												<div
+													class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded"
+													title="go to {field}"
 												>
-													<div>
-														<p class="dark:text-blue-500 text-blue-700">{item[field].id}</p>
-													</div>
-												</a>
+													<a
+														class="w-full"
+														on:click|preventDefault={() =>
+															goto(
+																`${base}/entity?type=${field}s&id=${item[field].id}&prefix=${pathPrefix}`
+															)}
+														href="{base}/entity?type={field}s&id={item[field]
+															.id}&prefix=${pathPrefix}"
+														on:auxclick={() => {
+															window.open(
+																`${base}/entity?type=${field}s&id=${item[field].id}&prefix=${pathPrefix}`,
+																'_blank'
+															);
+														}}
+													>
+														<div>
+															<p class="dark:text-blue-500 text-blue-700 px-1 truncate">
+																{#if $loadParentName}
+																	{#await getInfo(field, item[field].id, item.name ?? item.id) then value}
+																		{value}
+																	{:catch}
+																		{item[field].id}
+																	{/await}
+																{:else}
+																	{item[field].id}
+																{/if}
+															</p>
+														</div>
+													</a>
+												</div>
 											{:else if Object.is(item[field], null)}
 												-
+											{:else if Array.isArray(item[field]) && item[field].length == 1}
+												<div class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded">
+													<p>
+														{item[field][0]}
+													</p>
+												</div>
 											{:else}
 												{JSON.stringify(item[field], undefined, 2)}
 											{/if}
@@ -438,6 +499,59 @@
 				{/each}
 			</tbody>
 		</table>
+	{/if}
+	{#if filteredData.length > paginationSizeUi}
+		<div class="info py-4 flex flex-row items-center space-x-4 pl-6">
+			<button
+				disabled={pageNumber == intervalsIterable[0]}
+				class="p-2
+			bg-stone-300
+					dark:bg-stone-700
+					disabled:bg-stone-200
+					disabled:dark:text-white disabled:dark:bg-stone-800
+			"
+				on:click={scrollPrevious}
+			>
+				<ChevronLeftOutline class="size-4" />
+			</button>
+
+			{#each intervalsIterable as interval}
+				{#if isVisiblePage(interval, pageNumber)}
+					<button
+						class="p-2
+					w-10 h-10 rounded-lg
+					bg-stone-300
+					dark:bg-stone-700
+					disabled:bg-stone-200
+					disabled:dark:text-white disabled:dark:bg-stone-800
+					disabled:shadow disabled:shadow-slate-600
+					"
+						on:click={() => {
+							loadPage(interval);
+						}}
+						disabled={pageNumber == interval}
+					>
+						<p>{interval}</p>
+					</button>
+				{/if}
+				{#if isVisiblePage(interval, pageNumber) && !isVisiblePage(interval + 1, pageNumber) && !(interval == intervalsIterable.at(-1))}
+					<p>...</p>
+				{/if}
+				<!-- content here -->
+			{/each}
+			<button
+				disabled={pageNumber == intervalsIterable.at(-1)}
+				class="
+			p-2
+			bg-stone-300
+					dark:bg-stone-700
+					disabled:bg-stone-200
+					disabled:dark:text-white disabled:dark:bg-stone-800
+			"
+				on:click={scrollNext}><ChevronRightOutline class="size-4" /></button
+			>
+			<p class="text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
+		</div>
 	{/if}
 </div>
 

@@ -4,7 +4,7 @@ export const staticConfig = {
 	autoLoginDelayMs: 100,
 	name: 'Banana UI'
 };
-export const paginationSizeUi = 50;
+export const paginationSizeUi = 20;
 
 export const paginationSize = 1000;
 export const paginationAwaitBetweenPages = 0;
@@ -90,11 +90,14 @@ export const kongEntities: IKongEntity[] = [
 		subEntities: ['routes', 'plugins'],
 		sortBy: 'updated_at',
 		sortAscending: false,
-		uiSpaceBefore: true
+		uiSpaceBefore: true,
+		defaultAddValue: {
+			url: "https://example.com"
+		}
 	},
 	{
 		name: 'routes',
-		displayedFields: ['name', 'paths', 'methods', 'service', 'updated_at'],
+		displayedFields: ['name', 'methods', 'paths', 'service', 'updated_at'],
 		apiPath: 'routes',
 		subEntities: ['plugins']
 	},
@@ -104,12 +107,23 @@ export const kongEntities: IKongEntity[] = [
 		apiPath: 'plugins',
 		uiSpaceAfter: true
 	},
-	{ name: 'certificates', displayedFields: undefined, apiPath: 'certificates' },
-	{ name: 'ca_certificates', displayedFields: undefined, apiPath: 'ca_certificates' },
-	{ name: 'consumers', displayedFields: undefined, apiPath: 'consumers' },
-	{ name: 'upstreams', displayedFields: undefined, apiPath: 'upstreams' },
+	{ name: 'certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'certificates' },
+	{ name: 'ca_certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'ca_certificates' },
+	{ name: 'consumers', displayedFields: ['username', 'custom_id', 'updated_at'], apiPath: 'consumers' },
+	{
+		name: 'upstreams', displayedFields: ['name', 'updated_at'],
+		subEntities: ['targets'],
+		apiPath: 'upstreams'
+	},
+	{ name: 'targets', displayedFields: ['target', 'weight', 'updated_at'], apiPath: 'targets', showInMenu: false },
 	{ name: 'keys', displayedFields: ['name', 'kid', 'updated_at'], apiPath: 'keys' },
-	{ name: 'keysets', displayedFields: undefined, apiPath: 'key-sets' },
+	{
+		name: 'key-sets',
+		displayedFields: ['name', 'id', 'updated_at'],
+		subEntities: ['keys'],
+		apiPath: 'key-sets',
+		defaultAddValue: { name: 'my_keyset_name' }
+	},
 	{ name: 'snis', displayedFields: undefined, apiPath: 'snis' },
 	{ name: 'vaults', displayedFields: undefined, apiPath: 'vaults' },
 	{

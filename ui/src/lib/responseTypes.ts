@@ -40,6 +40,7 @@ export interface IFieldDescription {
 	description: string;
 	default?: any;
 	required?: boolean;
+	fields?: any
 }
 
 export interface IRootRes {

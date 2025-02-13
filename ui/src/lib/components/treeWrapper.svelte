@@ -32,7 +32,7 @@
 <div class="tree">
 	{#if data}
 		<div
-			class="relative overflow-x-auto {rounded ? 'rounded-xl' : ''} border-b dark:border-stone-800"
+			class="relative overflow-x-hidden {rounded ? 'rounded-xl' : ''} border-b dark:border-stone-800"
 		>
 			<table class="w-full text-sm text-left rtl:text-right text-gray-800 dark:text-zinc-300">
 				<tbody>

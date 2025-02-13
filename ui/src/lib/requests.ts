@@ -7,6 +7,7 @@ import type { IEntityBase, IPaginationRes } from './types';
 import type { IRootRes, IResCreateError, ISchemaRes, IPluginConfig } from './responseTypes';
 import { paginationSize } from './config';
 import { base } from '$app/paths';
+import { DateTime } from 'luxon';
 
 function request(
 	url: string,
@@ -38,25 +39,25 @@ export type ResWrapped<T, E> = {
 	code: number;
 };
 
-async function requestWithResponseBody<T, E = void>(
+async function requestWithResponseBody<ResType, ErrType = void>(
 	url: string,
 	method: string = 'GET',
 	body?: object,
 	headers?: Record<string, string>
-): Promise<ResWrapped<T, E>> {
+): Promise<ResWrapped<ResType, ErrType>> {
 	const res = await request(url, method, body, headers);
-	const result: ResWrapped<T, E> = {
+	const result: ResWrapped<ResType, ErrType> = {
 		ok: res.ok,
 		code: res.status
 	};
 	if (res.ok) {
 		try {
-			result.data = (await res.json()) as T;
+			result.data = (await res.json()) as ResType;
 		} catch {}
 	} else {
 		result.err = await res.text();
 		try {
-			result.errTyped = JSON.parse(result.err) as E;
+			result.errTyped = JSON.parse(result.err) as ErrType;
 		} catch {}
 	}
 	return result;
@@ -130,31 +131,31 @@ class ApiService {
 		);
 	}
 
-	findRecord<T>(entity: string, id: string) {
+	findRecord<T>(entity: string, id: string, pathPrefix: string = '') {
 		return requestWithResponseBody<T>(
-			`${this.endpoint}/${entity}/${id}`,
+			`${this.endpoint}${pathPrefix}/${entity}/${id}`,
 			undefined,
 			undefined,
 			this.headers
 		);
 	}
 
-	createRecord(entity: string, data: Record<string, unknown>) {
+	createRecord(entity: string, data: Record<string, unknown>, pathPrefix: string = '') {
 		return requestWithResponseBody<IEntityBase, IResCreateError>(
-			`${this.endpoint}/${entity}`,
+			`${this.endpoint}${pathPrefix}/${entity}`,
 			'POST',
 			data,
 			this.headers
 		);
 	}
 
-	updateRecord(entity: string, id: string, data: Record<string, unknown>) {
-		return requestWithResponseBody(`${this.endpoint}/${entity}/${id}`, 'PATCH', data, this.headers);
+	updateRecord(entity: string, id: string, data: Record<string, unknown>, pathPrefix: string = '') {
+		return requestWithResponseBody(`${this.endpoint}${pathPrefix}/${entity}/${id}`, 'PATCH', data, this.headers);
 	}
 
-	deleteRecord(entity: string, id: string) {
+	deleteRecord(entity: string, id: string, pathPrefix: string = '') {
 		return requestWithResponseBody(
-			`${this.endpoint}/${entity}/${id}`,
+			`${this.endpoint}${pathPrefix}/${entity}/${id}`,
 			'DELETE',
 			undefined,
 			this.headers
@@ -169,10 +170,15 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 	if (retryNo && retryNo > maxRetries) {
 		addToast({ message: `Failed to return apiService after ${maxRetries} retries` });
 	}
+	const token = get(userToken);
+	if(token && DateTime.now().toUnixInteger() > token.expires)
+	{
+		userToken.set(undefined)
+		goto(`${base}/login?auto=true`);
+	}
 	if (apiInstance) {
 		return apiInstance;
 	}
-	const token = get(userToken);
 	const conf = get(config)?.config;
 	if (!conf) {
 		await delay(200);
@@ -183,6 +189,6 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 		await delay(200);
 		return await apiService(retryNo ? retryNo + 1 : 0);
 	}
-	apiInstance = new ApiService(conf.kongApi.endpoint, token, conf.kongApi.requestHeaders);
+	apiInstance = new ApiService(conf.kongApi.endpoint, token?.token, conf.kongApi.requestHeaders);
 	return apiInstance;
 };
