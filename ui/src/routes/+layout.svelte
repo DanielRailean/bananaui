@@ -20,7 +20,7 @@
 		<Header />
 	{/if}
 
-	<main class="w-full h-full">
+	<main class="w-full h-full {$page.url.pathname.includes('/login') ? "my-auto" : ""}">
 		<div
 			class="flex flex-col m-8 shadow shadow-stone-300 dark:shadow-zinc-800 bg-white rounded-xl dark:bg-[#1E2021] dark:text-stone-50"
 		>

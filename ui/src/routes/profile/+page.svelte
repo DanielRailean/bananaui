@@ -11,7 +11,7 @@
 	};
 	onMount(() => {
 		token.token = $userToken;
-		const split = $userToken?.split('.');
+		const split = $userToken?.token.split('.');
 		if (!split) {
 			addToast({ message: 'no token!' });
 			return;

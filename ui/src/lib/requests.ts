@@ -7,6 +7,7 @@ import type { IEntityBase, IPaginationRes } from './types';
 import type { IRootRes, IResCreateError, ISchemaRes, IPluginConfig } from './responseTypes';
 import { paginationSize } from './config';
 import { base } from '$app/paths';
+import { DateTime } from 'luxon';
 
 function request(
 	url: string,
@@ -169,10 +170,15 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 	if (retryNo && retryNo > maxRetries) {
 		addToast({ message: `Failed to return apiService after ${maxRetries} retries` });
 	}
+	const token = get(userToken);
+	if(token && DateTime.now().toUnixInteger() > token.expires)
+	{
+		userToken.set(undefined)
+		goto(`${base}/login?auto=true`);
+	}
 	if (apiInstance) {
 		return apiInstance;
 	}
-	const token = get(userToken);
 	const conf = get(config)?.config;
 	if (!conf) {
 		await delay(200);
@@ -183,6 +189,6 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 		await delay(200);
 		return await apiService(retryNo ? retryNo + 1 : 0);
 	}
-	apiInstance = new ApiService(conf.kongApi.endpoint, token, conf.kongApi.requestHeaders);
+	apiInstance = new ApiService(conf.kongApi.endpoint, token?.token, conf.kongApi.requestHeaders);
 	return apiInstance;
 };
