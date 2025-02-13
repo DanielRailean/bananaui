@@ -311,14 +311,14 @@
 	{#if filteredData.length > 0}
 		<table class="w-full mb-2">
 			<thead
-				class="text-stone-800 text-sm dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300"
+				class="text-stone-800 text-sm dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300 h-10"
 			>
 				<tr>
-					<th><p class="pl-4 text-center">No.</p></th>
+					<th><p class="pl-4">No.</p></th>
 					<th><p class="pl-4">Actions</p></th>
 					{#each entity?.displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
 						{#if Object.keys(dataRaw[0] ?? {}).includes(field)}
-							<th scope="col" class="py-3"> {field} </th>
+							<th scope="col" class="pl-4"> {field} </th>
 						{/if}
 					{/each}
 				</tr>
@@ -334,12 +334,12 @@
 							);
 						}}
 					>
-						<td class="py-3 pl-4">
+						<td class="">
 							<p class="text-center font-light">
 								{index + 1 + arrayStart}
 							</p></td
 						>
-						<td class="py-3">
+						<td class="p-2">
 							<div class=" space-x-1 flex flex-row">
 								<button
 									class="h-8"
@@ -379,7 +379,7 @@
 
 						{#each entity?.displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
 							{#if Object.keys(item).includes(field)}
-								<td class="py-3">
+								<td class="p-4 ">
 									<div class="flex flex-row items-center justify-between">
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
