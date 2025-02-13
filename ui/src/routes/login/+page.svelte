@@ -3,7 +3,7 @@
 	import { config, userToken } from '$lib/stores';
 	import { delay } from '$lib/util';
 	import { Button } from 'flowbite-svelte';
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import logo from '$lib/assets/favicon.png';
 
 	let source = '';
