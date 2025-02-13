@@ -114,7 +114,7 @@ export const kongEntities: IKongEntity[] = [
 	},
 	{ name: 'targets', displayedFields: ['target', 'weight', 'updated_at'], apiPath: 'targets', showInMenu: false },
 	{ name: 'keys', displayedFields: ['name', 'kid', 'updated_at'], apiPath: 'keys' },
-	{ name: 'keysets', displayedFields: undefined, apiPath: 'key-sets' },
+	{ name: 'key-sets', displayedFields: ['name', 'id', 'updated_at'], subEntities: ['keys'], apiPath: 'key-sets', defaultAddValue: {name: ''} },
 	{ name: 'snis', displayedFields: undefined, apiPath: 'snis' },
 	{ name: 'vaults', displayedFields: undefined, apiPath: 'vaults' },
 	{

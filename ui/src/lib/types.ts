@@ -76,7 +76,7 @@ export interface IKongEntity {
 	sortBy?: string;
 	sortAscending?: boolean;
 	displayedFields?: string[];
-	defaultJson?: string;
+	defaultAddValue?: any;
 	subEntities?: string[];
 	uiSpaceAfter?: boolean;
 	uiSpaceBefore?: boolean;
