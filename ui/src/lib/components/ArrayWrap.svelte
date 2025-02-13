@@ -464,14 +464,17 @@
 															);
 														}}
 													>
-														{#if $loadParentName}
-															{#await getName(field, item[field].id, item.name ?? item.id) then value}
-																{value}
-															{/await}
-														{/if}
 														<div>
 															<p class="dark:text-blue-500 text-blue-700 px-1 truncate">
-																{item[field].id}
+																{#if $loadParentName}
+																	{#await getName(field, item[field].id, item.name ?? item.id) then value}
+																		{value}
+																	{:catch}
+																		{item[field].id}
+																	{/await}
+																{:else}
+																	{item[field].id}
+																{/if}
 															</p>
 														</div>
 													</a>
