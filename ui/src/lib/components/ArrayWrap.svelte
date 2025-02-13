@@ -20,6 +20,8 @@
 	import { triggerPageUpdate } from '$lib/stores';
 	import { Button } from 'flowbite-svelte';
 
+	let loadParentName = writable(false);
+
 	const dispatch = createEventDispatcher();
 
 	export let dataRaw: any[];
@@ -204,8 +206,16 @@
 			);
 		}
 	}
-	async function getName(type: string, id: string): Promise<string> {
-		return (await (await apiService()).findRecord<any>(type + 's', id)).data.name;
+	async function getName(type: string, id: string, selfIdentifier: string): Promise<string> {
+		const res = await (await apiService()).findRecord<any>(type + 's', id);
+		if (!res.ok) {
+			errorToast(`Failed to load ${type} for '${selfIdentifier}'. Res. status code: ${res.code}!`);
+			throw new Error('failed to load');
+		}
+		if (res.data.paths && res.data.paths.length > 0) {
+			return res.data.paths[0];
+		}
+		return res.data.name;
 	}
 </script>
 
@@ -253,6 +263,16 @@
 				<option value={true} selected={sortAscending}>ascending</option>
 				<option value={false} selected={!sortAscending}>descending</option>
 			</select>
+		</div>
+		<div class="flex flex-row mt-4 pl-1">
+			<p class="text-lg mr-3">Load parent name</p>
+			<Toggle
+				isChecked={loadParentName}
+				on:change={async () => {
+					loadParentName.set(!get(loadParentName));
+					console.log(get(loadParentName));
+				}}
+			/>
 		</div>
 	</div>
 	{#if filteredData.length > paginationSizeUi}
@@ -379,7 +399,7 @@
 
 						{#each entity?.displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
 							{#if Object.keys(item).includes(field)}
-								<td class="p-4 ">
+								<td class="p-4">
 									<div class="flex flex-row items-center justify-between">
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
@@ -425,7 +445,9 @@
 												{/if}
 											{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
 												<!-- svelte-ignore a11y-no-static-element-interactions -->
-												<div class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded">
+												<div class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded" 
+												title="go to {field}"
+												>
 													<a
 														class="w-full"
 														on:click|preventDefault={() =>
@@ -441,10 +463,11 @@
 															);
 														}}
 													>
-													<!-- works but the page is gerky and a lot of requests are made -->
-														<!-- {#await getName(field, item[field].id) then value}
-															{value}
-														{/await} -->
+														{#if $loadParentName}
+															{#await getName(field, item[field].id, item.name ?? item.id) then value}
+																{value}
+															{/await}
+														{/if}
 														<div>
 															<p class="dark:text-blue-500 text-blue-700 px-1 truncate">
 																{item[field].id}
