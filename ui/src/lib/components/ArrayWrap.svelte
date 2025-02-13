@@ -445,8 +445,9 @@
 												{/if}
 											{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
 												<!-- svelte-ignore a11y-no-static-element-interactions -->
-												<div class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded" 
-												title="go to {field}"
+												<div
+													class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded"
+													title="go to {field}"
 												>
 													<a
 														class="w-full"
