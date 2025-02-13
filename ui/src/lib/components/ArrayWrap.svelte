@@ -240,6 +240,16 @@
 			/>
 			<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
 		</div>
+		<div class="flex flex-row my-4 pl-1">
+			<p class="text-lg mr-3">Load parent name</p>
+			<Toggle
+				isChecked={loadParentName}
+				on:change={async () => {
+					loadParentName.set(!get(loadParentName));
+					console.log(get(loadParentName));
+				}}
+			/>
+		</div>
 		<div class="flex flex-row items-center space-x-2 pl-1">
 			<p class="text-lg">Sort by:</p>
 			<select
@@ -263,16 +273,6 @@
 				<option value={true} selected={sortAscending}>ascending</option>
 				<option value={false} selected={!sortAscending}>descending</option>
 			</select>
-		</div>
-		<div class="flex flex-row mt-4 pl-1">
-			<p class="text-lg mr-3">Load parent name</p>
-			<Toggle
-				isChecked={loadParentName}
-				on:change={async () => {
-					loadParentName.set(!get(loadParentName));
-					console.log(get(loadParentName));
-				}}
-			/>
 		</div>
 	</div>
 	{#if filteredData.length > paginationSizeUi}
