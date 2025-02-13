@@ -14,6 +14,7 @@
 	import { base } from '$app/paths';
 	import { DateTime } from 'luxon';
 	import { addToast, infoToast } from '$lib/toastStore';
+	import { Button } from 'flowbite-svelte';
 
 	let data: any | undefined;
 	let entity: string;
@@ -85,31 +86,29 @@
 
 <div class="flex flex-col m-4 mb-3 font-light text-2xl">
 	<div class="flex flex-row mb-2 h-10">
-		<button
-			color="alternative"
-			class=" flex flex-row mr-2 text-emerald-600 items-center"
-			on:click={() => {
-				load(true);
-				infoToast('refresh started!');
-			}}
-		>
-			<RefreshOutline></RefreshOutline>
+		<Button 			color="green"
+		class=" flex flex-row mr-2  items-center"
+		on:click={() => {
+			load(true);
+			infoToast('refresh started!');
+		}}>
+			<RefreshOutline class="mr-2"></RefreshOutline>
 			Refresh
-		</button>
-		<button
-			class="flex flex-row mr-2 text-blue-700 items-center"
-			color="alternative"
+	</Button>
+		<Button
+			class="flex flex-row mr-2 "
+			color="blue"
 			on:click={() => {
 				goto(`${base}/add?type=${entity}`);
 			}}
 		>
 			<a href="{base}/add?type={entity}">
 				<div class="flex flex-row items-center space-x-1">
-					<CirclePlusOutline class="mr-[2px]" />
+					<CirclePlusOutline class="mr-2" />
 					Add
 				</div>
 			</a>
-		</button>
+		</Button>
 	</div>
 </div>
 {#if data}

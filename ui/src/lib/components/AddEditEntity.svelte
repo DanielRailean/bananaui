@@ -1,17 +1,19 @@
 <script lang="ts">
 	import TreeWrapper from './treeWrapper.svelte';
 	import type { IPlugins, IResCreateError, ISchemaRes } from '$lib/responseTypes';
-	import type { IEntityBase } from '$lib/types';
+	import type { IEntityBase, IKongEntity } from '$lib/types';
 	import type { ResWrapped } from '$lib/requests';
 	import { goto } from '$app/navigation';
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { Button, Label, Select } from 'flowbite-svelte';
-	import { addToast } from '$lib/toastStore';
+	import { addToast, errorToast } from '$lib/toastStore';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 	import { base } from '$app/paths';
+	import { kongEntities } from '$lib/config';
 
-	let entityKindToAdd: string;
+	// let entity?.name: string;
+	let entity : IKongEntity | undefined;
 
 	let json = '';
 	let dummyObject: any = {};
@@ -38,12 +40,17 @@
 		let type = query.get('type');
 		pathPrefix = query.get('prefix') ?? ''
 		if (type) {
-			entityKindToAdd = type;
+			entity = kongEntities.find(i=>i.name == type)
+		}
+		if(!entity)
+		{
+			errorToast(`entity named ${type} not found!`)
+			return
 		}
 		if (path) {
 			postPath = atob(path);
 		}
-		if (entityKindToAdd == 'plugins') {
+		if (entity.name == 'plugins') {
 			const res = await (await apiService()).getInfo();
 			if (res.ok && res.data) {
 				pluginSelect = Object.entries(res.data.plugins.available_on_server)
@@ -58,7 +65,7 @@
 					});
 			}
 		}
-		const res = await (await apiService()).schema(entityKindToAdd);
+		const res = await (await apiService()).schema(entity.name);
 		if (res.ok && res.data) {
 			testSchema = {};
 			for (const field of res.data.fields) {
@@ -66,11 +73,14 @@
 				const key = entries[0];
 				const value = entries[1];
 				testSchema[key] = value;
-				if (value.required) {
-					dummyObject[key] = value.default ?? null;
+				if (value.default || value.required) {
+					dummyObject[key] = value.default
 				}
 			}
 			dummyToJson();
+		}
+		if(entity.defaultAddValue){
+			json = JSON.stringify({...entity.defaultAddValue, ...dummyObject}, undefined, 2)
 		}
 		triggerHighlight();
 	});
@@ -100,7 +110,7 @@
 					await apiService()
 				).request<IEntityBase, IResCreateError>(postPath, 'POST', JSON.parse(json));
 			} else {
-				res = await (await apiService()).createRecord(entityKindToAdd, JSON.parse(json));
+				res = await (await apiService()).createRecord(entity?.name ?? "", JSON.parse(json));
 			}
 			if (!res.ok) {
 				addToast({
@@ -111,7 +121,7 @@
 				return;
 			}
 			if (res.data?.id) {
-				goto(`${base}/entities?type=${entityKindToAdd}&id=${res.data.id}&prefix=${pathPrefix}`);
+				goto(`${base}/entities?type=${entity?.name}&id=${res.data.id}&prefix=${pathPrefix}`);
 			} else {
 				addToast({ message: 'failed to read the new entity' });
 				return;
@@ -138,7 +148,7 @@
 				const key = entries[0];
 				const value = entries[1];
 				pluginSchema[key] = value;
-				if (value.required) {
+				if (value.default || value.required) {
 					config[key] = value.default ?? null;
 					const maybeFields: any = {}
 					for (const field of value.fields ?? []) {
@@ -147,7 +157,7 @@
 						const value = fieldEntries[1];
 						maybeFields[key] = value.default ?? null;
 					}
-					if(maybeFields)
+					if(Object.keys(maybeFields).length > 0)
 					{
 						config[key] = maybeFields
 					}
@@ -170,12 +180,12 @@
 	}
 </script>
 
-{#if entityKindToAdd}
+{#if entity}
 	<div class="flex flex-col m-2">
 		<div class="flex flex-row flex-wrap">
 			<Button class="h-10 m-1" on:click={async () => await save()} color="green">
 				<FloppyDiskAltOutline class="m-2" />
-				save {entityKindToAdd.substr(0, entityKindToAdd.length - 1)}
+				save {entity?.name.substr(0, entity.name.length - 1)}
 			</Button>
 			<Button class="h-10 m-1" on:click={() => format(true)} color="blue">
 				<PaletteOutline class="m-2" />
@@ -203,7 +213,7 @@
 		{#if pluginSelect}
 			<div class="my-2">
 				<Label>
-					Select a plugin to load schema
+					Select a plugin to load it's configuration schema
 					<Select
 						class="mt-2"
 						items={pluginSelect}
@@ -235,13 +245,13 @@
 	</div>
 </div>
 {#if pluginSchema}
-	<h2 class="text-xl m-4">plugin 'config' fields:</h2>
+	<h2 class="text-xl m-4">'config' fields:</h2>
 	<TreeWrapper data={pluginSchema} expandLevel={0} allowCopy={false} allowKeyCopy={true} />
 {/if}
 <br />
-{#if entityKindToAdd}
+{#if entity?.name && testSchema}
 	<h2 class="text-xl mx-4 mb-4">
-		{entityKindToAdd.substring(0, entityKindToAdd.length - 1)} schema
+		{entity?.name.substring(0, entity?.name.length - 1)} schema
 	</h2>
 {/if}
 <TreeWrapper data={testSchema} expandLevel={0} allowCopy={false} allowKeyCopy={true} />

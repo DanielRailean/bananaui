@@ -232,7 +232,7 @@
 				on:change={() => {
 					updateEvent();
 				}}
-				class="dark:bg-stone-700 border-none w-52 rounded focus:border-none focus:[box-shadow:none]"
+				class="dark:bg-stone-700 shadow shadow-slate-600 border-none w-52 rounded focus:border-none focus:[box-shadow:none]"
 			>
 				{#each Object.keys(dataRaw[0] ?? {}) as key}
 					<option value={key} selected={key == sortKey}>{key}</option>
@@ -243,7 +243,7 @@
 				on:change={() => {
 					updateEvent();
 				}}
-				class="dark:bg-stone-700 border-none rounded focus:border-none focus:[box-shadow:none]"
+				class="dark:bg-stone-700 shadow shadow-slate-600 border-none rounded focus:border-none focus:[box-shadow:none]"
 			>
 				<option value={true} selected={sortAscending}>ascending</option>
 				<option value={false} selected={!sortAscending}>descending</option>
@@ -274,6 +274,7 @@
 					dark:bg-stone-700
 					disabled:bg-stone-200
 					disabled:dark:text-white disabled:dark:bg-stone-800
+					disabled:shadow disabled:shadow-slate-600
 					"
 						on:click={() => {
 							loadPage(interval);
@@ -488,6 +489,7 @@
 					dark:bg-stone-700
 					disabled:bg-stone-200
 					disabled:dark:text-white disabled:dark:bg-stone-800
+					disabled:shadow disabled:shadow-slate-600
 					"
 						on:click={() => {
 							loadPage(interval);

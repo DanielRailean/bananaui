@@ -90,7 +90,10 @@ export const kongEntities: IKongEntity[] = [
 		subEntities: ['routes', 'plugins'],
 		sortBy: 'updated_at',
 		sortAscending: false,
-		uiSpaceBefore: true
+		uiSpaceBefore: true,
+		defaultAddValue: {
+			url: "https://example.com"
+		}
 	},
 	{
 		name: 'routes',
@@ -114,7 +117,13 @@ export const kongEntities: IKongEntity[] = [
 	},
 	{ name: 'targets', displayedFields: ['target', 'weight', 'updated_at'], apiPath: 'targets', showInMenu: false },
 	{ name: 'keys', displayedFields: ['name', 'kid', 'updated_at'], apiPath: 'keys' },
-	{ name: 'key-sets', displayedFields: ['name', 'id', 'updated_at'], subEntities: ['keys'], apiPath: 'key-sets', defaultAddValue: {name: ''} },
+	{
+		name: 'key-sets',
+		displayedFields: ['name', 'id', 'updated_at'],
+		subEntities: ['keys'],
+		apiPath: 'key-sets',
+		defaultAddValue: { name: 'my_keyset_name' }
+	},
 	{ name: 'snis', displayedFields: undefined, apiPath: 'snis' },
 	{ name: 'vaults', displayedFields: undefined, apiPath: 'vaults' },
 	{
