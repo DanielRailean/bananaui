@@ -206,7 +206,7 @@
 			);
 		}
 	}
-	async function getName(type: string, id: string, selfIdentifier: string): Promise<string> {
+	async function getInfo(type: string, id: string, selfIdentifier: string): Promise<string> {
 		const res = await (await apiService()).findRecord<any>(type + 's', id);
 		if (!res.ok) {
 			errorToast(`Failed to load ${type} for '${selfIdentifier}'. Res. status code: ${res.code}!`);
@@ -241,7 +241,7 @@
 			<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
 		</div>
 		<div class="flex flex-row my-4 pl-1">
-			<p class="text-lg mr-3">Load parent name</p>
+			<p class="text-lg mr-3">Load parent info </p>
 			<Toggle
 				isChecked={loadParentName}
 				on:change={async () => {
@@ -467,7 +467,7 @@
 														<div>
 															<p class="dark:text-blue-500 text-blue-700 px-1 truncate">
 																{#if $loadParentName}
-																	{#await getName(field, item[field].id, item.name ?? item.id) then value}
+																	{#await getInfo(field, item[field].id, item.name ?? item.id) then value}
 																		{value}
 																	{:catch}
 																		{item[field].id}
