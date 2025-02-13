@@ -33,6 +33,7 @@
 	let arrayStart = 0;
 	let arrayEnd = paginationSizeUi;
 	let pageNumber = 1;
+	let debounce: number = DateTime.now().toUnixInteger();
 
 	let intervalsIterable: number[] = [];
 	let intervals = (dataRaw?.length ?? 0) / paginationSizeUi;
@@ -73,6 +74,7 @@
 
 	function updateEvent() {
 		filteredData = dataRaw;
+		debounce = DateTime.now().toUnixInteger();
 		search();
 		resetPagination();
 		calculatePagination();
@@ -201,6 +203,9 @@
 				JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
 			);
 		}
+	}
+	async function getName(type: string, id: string): Promise<string> {
+		return (await (await apiService()).findRecord<any>(type + 's', id)).data.name;
 	}
 </script>
 
@@ -427,7 +432,6 @@
 															goto(
 																`${base}/entity?type=${field}s&id=${item[field].id}&prefix=${pathPrefix}`
 															)}
-														title="open {field}"
 														href="{base}/entity?type={field}s&id={item[field]
 															.id}&prefix=${pathPrefix}"
 														on:auxclick={() => {
@@ -437,6 +441,10 @@
 															);
 														}}
 													>
+													<!-- works but the page is gerky and a lot of requests are made -->
+														<!-- {#await getName(field, item[field].id) then value}
+															{value}
+														{/await} -->
 														<div>
 															<p class="dark:text-blue-500 text-blue-700 px-1 truncate">
 																{item[field].id}
