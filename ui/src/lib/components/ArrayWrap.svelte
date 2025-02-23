@@ -17,11 +17,21 @@
 	import Toggle from './Toggle.svelte';
 	import { get, writable } from 'svelte/store';
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
-	import { triggerPageUpdate } from '$lib/stores';
+	import { preferences, triggerPageUpdate } from '$lib/stores';
 	import { Button } from 'flowbite-svelte';
 
-	let loadParentName = writable(false);
+	let loadParentName = writable($preferences?.loadParentInfo);
 
+	loadParentName.subscribe(v=> {
+		console.log(v)
+		const prefs = get(preferences)
+		if(!prefs)
+	{
+		return
+	}
+		prefs.loadParentInfo = v
+		preferences.set(prefs)
+	})
 	const dispatch = createEventDispatcher();
 
 	export let dataRaw: any[];

@@ -82,3 +82,7 @@ export interface IKongEntity {
 	uiSpaceBefore?: boolean;
 	showInMenu?: boolean
 }
+
+export interface  IUserPreferences {
+	loadParentInfo: boolean;
+};

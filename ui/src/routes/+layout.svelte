@@ -6,12 +6,14 @@
 	import Login from '$lib/components/LoginRedirect.svelte';
 	import './styles.css';
 	import Toasts from '$lib/components/Toasts.svelte';
+	import Preferences from '$lib/components/Preferences.svelte';
 </script>
 
 <svelte:head>
 	<title>{staticConfig.name}</title>
 </svelte:head>
 
+<Preferences/>
 <ConfigLoader />
 <Login />
 <Toasts />
