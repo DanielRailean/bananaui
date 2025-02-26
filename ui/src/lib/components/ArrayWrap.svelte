@@ -18,12 +18,10 @@
 	import { get, writable } from 'svelte/store';
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
 	import { preferences, triggerPageUpdate } from '$lib/stores';
-	import { page } from '$app/stores';
 
 	let loadParentName = writable($preferences?.loadParentInfo);
 
 	loadParentName.subscribe((v) => {
-		console.log(v);
 		const prefs = get(preferences);
 		if (!prefs) {
 			return;
@@ -113,7 +111,7 @@
 		});
 	}
 
-	$: $triggerPageUpdate, updateEvent();
+	triggerPageUpdate.subscribe(updateEvent)
 
 	onMount(() => {
 		updateEvent();
@@ -190,14 +188,12 @@
 	let debounceTimeoutMs = 1500;
 	function updateSearchParamWithDebounce() {
 		if (searchDebounce) {
-			console.log('previous timeout cleared');
 			clearTimeout(searchDebounce);
 			searchDebounce = undefined;
 		}
 		searchDebounce = setTimeout(updateSearchQueryParam, debounceTimeoutMs);
 	}
 	function updateSearchQueryParam() {
-		console.log('search query updated!');
 		const url = new URL(window.location.toString());
 		if (searchText.length > 0) {
 			url.searchParams.set('search', searchText);
@@ -269,7 +265,6 @@
 				isChecked={loadParentName}
 				on:change={async () => {
 					loadParentName.set(!get(loadParentName));
-					console.log(get(loadParentName));
 				}}
 			/>
 		</div>

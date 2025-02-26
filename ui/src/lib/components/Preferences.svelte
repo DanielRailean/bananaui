@@ -14,6 +14,5 @@
 		} else {
 			preferences.set(JSON.parse(preferencesStr))
 		}
-		console.log(preferencesStr);
 	});
 </script>
