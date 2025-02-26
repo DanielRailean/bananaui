@@ -1,13 +1,8 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { base } from '$app/paths';
-	import { config, preferences } from '$lib/stores';
-	import { infoToast } from '$lib/toastStore';
-	import type { IConfig, IUserPreferences } from '$lib/types';
-	import { delay, getLocalStorageConfig } from '$lib/util';
+	import { preferences } from '$lib/stores';
 	import { onMount } from 'svelte';
 
-	const defaultPrefs: IUserPreferences = {
+	const defaultPrefs: {[key:string]:any} = {
 		loadParentInfo: false
 	};
 
