@@ -22,8 +22,9 @@
 	let isMounted = false;
 	let pathPrefix: string  = "";
 
-
-	$: $page, load();
+	page.subscribe((val) => {
+		load()
+	})
 
 	onMount(() => {
 		isMounted = true;

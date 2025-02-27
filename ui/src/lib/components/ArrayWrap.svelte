@@ -17,11 +17,18 @@
 	import Toggle from './Toggle.svelte';
 	import { get, writable } from 'svelte/store';
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
-	import { triggerPageUpdate } from '$lib/stores';
-	import { Button } from 'flowbite-svelte';
+	import { preferences, triggerPageUpdate } from '$lib/stores';
 
-	let loadParentName = writable(false);
+	let loadParentName = writable($preferences?.loadParentInfo);
 
+	loadParentName.subscribe((v) => {
+		const prefs = get(preferences);
+		if (!prefs) {
+			return;
+		}
+		prefs.loadParentInfo = v;
+		preferences.set(prefs);
+	});
 	const dispatch = createEventDispatcher();
 
 	export let dataRaw: any[];
@@ -75,13 +82,13 @@
 	let sortAscending = entity?.sortAscending ?? false;
 
 	function updateEvent() {
+		const params = new URLSearchParams(window.location.search);
+		searchText = params.get('search') ?? '';
 		filteredData = dataRaw;
 		debounce = DateTime.now().toUnixInteger();
 		search();
 		resetPagination();
 		calculatePagination();
-		const params = new URLSearchParams(window.location.search);
-		searchText = params.get('search') ?? '';
 		filteredData = filteredData.sort((a, b) => {
 			let fieldA = a[sortKey];
 			let fieldB = b[sortKey];
@@ -104,7 +111,7 @@
 		});
 	}
 
-	$: $triggerPageUpdate, updateEvent();
+	triggerPageUpdate.subscribe(updateEvent)
 
 	onMount(() => {
 		updateEvent();
@@ -176,6 +183,16 @@
 		return false;
 	}
 
+	let searchDebounce: number | undefined = undefined;
+	// time after which the search will be written to the url query if unmodified
+	let debounceTimeoutMs = 1500;
+	function updateSearchParamWithDebounce() {
+		if (searchDebounce) {
+			clearTimeout(searchDebounce);
+			searchDebounce = undefined;
+		}
+		searchDebounce = setTimeout(updateSearchQueryParam, debounceTimeoutMs);
+	}
 	function updateSearchQueryParam() {
 		const url = new URL(window.location.toString());
 		if (searchText.length > 0) {
@@ -189,10 +206,10 @@
 		if (searchText.length == 0) {
 			filteredData = dataRaw;
 		}
-		const many = searchText.split(/\s*&&\s*/);
-		if (many.length > 1) {
+		const booleanAndSearch = searchText.split(/\s*&&\s*/);
+		if (booleanAndSearch.length > 1) {
 			filteredData = dataRaw.filter((item: any) => {
-				for (const condition of many) {
+				for (const condition of booleanAndSearch) {
 					const conditionPassed = JSON.stringify(Object.values(item))
 						.toLowerCase()
 						.includes(condition.toLowerCase());
@@ -205,6 +222,8 @@
 				JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
 			);
 		}
+		resetPagination();
+		calculatePagination();
 	}
 	async function getInfo(type: string, id: string, selfIdentifier: string): Promise<string> {
 		const res = await (await apiService()).findRecord<any>(type + 's', id);
@@ -232,7 +251,7 @@
 				disabled={!(dataRaw && dataRaw.length > 0)}
 				bind:value={searchText}
 				on:input={() => {
-					updateSearchQueryParam();
+					updateSearchParamWithDebounce();
 					search();
 				}}
 				title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'"
@@ -241,12 +260,11 @@
 			<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
 		</div>
 		<div class="flex flex-row my-4 pl-1">
-			<p class="text-lg mr-3">Load parent info </p>
+			<p class="text-lg mr-3">Load parent info</p>
 			<Toggle
 				isChecked={loadParentName}
 				on:change={async () => {
 					loadParentName.set(!get(loadParentName));
-					console.log(get(loadParentName));
 				}}
 			/>
 		</div>

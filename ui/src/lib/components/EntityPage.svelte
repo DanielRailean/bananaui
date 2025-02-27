@@ -52,6 +52,7 @@
 			return;
 		}
 		data = undefined;
+		isEdited = false;
 		const searchParams = new URLSearchParams(window.location.search);
 		entityType = searchParams.get('type') ?? 'none';
 		id = searchParams.get('id') ?? 'none';
