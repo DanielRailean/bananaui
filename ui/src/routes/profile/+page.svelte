@@ -9,7 +9,7 @@
 	let token: any = {
 		username: '',
 		email: '',
-		token_body : {}
+		payload : {}
 	};
 
 	onMount(() => {
@@ -19,7 +19,7 @@
 			return;
 		}
 		const token_parsed = JSON.parse(atob(split[1]))
-		token.token_body = token_parsed;
+		token.payload = token_parsed;
 		token.username = token_parsed.name;
 		token.email = token_parsed.unique_name
 	});
