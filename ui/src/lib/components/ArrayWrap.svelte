@@ -373,7 +373,7 @@
 						}}
 					>
 						<td class="">
-							<p class="text-center font-light">
+							<p class="text-center font-light pl-3">
 								{index + 1 + arrayStart}
 							</p></td
 						>
