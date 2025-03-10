@@ -210,7 +210,7 @@
 		if (booleanAndSearch.length > 1) {
 			filteredData = dataRaw.filter((item: any) => {
 				for (const condition of booleanAndSearch) {
-					const conditionPassed = JSON.stringify(Object.values(item))
+					const conditionPassed = JSON.stringify(item)
 						.toLowerCase()
 						.includes(condition.toLowerCase());
 					if (!conditionPassed) return false;
@@ -219,7 +219,7 @@
 			});
 		} else {
 			filteredData = dataRaw.filter((item: any) =>
-				JSON.stringify(Object.values(item)).toLowerCase().includes(searchText.toLowerCase())
+				JSON.stringify(item).toLowerCase().includes(searchText.toLowerCase())
 			);
 		}
 		resetPagination();
@@ -373,7 +373,7 @@
 						}}
 					>
 						<td class="">
-							<p class="text-center font-light">
+							<p class="text-center font-light pl-3">
 								{index + 1 + arrayStart}
 							</p></td
 						>

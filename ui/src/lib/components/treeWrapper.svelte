@@ -16,7 +16,7 @@
 	export let allowKeyCopy = false;
 	export let rounded = true;
 	export let type = '';
-	export let expandFields = ['config'];
+	export let expandFields = ['config', 'tags'];
 
 	const dispatch = createEventDispatcher();
 
