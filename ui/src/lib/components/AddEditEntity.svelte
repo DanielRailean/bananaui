@@ -73,15 +73,13 @@
 				const key = entries[0];
 				const value = entries[1];
 				testSchema[key] = value;
-				if (value.default || value.required) {
-					dummyObject[key] = value.default
+				if (value.required && !value.default) {
+					dummyObject[key] = ""
 				}
 			}
 			dummyToJson();
 		}
-		if(entity.defaultAddValue){
-			json = JSON.stringify({...entity.defaultAddValue, ...dummyObject}, undefined, 2)
-		}
+		json = JSON.stringify(entity.defaultAddValue ?? dummyObject, undefined, 2)
 		triggerHighlight();
 	});
 
