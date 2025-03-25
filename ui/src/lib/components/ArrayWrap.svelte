@@ -83,7 +83,10 @@
 
 	function updateEvent() {
 		const params = new URLSearchParams(window.location.search);
-		searchText = params.get('search') ?? '';
+		if(searchText.length == 0)
+		{
+			searchText = params.get('search') ?? '';
+		}
 		filteredData = dataRaw;
 		debounce = DateTime.now().toUnixInteger();
 		search();
@@ -185,7 +188,7 @@
 
 	let searchDebounce: number | undefined = undefined;
 	// time after which the search will be written to the url query if unmodified
-	let debounceTimeoutMs = 1500;
+	let debounceTimeoutMs = 750;
 	function updateSearchParamWithDebounce() {
 		if (searchDebounce) {
 			clearTimeout(searchDebounce);
