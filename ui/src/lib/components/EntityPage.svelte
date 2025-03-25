@@ -47,6 +47,16 @@
 		load();
 	});
 
+	function updateIsEdited() {
+		const url = new URL(window.location.toString());
+		if (isEdited == true) {
+			url.searchParams.set('isEdited', "true");
+		} else {
+			url.searchParams.delete('isEdited');
+		}
+		history.pushState(null, '', url);
+	}
+
 	async function load() {
 		if (!isMounted) {
 			return;
@@ -56,6 +66,8 @@
 		const searchParams = new URLSearchParams(window.location.search);
 		entityType = searchParams.get('type') ?? 'none';
 		id = searchParams.get('id') ?? 'none';
+		let edited = searchParams.get('isEdited') ?? '';
+		isEdited = edited == "true"
 		pathPrefix = searchParams.get("prefix") ?? ""
 		if(entityType == "upstreams")
 		{
@@ -176,6 +188,7 @@
 			class="h-10 m-1 focus:shadow-none"
 			on:click={() => {
 				isEdited = !isEdited;
+				updateIsEdited()
 				triggerHighlight();
 			}}
 		>
