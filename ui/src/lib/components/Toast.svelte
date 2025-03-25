@@ -20,7 +20,7 @@
 </script>
 
 <article
-	class="dark:bg-[#1E2021] bg-gray-200 max-w-[35rem] flex my-1 p-1 px-2 rounded items-center dark:border-stone-700 shadow dark:shadow-gray-900"
+	class="dark:bg-[#1E2021] bg-gray-200 max-w-[35rem] flex my-1 p-1 px-2 rounded items-center dark:border-stone-700 dark:shadow-gray-900 shadow-lg"
 	role="alert"
 	transition:fade
 >
@@ -30,7 +30,7 @@
 		{:else if type === 'error'}
 			<ExclamationCircleSolid class="w-8 h-8 fill-rose-500 " />
 		{:else}
-			<InfoCircleSolid class="w-8 h-8 fill-blue-600" />
+			<InfoCircleSolid class="w-8 h-8 dark:fill-blue-800 fill-blue-500" />
 		{/if}
 	</div>
 

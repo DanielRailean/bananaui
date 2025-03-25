@@ -128,7 +128,7 @@ export const kongEntities: IKongEntity[] = [
 	{ name: 'vaults', displayedFields: undefined, apiPath: 'vaults' },
 	{
 		name: 'dataplanes',
-		displayedFields: ['last_seen', 'ip', 'sync_status', 'version', 'hostname', 'config_hash'],
+		displayedFields: ['hostname', 'last_seen', 'labels', 'sync_status', 'version', 'config_hash'],
 		apiPath: 'clustering/data-planes',
 		uiSpaceAfter: true,
 		uiSpaceBefore: true

@@ -83,7 +83,10 @@
 
 	function updateEvent() {
 		const params = new URLSearchParams(window.location.search);
-		searchText = params.get('search') ?? '';
+		if(searchText.length == 0)
+		{
+			searchText = params.get('search') ?? '';
+		}
 		filteredData = dataRaw;
 		debounce = DateTime.now().toUnixInteger();
 		search();
@@ -185,7 +188,7 @@
 
 	let searchDebounce: number | undefined = undefined;
 	// time after which the search will be written to the url query if unmodified
-	let debounceTimeoutMs = 1500;
+	let debounceTimeoutMs = 750;
 	function updateSearchParamWithDebounce() {
 		if (searchDebounce) {
 			clearTimeout(searchDebounce);
@@ -260,7 +263,7 @@
 			<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
 		</div>
 		<div class="flex flex-row my-4 pl-1">
-			<p class="text-lg mr-3">Load parent info</p>
+			<p class="text-lg mr-3">Load parent entity name</p>
 			<Toggle
 				isChecked={loadParentName}
 				on:change={async () => {
@@ -381,9 +384,9 @@
 							<div class=" space-x-1 flex flex-row">
 								<button
 									class="h-8"
-									title="copy entire object as json"
+									title="{JSON.stringify(item, undefined, 2)}"
 									on:click={() => {
-										copy(JSON.stringify(item));
+										copy(JSON.stringify(item, undefined, 2));
 									}}
 								>
 									<div class="flex flex-row items-center">

@@ -20,11 +20,11 @@
 	let entity: string;
 	let kongEntity: IKongEntity | undefined;
 	let isMounted = false;
-	let pathPrefix: string  = "";
+	let pathPrefix: string = '';
 
 	page.subscribe((val) => {
-		load()
-	})
+		load();
+	});
 
 	onMount(() => {
 		isMounted = true;
@@ -40,11 +40,11 @@
 		loadStart = DateTime.now();
 		const oldEntity = entity;
 		entity = params.get('type') ?? 'none';
-		pathPrefix = params.get("prefix") ?? ""
+		pathPrefix = params.get('prefix') ?? '';
 		let willTriggerUpdate = false;
 
 		if (oldEntity != entity) {
-			data = undefined
+			data = undefined;
 			willTriggerUpdate = true;
 		}
 		try {
@@ -65,7 +65,6 @@
 				if (res.ok) {
 					data = data.concat(res.data.data);
 					if (willTriggerUpdate) {
-						triggerPageUpdate.set(entity + DateTime.now().toMillis());
 					}
 				}
 				await delay(paginationAwaitBetweenPages);
@@ -87,18 +86,18 @@
 
 <div class="flex flex-col m-4 mb-3 font-light text-2xl">
 	<div class="flex flex-row mb-2 h-10">
-		<Button 			color="green"
-		class=" flex flex-row mr-2  items-center"
-		on:click={() => {
-			load(true);
-			infoToast('refresh started!');
-		}}>
+		<Button
+			class=" flex flex-row mr-2  items-center bg-green-500 dark:bg-green-700"
+			on:click={() => {
+				load(true);
+				infoToast('refresh started!');
+			}}
+		>
 			<RefreshOutline class="mr-2"></RefreshOutline>
 			Refresh
-	</Button>
+		</Button>
 		<Button
-			class="flex flex-row mr-2 "
-			color="blue"
+			class="flex flex-row mr-2 bg-blue-500 dark:bg-blue-600"
 			on:click={() => {
 				goto(`${base}/add?type=${entity}`);
 			}}

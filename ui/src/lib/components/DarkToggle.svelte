@@ -4,9 +4,13 @@
 	export let div_class = '';
 	let value = -1;
 	import logo from '$lib/assets/favicon.png';
+	import { staticConfig } from '$lib/config';
 
+	let showTip = false;
 	const handleDark = () => {
+		showTip = false;
 		if (!localStorage.theme) {
+			showTip = true;
 			if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
 				document.documentElement.classList.add('dark');
 				value = 1;
@@ -78,6 +82,14 @@
 	];
 </script>
 
-<div class="cursor-pointer {div_class}" title="toggle dark mode" on:click={handleClick}>
-	<img src={logo} alt="bananaui logo" class="w-10 h-10 m-4 {$isDark ? 'invert' : ''}" />
+<div class="flex flex-col">
+	{#if showTip}
+		<p class="text-[10px]">click on banana to toggle dark mode</p>
+	{/if}
+	<div class="flex flex-row items-center">
+		<div class="cursor-pointer {div_class}" title="toggle dark mode" on:click={handleClick}>
+			<img src={logo} alt="bananaui logo" class="w-10 h-10 m-4 {$isDark ? 'invert' : ''}" />
+		</div>
+		<h1 class="text-2xl font-bold">{staticConfig.name}</h1>
+	</div>
 </div>
