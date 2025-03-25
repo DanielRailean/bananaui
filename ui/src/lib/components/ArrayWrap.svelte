@@ -384,9 +384,9 @@
 							<div class=" space-x-1 flex flex-row">
 								<button
 									class="h-8"
-									title="copy entire object as json"
+									title="{JSON.stringify(item, undefined, 2)}"
 									on:click={() => {
-										copy(JSON.stringify(item));
+										copy(JSON.stringify(item, undefined, 2));
 									}}
 								>
 									<div class="flex flex-row items-center">

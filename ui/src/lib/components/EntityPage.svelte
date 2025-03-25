@@ -27,8 +27,8 @@
 	let isEdited = false;
 	let id: string;
 	let entityType: string;
-	let pathPrefix: string  = "";
-	let subEntityPrefix: string = ''
+	let pathPrefix: string = '';
+	let subEntityPrefix: string = '';
 
 	let currentEntity: IKongEntity | undefined;
 
@@ -50,7 +50,7 @@
 	function updateIsEdited() {
 		const url = new URL(window.location.toString());
 		if (isEdited == true) {
-			url.searchParams.set('isEdited', "true");
+			url.searchParams.set('isEdited', 'true');
 		} else {
 			url.searchParams.delete('isEdited');
 		}
@@ -67,18 +67,16 @@
 		entityType = searchParams.get('type') ?? 'none';
 		id = searchParams.get('id') ?? 'none';
 		let edited = searchParams.get('isEdited') ?? '';
-		isEdited = edited == "true"
-		pathPrefix = searchParams.get("prefix") ?? ""
-		if(entityType == "upstreams")
-		{
-			subEntityPrefix = `/upstreams/${id}`
+		isEdited = edited == 'true';
+		pathPrefix = searchParams.get('prefix') ?? '';
+		if (entityType == 'upstreams') {
+			subEntityPrefix = `/upstreams/${id}`;
 		}
 		{
 			data = undefined;
 			const res = await (await apiService()).findRecord(entityType, id, pathPrefix);
-			if(!res.ok)
-			{
-				errorToast(`failed to fetch ${entityType} with id ${id}. Status code: ${res.code}`)
+			if (!res.ok) {
+				errorToast(`failed to fetch ${entityType} with id ${id}. Status code: ${res.code}`);
 				await goto(`${base}/entities?type=services`);
 			}
 			data = res.data;
@@ -140,7 +138,9 @@
 			return;
 		}
 		format();
-		const res = await (await apiService()).updateRecord(entityType, id, JSON.parse(json), pathPrefix);
+		const res = await (
+			await apiService()
+		).updateRecord(entityType, id, JSON.parse(json), pathPrefix);
 		console.log(res);
 		if (!res.ok) {
 			errorToast(
@@ -188,7 +188,7 @@
 			class="h-10 m-1 focus:shadow-none"
 			on:click={() => {
 				isEdited = !isEdited;
-				updateIsEdited()
+				updateIsEdited();
 				triggerHighlight();
 			}}
 		>
@@ -211,21 +211,29 @@
 			<Button
 				color="alternative"
 				class="h-10 m-1"
+				title={stateJson}
 				on:click={() => {
 					writeToClipboard(stateJson);
 				}}
 			>
 				<FileCopyOutline class="m-2" />
-				copy</Button
+				copy JSON</Button
 			>
 		{:else}
-			<Button class="h-10 m-1" on:click={format} color="blue" disabled={stateJson == json}>
+			<Button
+				class="h-10 m-1"
+				on:click={format}
+				color="blue"
+				title={stateJson == json ? 'entity unchanged' : ''}
+				disabled={stateJson == json}
+			>
 				<PaletteOutline class="m-2" />
 				format and validate JSON
 			</Button>
 			<Button
 				class="h-10 m-1"
 				disabled={stateJson == json}
+				title={stateJson == json ? 'entity unchanged' : ''}
 				on:click={async () => await save()}
 				color="green"
 			>
