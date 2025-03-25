@@ -65,15 +65,12 @@
 				if (res.ok) {
 					data = data.concat(res.data.data);
 					if (willTriggerUpdate) {
-						triggerPageUpdate.set(entity + DateTime.now().toMillis());
 					}
 				}
 				await delay(paginationAwaitBetweenPages);
 			}
 			triggerPageUpdate.set(entity + DateTime.now().toMillis());
-			if (isRefresh) {
-				infoToast('refresh finished!');
-			}
+			infoToast('all entities were fetched!');
 		} catch (error: any) {
 			console.log(error);
 			addToast({ message: `Failed fetching the ${entity}. ${error.message ? error.message : ''}` });
