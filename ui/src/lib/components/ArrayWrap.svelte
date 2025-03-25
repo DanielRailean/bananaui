@@ -239,7 +239,7 @@
 		if (res.data.paths && res.data.paths.length > 0) {
 			return res.data.paths[0];
 		}
-		return res.data.name;
+		return res.data.name ?? res.data.id;
 	}
 </script>
 
