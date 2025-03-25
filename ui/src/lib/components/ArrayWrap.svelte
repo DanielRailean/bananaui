@@ -263,7 +263,7 @@
 			<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
 		</div>
 		<div class="flex flex-row my-4 pl-1">
-			<p class="text-lg mr-3">Load parent info</p>
+			<p class="text-lg mr-3">Load parent entity name</p>
 			<Toggle
 				isChecked={loadParentName}
 				on:change={async () => {
