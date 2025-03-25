@@ -309,7 +309,20 @@
 					if (!conf2) {
 						return;
 					}
+					const confirmEach = confirm(`Do you want to confirm each entity's deletion ?`);
 					for (const entity of filteredData) {
+						if (confirmEach) {
+							const confirmEntity = confirm(
+								`Confirm deletion of:\n ${JSON.stringify(
+									{ name: entity.name, tags: entity.tags, id: entity.id },
+									undefined,
+									2
+								)}`
+							);
+							if (!confirmEntity) {
+								continue;
+							}
+						}
 						const res = await (await apiService()).deleteRecord(type, entity.id);
 						if (res.ok) {
 							infoToast(
@@ -323,7 +336,7 @@
 							break;
 						}
 					}
-					infoToast('deletion successfully finished!');
+					infoToast('deletion successfully finished! the page will be refreshed soon.');
 					dispatch('refresh');
 				}}
 			>
