@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { capitalizeFirstLetter, writeToClipboard } from '$lib/util';
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { DateTime } from 'luxon';
 	import {
 		ArrowUpRightFromSquareOutline,
@@ -83,8 +83,7 @@
 
 	function updateEvent() {
 		const params = new URLSearchParams(window.location.search);
-		if(searchText.length == 0)
-		{
+		if (searchText.length == 0) {
 			searchText = params.get('search') ?? '';
 		}
 		filteredData = dataRaw;
@@ -114,7 +113,7 @@
 		});
 	}
 
-	triggerPageUpdate.subscribe(updateEvent)
+	triggerPageUpdate.subscribe(updateEvent);
 
 	onMount(() => {
 		updateEvent();
@@ -196,6 +195,9 @@
 		}
 		searchDebounce = setTimeout(updateSearchQueryParam, debounceTimeoutMs);
 	}
+	onDestroy(() => {
+		clearTimeout(searchDebounce);
+	});
 	function updateSearchQueryParam() {
 		const url = new URL(window.location.toString());
 		if (searchText.length > 0) {
@@ -294,6 +296,53 @@
 				<option value={true} selected={sortAscending}>ascending</option>
 				<option value={false} selected={!sortAscending}>descending</option>
 			</select>
+			<button
+				class="flex flex-row items-center"
+				on:click={async () => {
+					const conf = confirm(
+						`this will delete all entities currently visible: ${filteredData.length} in total`
+					);
+					if (!conf) {
+						return;
+					}
+					const conf2 = confirm(`think twice, this is the last chance to cancel!`);
+					if (!conf2) {
+						return;
+					}
+					const confirmEach = confirm(`Do you want to confirm each entity's deletion ?`);
+					for (const entity of filteredData) {
+						if (confirmEach) {
+							const confirmEntity = confirm(
+								`Confirm deletion of:\n ${JSON.stringify(
+									{ name: entity.name, tags: entity.tags, id: entity.id },
+									undefined,
+									2
+								)}`
+							);
+							if (!confirmEntity) {
+								continue;
+							}
+						}
+						const res = await (await apiService()).deleteRecord(type, entity.id);
+						if (res.ok) {
+							infoToast(
+								`deleted ${entity.name ?? ''}(${entity.id}) ${
+									filteredData.length - filteredData.indexOf(entity)
+								} remaining`
+							);
+						} else {
+							errorToast(`failed deletion of ${entity.name ?? entity.id}`);
+							errorToast(res.err ?? 'unknown error occured');
+							break;
+						}
+					}
+					infoToast('deletion successfully finished! the page will be refreshed soon.');
+					dispatch('refresh');
+				}}
+			>
+				<TrashBinOutline class="m-1" />
+				DELETE ALL
+			</button>
 		</div>
 	</div>
 	{#if filteredData.length > paginationSizeUi}
@@ -384,7 +433,7 @@
 							<div class=" space-x-1 flex flex-row">
 								<button
 									class="h-8"
-									title="{JSON.stringify(item, undefined, 2)}"
+									title={JSON.stringify(item, undefined, 2)}
 									on:click={() => {
 										copy(JSON.stringify(item, undefined, 2));
 									}}
