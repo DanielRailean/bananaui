@@ -299,17 +299,19 @@
 			<button
 				class="flex flex-row items-center"
 				on:click={async () => {
+					const confirmEach = confirm(`Do you want to confirm each entity's deletion separately?`);
 					const conf = confirm(
 						`this will delete all entities currently visible: ${filteredData.length} in total`
 					);
 					if (!conf) {
 						return;
 					}
-					const conf2 = confirm(`think twice, this is the last chance to cancel!`);
+					const conf2 = confirm(
+						`think twice, this is the last chance to cancel!\n(refresh the page to stop the process)`
+					);
 					if (!conf2) {
 						return;
 					}
-					const confirmEach = confirm(`Do you want to confirm each entity's deletion ?`);
 					for (const entity of filteredData) {
 						if (confirmEach) {
 							const confirmEntity = confirm(
