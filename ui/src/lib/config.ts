@@ -99,7 +99,13 @@ export const kongEntities: IKongEntity[] = [
 		name: 'routes',
 		displayedFields: ['name', 'methods', 'paths', 'service', 'updated_at'],
 		apiPath: 'routes',
-		subEntities: ['plugins']
+		subEntities: ['plugins'],
+		defaultAddValue: {
+			name: "",
+			paths: [],
+			methods: [],
+			strip_path: false
+		}
 	},
 	{
 		name: 'plugins',
@@ -109,11 +115,20 @@ export const kongEntities: IKongEntity[] = [
 	},
 	{ name: 'certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'certificates' },
 	{ name: 'ca_certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'ca_certificates' },
-	{ name: 'consumers', displayedFields: ['username', 'custom_id', 'updated_at'], apiPath: 'consumers' },
+	{
+		name: 'consumers', displayedFields: ['username', 'custom_id', 'updated_at'], apiPath: 'consumers',
+		defaultAddValue: {
+			username: "",
+			custom_id: ""
+		}
+	},
 	{
 		name: 'upstreams', displayedFields: ['name', 'updated_at'],
 		subEntities: ['targets'],
-		apiPath: 'upstreams'
+		apiPath: 'upstreams',
+		defaultAddValue: {
+			name: ""
+		}
 	},
 	{ name: 'targets', displayedFields: ['target', 'weight', 'updated_at'], apiPath: 'targets', showInMenu: false },
 	{ name: 'keys', displayedFields: ['name', 'kid', 'updated_at'], apiPath: 'keys' },

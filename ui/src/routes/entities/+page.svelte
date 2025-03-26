@@ -13,7 +13,7 @@
 	import { capitalizeFirstLetter, delay } from '$lib/util';
 	import { base } from '$app/paths';
 	import { DateTime } from 'luxon';
-	import { addToast, infoToast } from '$lib/toastStore';
+	import { addToast, errorToast, infoToast } from '$lib/toastStore';
 	import { Button } from 'flowbite-svelte';
 
 	let data: any | undefined;
@@ -53,6 +53,10 @@
 				return;
 			}
 			let res = await (await apiService()).findAll<any>(kongEntity.apiPath, {}, pathPrefix);
+			if (!res.ok) {
+				errorToast(`failed to fetch the ${entity}. ${res.err} (${res.code})`);
+				return;
+			}
 			data = res.data.data;
 			var loopStarted = loadStart;
 			await delay(paginationAwaitBetweenPages);

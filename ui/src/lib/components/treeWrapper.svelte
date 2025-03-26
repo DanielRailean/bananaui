@@ -27,6 +27,9 @@
 			confirmToast(`item ${current ? 'disabled' : 'enabled'}`);
 		}
 	}
+
+	export let keyClickHandler: ((key: string) => void) | undefined = undefined
+	export let keyTitle = (key:string) => {return `copy ${key}`}
 </script>
 
 <div class="tree">
@@ -39,11 +42,17 @@
 					{#each Object.entries(data) as [key, value]}
 						<tr class="bg-white border-t dark:bg-[#1E2021] dark:border-gray-700 hoveritem">
 							<th
+								on:click={async ()=> {
+									if(keyClickHandler)
+									{
+										await keyClickHandler(key)
+									}
+								}}
 								scope="row"
-								class="px-6 py-4 font-medium text-stone-900 whitespace-nowrap dark:text-zinc-300 {allowKeyCopy
+								class="px-6 py-4 font-medium text-stone-900 whitespace-nowrap dark:text-zinc-300 {allowKeyCopy || keyClickHandler != undefined
 									? 'cursor-pointer'
 									: ''}"
-								title={allowKeyCopy ? `copy ${key}` : ''}
+								title={keyTitle(key) ?? ""}
 								on:click={() => {
 									if (!allowKeyCopy) return;
 									writeToClipboard(key);

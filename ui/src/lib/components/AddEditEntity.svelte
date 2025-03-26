@@ -7,27 +7,40 @@
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { Button, Label, Select } from 'flowbite-svelte';
-	import { addToast, errorToast } from '$lib/toastStore';
+	import { addToast, errorToast, infoToast } from '$lib/toastStore';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 	import { base } from '$app/paths';
 	import { kongEntities } from '$lib/config';
 
 	// let entity?.name: string;
-	let entity : IKongEntity | undefined;
+	let entity: IKongEntity | undefined;
 
 	let json = '';
 	let dummyObject: any = {};
 	// let schema: ISchemaRes | undefined;
 	let postPath: string | undefined;
-	let testSchema: any | undefined;
+	let entitySchema: any | undefined;
 	let pluginSchema: any | undefined;
 	let selectedPlugin: any;
 	let pluginSelect: any | undefined;
-	let pathPrefix: string = ''
+	let pathPrefix: string = '';
 
 	function setEditField(name: string, value: any) {
 		dummyObject[name] = value;
 		dummyToJson();
+	}
+
+	function addField(key: string, value: any, subfield: string | undefined = undefined) {
+		let temp = JSON.parse(json);
+		if (subfield) {
+			let temp2 = temp[subfield];
+			temp2[key] = value;
+			temp[subfield] = temp2;
+		} else {
+			temp[key] = value;
+		}
+		json = JSON.stringify(temp, undefined, 2);
+		triggerHighlight();
 	}
 
 	function dummyToJson() {
@@ -35,17 +48,17 @@
 	}
 
 	onMount(async () => {
+		dummyObject = {};
 		let query = new URLSearchParams(window.location.search);
 		let path = query.get('apiPostPath');
 		let type = query.get('type');
-		pathPrefix = query.get('prefix') ?? ''
+		pathPrefix = query.get('prefix') ?? '';
 		if (type) {
-			entity = kongEntities.find(i=>i.name == type)
+			entity = kongEntities.find((i) => i.name == type);
 		}
-		if(!entity)
-		{
-			errorToast(`entity named ${type} not found!`)
-			return
+		if (!entity) {
+			errorToast(`entity named ${type} not found!`);
+			return;
 		}
 		if (path) {
 			postPath = atob(path);
@@ -67,21 +80,19 @@
 		}
 		const res = await (await apiService()).schema(entity.name);
 		if (res.ok && res.data) {
-			testSchema = {};
+			entitySchema = {};
 			for (const field of res.data.fields) {
 				const entries = Object.entries(field)[0];
 				const key = entries[0];
 				const value = entries[1];
-				testSchema[key] = value;
-				if (value.default || value.required) {
-					dummyObject[key] = value.default
+				entitySchema[key] = value;
+				if (value.required && !value.default) {
+					dummyObject[key] = '';
 				}
 			}
 			dummyToJson();
 		}
-		if(entity.defaultAddValue){
-			json = JSON.stringify({...entity.defaultAddValue, ...dummyObject}, undefined, 2)
-		}
+		json = JSON.stringify(entity.defaultAddValue ?? dummyObject, undefined, 2);
 		triggerHighlight();
 	});
 
@@ -110,7 +121,7 @@
 					await apiService()
 				).request<IEntityBase, IResCreateError>(postPath, 'POST', JSON.parse(json));
 			} else {
-				res = await (await apiService()).createRecord(entity?.name ?? "", JSON.parse(json));
+				res = await (await apiService()).createRecord(entity?.name ?? '', JSON.parse(json));
 			}
 			if (!res.ok) {
 				addToast({
@@ -132,7 +143,7 @@
 		}
 	}
 	async function pluginSelected() {
-		setEditField('name', selectedPlugin);
+		addField('name', selectedPlugin);
 		const res = await (await apiService()).pluginConfig(selectedPlugin);
 		if (res.ok && res.data) {
 			const config: any = {};
@@ -141,7 +152,6 @@
 				addToast({ message: `failed to load config for ${selectedPlugin}` });
 				return;
 			}
-			console.log(configSchema);
 			pluginSchema = {};
 			for (const param of configSchema.config.fields) {
 				const entries = Object.entries(param)[0];
@@ -150,20 +160,19 @@
 				pluginSchema[key] = value;
 				if (value.default || value.required) {
 					config[key] = value.default ?? null;
-					const maybeFields: any = {}
+					const maybeFields: any = {};
 					for (const field of value.fields ?? []) {
 						const fieldEntries = Object.entries(param)[0];
 						const key = fieldEntries[0];
 						const value = fieldEntries[1];
 						maybeFields[key] = value.default ?? null;
 					}
-					if(Object.keys(maybeFields).length > 0)
-					{
-						config[key] = maybeFields
+					if (Object.keys(maybeFields).length > 0) {
+						config[key] = maybeFields;
 					}
 				}
 			}
-			setEditField('config', config);
+			addField('config', config);
 			triggerHighlight();
 		}
 	}
@@ -200,14 +209,14 @@
 				</a>
 			</Button>
 			{#if selectedPlugin}
-			<Button class="h-10 m-1" color="alternative">
-				<a target="_blank" href="https://docs.konghq.com/hub/kong-inc/{selectedPlugin}/">
-					<div class="flex flex-row items-center">
-						<LinkOutline class="m-2" />
-						{selectedPlugin} plugin - configuration reference
-					</div>
-				</a>
-			</Button>
+				<Button class="h-10 m-1" color="alternative">
+					<a target="_blank" href="https://docs.konghq.com/hub/kong-inc/{selectedPlugin}/">
+						<div class="flex flex-row items-center">
+							<LinkOutline class="m-2" />
+							{selectedPlugin} plugin - configuration reference
+						</div>
+					</a>
+				</Button>
 			{/if}
 		</div>
 		{#if pluginSelect}
@@ -246,15 +255,35 @@
 </div>
 {#if pluginSchema}
 	<h2 class="text-xl m-4">'config' fields:</h2>
-	<TreeWrapper data={pluginSchema} expandLevel={0} allowCopy={false} allowKeyCopy={true} />
+	<TreeWrapper
+		data={pluginSchema}
+		expandLevel={0}
+		allowCopy={false}
+		allowKeyCopy={true}
+		keyClickHandler={(key) => {
+			addField(key, pluginSchema[key].default ?? '', 'config');
+			infoToast(`'config.${key}' added`);
+		}}
+		keyTitle={() => `click to add to config`}
+	/>
 {/if}
 <br />
-{#if entity?.name && testSchema}
+{#if entity?.name && entitySchema}
 	<h2 class="text-xl mx-4 mb-4">
 		{entity?.name.substring(0, entity?.name.length - 1)} schema
 	</h2>
 {/if}
-<TreeWrapper data={testSchema} expandLevel={0} allowCopy={false} allowKeyCopy={true} />
+<TreeWrapper
+	data={entitySchema}
+	keyClickHandler={(key) => {
+		addField(key, entitySchema[key].default ?? '');
+		infoToast(`'${key}' added`);
+	}}
+	keyTitle={() => `click to add to body`}
+	expandLevel={0}
+	allowCopy={false}
+	allowKeyCopy={false}
+/>
 
 <style>
 	.editor {
