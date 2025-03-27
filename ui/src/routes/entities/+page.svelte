@@ -85,7 +85,7 @@
 </script>
 
 <svelte:head>
-	<title>{capitalizeFirstLetter(entity)} | {staticConfig.name}</title>
+	<title>{capitalizeFirstLetter(entity)} {entity ? '|' : ''} {staticConfig.name}</title>
 </svelte:head>
 
 <div class="flex flex-col m-4 mb-3 font-light text-2xl">

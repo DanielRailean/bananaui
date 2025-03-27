@@ -17,7 +17,7 @@
 		PaletteOutline,
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
-	import { fieldOrder, kongEntities, sortObjectFieldsByOrder } from '$lib/config';
+	import { fieldOrder, kongEntities, sortObjectFieldsByOrder, staticConfig } from '$lib/config';
 	import type { IKongEntity } from '$lib/types';
 	import { base } from '$app/paths';
 
@@ -177,9 +177,7 @@
 </script>
 
 <svelte:head>
-	{#if data}
-		<title>{data.name ?? data.id ?? entityType}</title>
-	{/if}
+	<title>{data?.name ?? data?.id ?? staticConfig.name}</title>
 </svelte:head>
 
 <div class="mb-2">

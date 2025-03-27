@@ -17,7 +17,7 @@ export const writeToClipboard = (
 };
 
 export function capitalizeFirstLetter(string?: string) {
-	if (!string) return string;
+	if (!string) return "";
 	return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
