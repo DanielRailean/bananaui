@@ -508,10 +508,7 @@
 												{/if}
 											{:else if typeof item[field] == 'number'}
 												{#if dateFields.includes(field)}
-													{DateTime.fromSeconds(item[field]).toLocaleString({
-														...DateTime.DATETIME_SHORT_WITH_SECONDS,
-														hour12: false
-													})}
+												{DateTime.fromSeconds(item[field]).toRelative({style: "short"})}
 												{:else}
 													{item[field]}
 												{/if}
