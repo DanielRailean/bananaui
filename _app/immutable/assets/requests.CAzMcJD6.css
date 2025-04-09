@@ -1,1 +1,0 @@
-button.svelte-q2ooe2{--w:2.75rem;--padding:.125rem;width:var(--w)}.thumb.svelte-q2ooe2{--size:1.25rem;width:var(--size);height:var(--size);transform:translate(var(--padding))}[data-state=checked] .thumb.svelte-q2ooe2{transform:translate(calc(var(--w) - var(--size) - var(--padding)))}
