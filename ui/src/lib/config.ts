@@ -85,7 +85,7 @@ export function sortObjectFieldsByOrder<T extends AnyObject>(
 export const kongEntities: IKongEntity[] = [
 	{
 		name: 'services',
-		displayedFields: ['name', 'host', 'port', 'path', 'enabled', 'updated_at'],
+		displayedFields: ['tags', 'name', 'host', 'port', 'path', 'enabled', 'updated_at'],
 		apiPath: 'services',
 		subEntities: ['routes', 'plugins'],
 		sortBy: 'updated_at',

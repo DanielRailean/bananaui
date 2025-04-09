@@ -149,8 +149,8 @@ class ApiService {
 		);
 	}
 
-	updateRecord(entity: string, id: string, data: Record<string, unknown>, pathPrefix: string = '') {
-		return requestWithResponseBody(`${this.endpoint}${pathPrefix}/${entity}/${id}`, 'PATCH', data, this.headers);
+	updateRecord<T = any>(entity: string, id: string, data: Record<string, unknown>, pathPrefix: string = '') {
+		return requestWithResponseBody<T>(`${this.endpoint}${pathPrefix}/${entity}/${id}`, 'PATCH', data, this.headers);
 	}
 
 	deleteRecord(entity: string, id: string, pathPrefix: string = '') {

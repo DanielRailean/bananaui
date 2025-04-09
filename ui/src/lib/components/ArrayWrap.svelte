@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { capitalizeFirstLetter, writeToClipboard } from '$lib/util';
+	import { capitalizeFirstLetter, delay, writeToClipboard } from '$lib/util';
 	import { goto } from '$app/navigation';
 	import { onDestroy, onMount } from 'svelte';
 	import { DateTime } from 'luxon';
@@ -12,10 +12,10 @@
 	import { apiService } from '$lib/requests';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { createEventDispatcher } from 'svelte';
-	import type { IKongEntity } from '$lib/types';
+	import type { IKongEntity, ITooggleableEntityMaybe } from '$lib/types';
 	import { base } from '$app/paths';
 	import Toggle from './Toggle.svelte';
-	import { get, writable } from 'svelte/store';
+	import { get, writable, type Writable } from 'svelte/store';
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
 	import { preferences, triggerPageUpdate } from '$lib/stores';
 
@@ -31,12 +31,15 @@
 	});
 	const dispatch = createEventDispatcher();
 
-	export let dataRaw: any[];
+	export let dataRaw: ITooggleableEntityMaybe[];
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
 	export let pathPrefix: string | undefined = '';
 
 	let searchText = '';
+	interface FilteredEntity extends ITooggleableEntityMaybe {
+		enabledWritable: Writable<boolean>;
+	}
 	let filteredData: any[] = [];
 
 	let arrayStart = 0;
@@ -79,14 +82,14 @@
 		writeToClipboard(result);
 	}
 	let sortKey = entity?.sortBy ?? 'updated_at';
-	let sortAscending = entity?.sortAscending ?? false;
+	let sortAscending = writable(entity?.sortAscending ?? false);
 
 	function updateEvent() {
 		const params = new URLSearchParams(window.location.search);
 		if (searchText.length == 0) {
 			searchText = params.get('search') ?? '';
 		}
-		filteredData = dataRaw;
+		// filteredData = dataRaw;
 		debounce = DateTime.now().toUnixInteger();
 		search();
 		resetPagination();
@@ -100,12 +103,12 @@
 			}
 
 			if (typeof fieldA == 'string') {
-				if (sortAscending === true) {
+				if ($sortAscending === true) {
 					return fieldA.localeCompare(fieldB);
 				}
 				return fieldB.localeCompare(fieldA);
 			}
-			if (sortAscending === true) {
+			if ($sortAscending === true) {
 				return (fieldA - fieldB) as number;
 			} else {
 				return (fieldB - fieldA) as number;
@@ -119,12 +122,15 @@
 		updateEvent();
 	});
 
-	async function disable(id: string, current: boolean) {
-		const res = await (await apiService()).updateRecord(type, id, { enabled: !current });
+	async function disable(id: string, newEnabledValue: boolean) {
+		const res = await (
+			await apiService()
+		).updateRecord<ITooggleableEntityMaybe>(type, id, { enabled: newEnabledValue });
 		if (res.ok) {
 			dispatch('refresh');
-			confirmToast(`item ${current ? 'disabled' : 'enabled'}`);
+			confirmToast(`item ${newEnabledValue ? 'enabled' : 'disabled'}`);
 		}
+		return res;
 	}
 
 	async function deleteEntity(type: string, id: string, name: string) {
@@ -209,37 +215,66 @@
 	}
 	function search() {
 		if (searchText.length == 0) {
-			filteredData = dataRaw;
+			filteredData = dataRaw.map((i: any): FilteredEntity => {
+				i.enabledWritable = writable(i.enabled);
+				return i as FilteredEntity;
+			});
 		}
 		const booleanAndSearch = searchText.split(/\s*&&\s*/);
-		if (booleanAndSearch.length > 1) {
-			filteredData = dataRaw.filter((item: any) => {
-				for (const condition of booleanAndSearch) {
-					const conditionPassed = JSON.stringify(item)
-						.toLowerCase()
-						.includes(condition.toLowerCase());
-					if (!conditionPassed) return false;
+		// if (booleanAndSearch.length > 1) {
+		filteredData = dataRaw.filter((item: any) => {
+			for (let condition of booleanAndSearch) {
+				condition = condition.trim();
+				const isNot = condition.startsWith('!');
+				let conditionPassed = false;
+				if (isNot) {
+					const truthCondition = condition.substring(1).trim();
+					if (truthCondition.length > 1) {
+						conditionPassed = !JSON.stringify(item)
+							.toLowerCase()
+							.includes(truthCondition.toLowerCase());
+					} else {
+						conditionPassed = true;
+					}
+				} else {
+					conditionPassed = JSON.stringify(item).toLowerCase().includes(condition.toLowerCase());
 				}
-				return true;
-			});
-		} else {
-			filteredData = dataRaw.filter((item: any) =>
-				JSON.stringify(item).toLowerCase().includes(searchText.toLowerCase())
-			);
-		}
+				if (!conditionPassed) return false;
+			}
+			return true;
+		});
+		// } else {
+		// 	filteredData = dataRaw.filter((item: any) =>
+		// 		JSON.stringify(item).toLowerCase().includes(searchText.toLowerCase())
+		// 	);
+		// }
 		resetPagination();
 		calculatePagination();
 	}
+
+	const idToInfo: { [key: string]: string } = {};
 	async function getInfo(type: string, id: string, selfIdentifier: string): Promise<string> {
+		if (idToInfo[id] == '-1') {
+			// the idea is to make a single call per id.
+			await delay(200);
+			return getInfo(type, id, selfIdentifier);
+		}
+		if (idToInfo[id]) {
+			return idToInfo[id];
+		} else {
+			idToInfo[id] = '-1';
+		}
 		const res = await (await apiService()).findRecord<any>(type + 's', id);
 		if (!res.ok) {
 			errorToast(`Failed to load ${type} for '${selfIdentifier}'. Res. status code: ${res.code}!`);
 			throw new Error('failed to load');
 		}
 		if (res.data.paths && res.data.paths.length > 0) {
-			return res.data.paths[0];
+			idToInfo[id] = res.data.paths[0];
+			return idToInfo[id];
 		}
-		return res.data.name ?? res.data.id;
+		idToInfo[id] = res.data.name ?? res.data.tags ?? res.data.id;
+		return idToInfo[id];
 	}
 </script>
 
@@ -262,12 +297,12 @@
 				title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'"
 				placeholder="search (hover for info)"
 			/>
-			<!-- <Button class="ml-4" on:click={sortItems}>sort</Button> -->
 		</div>
 		<div class="flex flex-row my-4 pl-1">
 			<p class="text-lg mr-3">Load parent entity name</p>
 			<Toggle
 				isChecked={loadParentName}
+				title={'Loads parent entity name if enabled'}
 				on:change={async () => {
 					loadParentName.set(!get(loadParentName));
 				}}
@@ -286,18 +321,37 @@
 					<option value={key} selected={key == sortKey}>{key}</option>
 				{/each}
 			</select>
-			<select
-				bind:value={sortAscending}
-				on:change={() => {
+		</div>
+		<div class="m-1 mt-4">
+			<Toggle
+				isChecked={sortAscending}
+				labelLeft="Z->A"
+				labelRight="A->Z"
+				title={'Controls the sort direction, either ascending or descending'}
+				on:change={async () => {
+					sortAscending.set(!$sortAscending);
 					updateEvent();
 				}}
-				class="dark:bg-stone-700 shadow shadow-slate-600 border-none rounded focus:border-none focus:[box-shadow:none]"
-			>
-				<option value={true} selected={sortAscending}>ascending</option>
-				<option value={false} selected={!sortAscending}>descending</option>
-			</select>
+			/>
+		</div>
+		<div class="flex flex-row mt-4">
 			<button
-				class="flex flex-row items-center"
+				title="copies all entities as JSON"
+				on:click={() => {
+					const conf = confirm(`confirm copy of ${filteredData.length} entities?`);
+					if (!conf) {
+						return;
+					}
+					copy(filteredData);
+				}}
+				class="flex flex-row items-center dark:bg-stone-700 bg-stone-100 rounded p-1 pr-2 m-1"
+			>
+				<FileCopyOutline class="m-1" />
+				COPY ALL
+			</button>
+			<button
+				title="deletes currently filtered entites"
+				class="flex flex-row items-center dark:bg-rose-900 bg-stone-100 rounded p-1 pr-2 m-1"
 				on:click={async () => {
 					const confirmEach = confirm(`Do you want to confirm each entity's deletion separately?`);
 					const conf = confirm(
@@ -493,22 +547,40 @@
 											{:else if typeof item[field] == 'boolean'}
 												{#if field === 'enabled'}
 													<div on:click|stopPropagation>
-														<Toggle
-															isChecked={writable(item[field])}
-															on:change={async () => {
-																let ok = confirm('confirm action');
-																if (ok) {
-																	await disable(item['id'], item[field]);
-																}
-															}}
-														/>
+														<label
+															class="inline-flex items-center cursor-pointer"
+															title="enable or disable"
+														>
+															<input
+																type="checkbox"
+																bind:checked={item.enabled}
+																on:change|stopPropagation|preventDefault={async () => {
+																	let ok = confirm('confirm action');
+																	item.enabled = !item.enabled;
+																	if (ok) {
+																		const res = await disable(item['id'], !item.enabled);
+																		if (res.ok) {
+																			console.log(res);
+																			item.enabled = res.data?.enabled;
+																		} else {
+																			errorToast(`Failed to disable. (${res.code}) ${res.err}`);
+																		}
+																	}
+																}}
+																class="sr-only peer"
+															/>
+															<div
+																class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"
+															></div>
+															<!-- <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Toggle me</span> -->
+														</label>
 													</div>
 												{:else}
 													{item[field]}
 												{/if}
 											{:else if typeof item[field] == 'number'}
 												{#if dateFields.includes(field)}
-												{DateTime.fromSeconds(item[field]).toRelative({style: "short"})}
+													{DateTime.fromSeconds(item[field]).toRelative({ style: 'short' })}
 												{:else}
 													{item[field]}
 												{/if}
