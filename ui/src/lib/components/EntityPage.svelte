@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ArrayWrap from './ArrayWrap.svelte';
 	export let data: any = {};
-	import { Button } from 'flowbite-svelte';
+	import { Button, Spinner } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import TreeWrapper from './treeWrapper.svelte';
 	import { apiService } from '$lib/requests';
@@ -310,7 +310,10 @@
 			{/if}
 		{/if}
 	{:else}
-		<h2 class="text-xl text-center">Loading ...</h2>
+		<div class="flex flex-row items-center m-4">
+			<Spinner color="blue" />
+			<h2 class="text-xl text-center ml-4">Loading {entityType.substring(0,entityType.length-1)} with id: '{id}'</h2>
+		</div>
 	{/if}
 </div>
 

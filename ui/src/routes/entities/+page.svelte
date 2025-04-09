@@ -14,7 +14,7 @@
 	import { base } from '$app/paths';
 	import { DateTime } from 'luxon';
 	import { addToast, errorToast, infoToast } from '$lib/toastStore';
-	import { Button } from 'flowbite-svelte';
+	import { Button, Spinner } from 'flowbite-svelte';
 
 	let data: any | undefined;
 	let entity: string;
@@ -119,5 +119,8 @@
 	<ArrayWrap dataRaw={data} type={entity} entity={kongEntity} on:refresh={async () => await load()}
 	></ArrayWrap>
 {:else}
-	<p class="pl-5 pb-4 text-xl font-light">Loading {entity ?? ''}</p>
+	<div class="flex flex-row items-center pl-5 pb-4">
+		<Spinner color="blue" />
+		<p class="ml-3 text-xl font-light">Loading {entity ?? ''}</p>
+	</div>
 {/if}
