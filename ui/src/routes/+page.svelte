@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Toggle from '../lib/components/Toggle.svelte';
 	import { addToast } from '$lib/toastStore';
 	import TreeWrapper from '../lib/components/treeWrapper.svelte';
 
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
+	import { Spinner } from 'flowbite-svelte';
 
 	let info: any | undefined;
 	onMount(async () => {
@@ -19,7 +19,15 @@
 
 <div>
 	<h1 class="text-xl text-center p-2">
-		{info ? 'Kong Control-Plane info' : 'Loading ...'}
+		<div class="flex flex-row items-center justify-center">
+			{#if info}
+				Kong Control-Plane info
+			{:else}
+				<Spinner color="blue"/>
+				<p class="ml-2">Loading info</p>
+
+			{/if}
+		</div>
 	</h1>
 
 	<TreeWrapper data={info} expandFields={[]}></TreeWrapper>

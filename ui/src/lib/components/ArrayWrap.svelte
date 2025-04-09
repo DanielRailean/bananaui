@@ -18,6 +18,7 @@
 	import { get, writable } from 'svelte/store';
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
 	import { preferences, triggerPageUpdate } from '$lib/stores';
+	import { Spinner } from 'flowbite-svelte';
 
 	let loadParentName = writable($preferences?.loadParentInfo);
 
