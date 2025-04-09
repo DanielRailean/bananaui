@@ -1,6 +1,9 @@
 export interface IEntityBase {
 	id: string;
 }
+export interface ITooggleableEntityMaybe extends IEntityBase {
+	enabled: boolean;
+}
 
 export interface IPaginationRes {
 	next?: string;
