@@ -294,8 +294,8 @@
 					updateSearchParamWithDebounce();
 					search();
 				}}
-				title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'"
-				placeholder="search (hover for info)"
+				title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Logical 'NOT' using the '!' operator&#013;&#013;Ex: 'host && !/path'"
+				placeholder="filter {type}"
 			/>
 		</div>
 		<div class="flex flex-row my-4 pl-1">
@@ -309,13 +309,13 @@
 			/>
 		</div>
 		<div class="flex flex-row items-center space-x-2 pl-1">
-			<p class="text-lg">Sort by:</p>
+			<p class="text-lg">Sort by</p>
 			<select
 				bind:value={sortKey}
 				on:change={() => {
 					updateEvent();
 				}}
-				class="dark:bg-stone-700 shadow shadow-slate-600 border-none w-52 rounded focus:border-none focus:[box-shadow:none]"
+				class="dark:bg-stone-700 p-1 pl-2 shadow shadow-slate-600 border-none rounded focus:border-none w-40 focus:[box-shadow:none]"
 			>
 				{#each Object.keys(dataRaw[0] ?? {}) as key}
 					<option value={key} selected={key == sortKey}>{key}</option>
@@ -530,7 +530,7 @@
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 										<p
-											class="mr-2 cursor-pointer overflow-hidden max-h-20"
+											class="mr-2 cursor-pointer overflow-hidden max-h-32"
 											title={field == 'name'
 												? `open ${item.name ?? ''} (${item.id})`
 												: `click to copy '${field}'\n${JSON.stringify(item[field], undefined, 2)} `}
@@ -627,6 +627,15 @@
 													<p>
 														{item[field][0]}
 													</p>
+												</div>
+											{:else if Array.isArray(item[field])}
+												<div>
+													<ul>
+														{#each item[field] as row}
+															<!-- content here -->
+															<li class="m-1 text-xs">{row}</li>
+														{/each}
+													</ul>
 												</div>
 											{:else}
 												{JSON.stringify(item[field], undefined, 2)}
