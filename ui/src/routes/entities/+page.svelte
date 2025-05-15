@@ -14,7 +14,8 @@
 	import { base } from '$app/paths';
 	import { DateTime } from 'luxon';
 	import { addToast, errorToast, infoToast } from '$lib/toastStore';
-	import { Button, Spinner } from 'flowbite-svelte';
+	import { Button } from 'flowbite-svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
 
 	let data: any | undefined;
 	let entity: string;
@@ -120,7 +121,6 @@
 	></ArrayWrap>
 {:else}
 	<div class="flex flex-row items-center pl-5 pb-4">
-		<Spinner color="blue" />
-		<p class="ml-3 text-xl font-light">Loading {entity ?? ''}</p>
+		<Spinner text="Loading {entity ?? ''}" />
 	</div>
 {/if}

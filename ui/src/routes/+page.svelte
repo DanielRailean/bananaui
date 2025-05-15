@@ -4,7 +4,7 @@
 
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
-	import { Spinner } from 'flowbite-svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
 
 	let info: any | undefined;
 	onMount(async () => {
@@ -23,9 +23,7 @@
 			{#if info}
 				Kong Control-Plane info
 			{:else}
-				<Spinner color="blue"/>
-				<p class="ml-2">Loading info</p>
-
+				<Spinner text="loading control plane info" />
 			{/if}
 		</div>
 	</h1>
