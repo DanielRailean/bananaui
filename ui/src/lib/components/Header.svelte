@@ -7,6 +7,7 @@
 		appPath: string;
 		uiSpaceAfter?: boolean;
 		uiSpaceBefore?: boolean;
+		logo?: string;
 	};
 	let items: HeaderItem[] = [
 		{
@@ -26,11 +27,11 @@
 	];
 	import { onMount } from 'svelte';
 	import { kongEntities } from '$lib/config';
-	import { staticConfig } from '$lib/config';
 	import { capitalizeFirstLetter } from '$lib/util';
 	import { base } from '$app/paths';
 	import { config, userToken } from '$lib/stores';
 	import { get } from 'svelte/store';
+	import { icons } from '$lib/icons';
 
 	let mounted = false;
 
@@ -70,7 +71,7 @@
 </script>
 
 <header
-	class="flex flex-col shadow shadow-zinc-300 dark:shadow-zinc-800 p-4 pt-10 bg-stone-100 dark:bg-[#1E2021] rounded-r-xl font-light"
+	class="flex flex-col shadow shadow-zinc-300 dark:shadow-zinc-800 p-4 pt-10 bg-stone-100 dark:bg-[#1E2021] font-light"
 >
 	<div class="flex flex-row items-center min-w-[230px]">
 		<DarkToggle div_class="" />
@@ -112,9 +113,16 @@
 							? 'dark:text-stone-50 text-stone-700'
 							: ''}"
 					>
-						<a href="{base}{item.appPath}"
-							>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a
-						>
+						<div class="flex flex-row items-center">
+							{#if item.logo}
+								<div class="mr-1 h-6 w-6">
+									{@html icons[item.logo]}
+								</div>
+							{/if}
+							<a href="{base}{item.appPath}"
+								>{capitalizeFirstLetter(item.name.replaceAll('_', ' '))}</a
+							>
+						</div>
 					</li>
 				{/if}
 				{#if item.uiSpaceAfter}

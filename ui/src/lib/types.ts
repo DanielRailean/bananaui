@@ -84,4 +84,5 @@ export interface IKongEntity {
 	uiSpaceAfter?: boolean;
 	uiSpaceBefore?: boolean;
 	showInMenu?: boolean
+	logo?: string
 }

@@ -20,6 +20,7 @@
 	import { fieldOrder, kongEntities, sortObjectFieldsByOrder, staticConfig } from '$lib/config';
 	import type { IKongEntity } from '$lib/types';
 	import { base } from '$app/paths';
+	import Spinner from './Spinner.svelte';
 
 	let stateJson = '';
 	let json = '';
@@ -181,6 +182,7 @@
 </svelte:head>
 
 <div class="mb-2">
+	{#if data}
 	<div class="flex flex-row flex-wrap m-2">
 		<Button
 			class="h-10 m-1 focus:shadow-none"
@@ -240,7 +242,6 @@
 			>
 		{/if}
 	</div>
-	{#if data}
 		<div
 			class="editor dark:bg-[#1E2021] w-full min-h-[30vh] line-numbers {isEdited
 				? 'grid'
@@ -310,7 +311,9 @@
 			{/if}
 		{/if}
 	{:else}
-		<h2 class="text-xl text-center">Loading ...</h2>
+		<div class="flex flex-row items-center m-4">
+			<Spinner uppercased={false} text="loading {entityType.substring(0,entityType.length-1)} with id='{id}'"/>
+		</div>
 	{/if}
 </div>
 

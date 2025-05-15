@@ -93,7 +93,8 @@ export const kongEntities: IKongEntity[] = [
 		uiSpaceBefore: true,
 		defaultAddValue: {
 			url: "https://example.com"
-		}
+		},
+		logo: 'globe'
 	},
 	{
 		name: 'routes',
@@ -105,16 +106,22 @@ export const kongEntities: IKongEntity[] = [
 			paths: [],
 			methods: [],
 			strip_path: false
-		}
+		},
+		logo: 'shuffle'
 	},
 	{
 		name: 'plugins',
 		displayedFields: ['name', 'service', 'route', 'enabled', 'updated_at'],
 		apiPath: 'plugins',
-		uiSpaceAfter: true
+		uiSpaceAfter: true,
+		logo: 'puzzle'
 	},
-	{ name: 'certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'certificates' },
-	{ name: 'ca_certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'ca_certificates' },
+	{
+		name: 'certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'certificates',
+	},
+	{
+		name: 'ca_certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'ca_certificates',
+	},
 	{
 		name: 'consumers', displayedFields: ['username', 'custom_id', 'updated_at'], apiPath: 'consumers',
 		defaultAddValue: {
