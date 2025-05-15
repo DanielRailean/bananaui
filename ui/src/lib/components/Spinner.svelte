@@ -7,6 +7,6 @@
 </script>
 
 <div class="relative">
-	<p class="z-10 absolute top-44 left-60">{uppercased ? text.toUpperCase() : text}</p>
+	<p class="z-10 absolute text-white top-44 left-60">{uppercased ? text.toUpperCase() : text}</p>
 	<img {height} src={spinner} alt="loading" class="rounded-xl" />
 </div>
