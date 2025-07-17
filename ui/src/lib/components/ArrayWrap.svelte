@@ -35,6 +35,16 @@
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
 	export let pathPrefix: string | undefined = '';
+	let displayedFields: string[] = [];
+
+	function updateDisplayedFields() {
+		displayedFields = JSON.parse(JSON.stringify(entity?.displayedFields)) ?? [];
+		if (!displayedFields.includes(sortBy)) {
+			displayedFields.push(sortBy);
+			displayedFields = displayedFields;
+		}
+		console.log(displayedFields);
+	}
 
 	let searchText = '';
 	interface FilteredEntity extends ITooggleableEntityMaybe {
@@ -98,6 +108,7 @@
 		resetPagination();
 		calculatePagination();
 		sort(filteredData);
+		updateDisplayedFields();
 	}
 
 	function sort(arr: any[]) {
@@ -470,7 +481,7 @@
 				<tr>
 					<th><p class="pl-4">No.</p></th>
 					<th><p class="pl-4">Actions</p></th>
-					{#each entity?.displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
+					{#each displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
 						{#if Object.keys(dataRaw[0] ?? {}).includes(field)}
 							<th scope="col" class="pl-4"> {field} </th>
 						{/if}
@@ -531,7 +542,7 @@
 							</div>
 						</td>
 
-						{#each entity?.displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
+						{#each displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
 							{#if Object.keys(item).includes(field)}
 								<td class="p-4">
 									<div class="flex flex-row items-center justify-between">
