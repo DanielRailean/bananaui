@@ -81,7 +81,7 @@
 		}
 		writeToClipboard(result);
 	}
-	let sortKey = entity?.sortBy ?? 'updated_at';
+	let sortBy = entity?.sortBy ?? 'updated_at';
 	let sortAscending = writable(entity?.sortAscending ?? false);
 
 	function updateEvent() {
@@ -89,14 +89,21 @@
 		if (searchText.length == 0) {
 			searchText = params.get('search') ?? '';
 		}
+		sortBy = params.get('sortBy') ?? sortBy;
+		sortAscending.set(params.get('sortAscending') === 'true');
+
 		// filteredData = dataRaw;
 		debounce = DateTime.now().toUnixInteger();
 		search();
 		resetPagination();
 		calculatePagination();
-		filteredData = filteredData.sort((a, b) => {
-			let fieldA = a[sortKey];
-			let fieldB = b[sortKey];
+		sort(filteredData);
+	}
+
+	function sort(arr: any[]) {
+		arr.sort((a, b) => {
+			let fieldA = a[sortBy];
+			let fieldB = b[sortBy];
 			if (typeof fieldA == 'object') {
 				fieldA = JSON.stringify(fieldA);
 				fieldB = JSON.stringify(fieldB);
@@ -193,24 +200,27 @@
 
 	let searchDebounce: number | undefined = undefined;
 	// time after which the search will be written to the url query if unmodified
-	let debounceTimeoutMs = 750;
+	let debounceTimeoutMs = 550;
 	function updateSearchParamWithDebounce() {
 		if (searchDebounce) {
 			clearTimeout(searchDebounce);
 			searchDebounce = undefined;
 		}
-		searchDebounce = setTimeout(updateSearchQueryParam, debounceTimeoutMs);
+		searchDebounce = setTimeout(updateSearchQueryParams, debounceTimeoutMs, { search: searchText });
 	}
 	onDestroy(() => {
 		clearTimeout(searchDebounce);
 	});
-	function updateSearchQueryParam() {
+	function updateSearchQueryParams(map: { [key: string]: string }) {
 		const url = new URL(window.location.toString());
-		if (searchText.length > 0) {
-			url.searchParams.set('search', searchText);
-		} else {
-			url.searchParams.delete('search');
+		for (const [key, val] of Object.entries(map)) {
+			if (val.length > 0) {
+				url.searchParams.set(key, val);
+			} else {
+				url.searchParams.delete(key);
+			}
 		}
+
 		history.pushState(null, '', url);
 	}
 	function search() {
@@ -243,11 +253,7 @@
 			}
 			return true;
 		});
-		// } else {
-		// 	filteredData = dataRaw.filter((item: any) =>
-		// 		JSON.stringify(item).toLowerCase().includes(searchText.toLowerCase())
-		// 	);
-		// }
+		sort(filteredData);
 		resetPagination();
 		calculatePagination();
 	}
@@ -311,14 +317,15 @@
 		<div class="flex flex-row items-center space-x-2 pl-1">
 			<p class="text-lg">Sort by:</p>
 			<select
-				bind:value={sortKey}
+				bind:value={sortBy}
 				on:change={() => {
+					updateSearchQueryParams({ sortBy: sortBy });
 					updateEvent();
 				}}
 				class="dark:bg-stone-700 shadow shadow-slate-600 border-none w-52 rounded focus:border-none focus:[box-shadow:none]"
 			>
 				{#each Object.keys(dataRaw[0] ?? {}) as key}
-					<option value={key} selected={key == sortKey}>{key}</option>
+					<option value={key} selected={key == sortBy}>{key}</option>
 				{/each}
 			</select>
 		</div>
@@ -330,6 +337,7 @@
 				title={'Controls the sort direction, either ascending or descending'}
 				on:change={async () => {
 					sortAscending.set(!$sortAscending);
+					updateSearchQueryParams({ sortAscending: JSON.stringify(get(sortAscending)) });
 					updateEvent();
 				}}
 			/>
@@ -472,7 +480,7 @@
 			<tbody>
 				{#each filteredData.slice(arrayStart, arrayEnd) as item, index}
 					<tr
-						class="hoveritem dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
+						class="hoveritem border dark:border-stone-800 rounded"
 						on:auxclick={() => {
 							window.open(
 								`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`,

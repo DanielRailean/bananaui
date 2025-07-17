@@ -153,6 +153,7 @@ export const kongEntities: IKongEntity[] = [
 		displayedFields: ['hostname', 'last_seen', 'labels', 'sync_status', 'version', 'config_hash'],
 		apiPath: 'clustering/data-planes',
 		uiSpaceAfter: true,
+		sortBy: 'last_seen',
 		uiSpaceBefore: true
 	}
 ];

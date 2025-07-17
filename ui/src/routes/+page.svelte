@@ -10,7 +10,12 @@
 	onMount(async () => {
 		try {
 			const res = await (await apiService()).getInfo();
-			info = res.data;
+			
+			let infoRaw = res.data;
+			const sortedPlugins = Object.entries(infoRaw?.plugins.available_on_server ?? {}).sort((a,b)=>b[1].priority - a[1].priority)
+			const plugins = Object.fromEntries(sortedPlugins)
+			infoRaw!.plugins.available_on_server = plugins
+			info = infoRaw
 		} catch (error: any) {
 			addToast({ message: `Failed fetching the info. ${error.message ? error.message : ''}` });
 		}
