@@ -12,9 +12,9 @@ export const paginationAwaitBetweenPages = 0;
 export const dateFields = ['created_at', 'updated_at', 'last_seen'];
 export const fieldOrder = [
 	// common
+	'enabled',
 	'name',
 	'id',
-	'enabled',
 
 	// sub entities of service
 	'service',
@@ -85,7 +85,11 @@ export function sortObjectFieldsByOrder<T extends AnyObject>(
 export const kongEntities: IKongEntity[] = [
 	{
 		name: 'services',
-		displayedFields: ['tags', 'name', 'host', 'port', 'path', 'enabled', 'updated_at'],
+		displayedFields: [
+			'enabled',
+			'tags',
+			'name', 'host', 'port', 'path',
+			'updated_at'],
 		apiPath: 'services',
 		subEntities: ['routes', 'plugins'],
 		sortBy: 'updated_at',
@@ -111,7 +115,11 @@ export const kongEntities: IKongEntity[] = [
 	},
 	{
 		name: 'plugins',
-		displayedFields: ['name', 'service', 'route', 'enabled', 'updated_at'],
+		displayedFields: [
+			'enabled',
+			'name',
+			'service', 'route',
+			'updated_at'],
 		apiPath: 'plugins',
 		uiSpaceAfter: true,
 		logo: 'puzzle'
