@@ -43,7 +43,6 @@
 			displayedFields.push(sortBy);
 			displayedFields = displayedFields;
 		}
-		console.log(displayedFields);
 	}
 
 	let searchText = '';
@@ -245,6 +244,25 @@
 		// if (booleanAndSearch.length > 1) {
 		filteredData = dataRaw.filter((item: any) => {
 			for (let condition of booleanAndSearch) {
+				const len = condition.split('.len == ');
+				if (len && len.length > 1 && Number.isInteger(+len[1]) && Array.isArray(item[len[0]])) {
+					const passed = item[len[0]].length === +len[1];
+					if (!passed) return false;
+					continue;
+				}
+
+				const not_len = condition.split('.len != ');
+				if (
+					not_len &&
+					not_len.length > 1 &&
+					Number.isInteger(+not_len[1]) &&
+					Array.isArray(item[not_len[0]])
+				) {
+					const passed = item[not_len[0]].length != +not_len[1];
+					if (!passed) return false;
+					continue;
+				}
+
 				condition = condition.trim();
 				const isNot = condition.startsWith('!');
 				let conditionPassed = false;
