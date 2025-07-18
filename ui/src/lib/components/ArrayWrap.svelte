@@ -329,8 +329,8 @@
 					updateSearchParamWithDebounce();
 					search();
 				}}
-				title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'"
-				placeholder="search (hover for info)"
+				title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
+				placeholder="filter (hover for more info)"
 			/>
 		</div>
 		<div class="flex flex-row my-4 pl-1">
