@@ -82,6 +82,12 @@
 	];
 </script>
 
+<svelte:head>
+	{#if $isDark}
+		<meta name="darkreader-lock" />
+	{/if}
+</svelte:head>
+
 <div class="flex flex-col">
 	{#if showTip}
 		<p class="text-[10px]">click on banana to toggle dark mode</p>

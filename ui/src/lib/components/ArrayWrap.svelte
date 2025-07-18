@@ -35,6 +35,15 @@
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
 	export let pathPrefix: string | undefined = '';
+	let displayedFields: string[] = [];
+
+	function updateDisplayedFields() {
+		displayedFields = JSON.parse(JSON.stringify(entity?.displayedFields)) ?? [];
+		if (!displayedFields.includes(sortBy)) {
+			displayedFields.push(sortBy);
+			displayedFields = displayedFields;
+		}
+	}
 
 	let searchText = '';
 	interface FilteredEntity extends ITooggleableEntityMaybe {
@@ -81,7 +90,7 @@
 		}
 		writeToClipboard(result);
 	}
-	let sortKey = entity?.sortBy ?? 'updated_at';
+	let sortBy = entity?.sortBy ?? 'updated_at';
 	let sortAscending = writable(entity?.sortAscending ?? false);
 
 	function updateEvent() {
@@ -89,14 +98,22 @@
 		if (searchText.length == 0) {
 			searchText = params.get('search') ?? '';
 		}
+		sortBy = params.get('sortBy') ?? sortBy;
+		sortAscending.set(params.get('sortAscending') === 'true');
+
 		// filteredData = dataRaw;
 		debounce = DateTime.now().toUnixInteger();
 		search();
 		resetPagination();
 		calculatePagination();
-		filteredData = filteredData.sort((a, b) => {
-			let fieldA = a[sortKey];
-			let fieldB = b[sortKey];
+		sort(filteredData);
+		updateDisplayedFields();
+	}
+
+	function sort(arr: any[]) {
+		arr.sort((a, b) => {
+			let fieldA = a[sortBy];
+			let fieldB = b[sortBy];
 			if (typeof fieldA == 'object') {
 				fieldA = JSON.stringify(fieldA);
 				fieldB = JSON.stringify(fieldB);
@@ -193,24 +210,27 @@
 
 	let searchDebounce: number | undefined = undefined;
 	// time after which the search will be written to the url query if unmodified
-	let debounceTimeoutMs = 750;
+	let debounceTimeoutMs = 550;
 	function updateSearchParamWithDebounce() {
 		if (searchDebounce) {
 			clearTimeout(searchDebounce);
 			searchDebounce = undefined;
 		}
-		searchDebounce = setTimeout(updateSearchQueryParam, debounceTimeoutMs);
+		searchDebounce = setTimeout(updateSearchQueryParams, debounceTimeoutMs, { search: searchText });
 	}
 	onDestroy(() => {
 		clearTimeout(searchDebounce);
 	});
-	function updateSearchQueryParam() {
+	function updateSearchQueryParams(map: { [key: string]: string }) {
 		const url = new URL(window.location.toString());
-		if (searchText.length > 0) {
-			url.searchParams.set('search', searchText);
-		} else {
-			url.searchParams.delete('search');
+		for (const [key, val] of Object.entries(map)) {
+			if (val.length > 0) {
+				url.searchParams.set(key, val);
+			} else {
+				url.searchParams.delete(key);
+			}
 		}
+
 		history.pushState(null, '', url);
 	}
 	function search() {
@@ -224,6 +244,25 @@
 		// if (booleanAndSearch.length > 1) {
 		filteredData = dataRaw.filter((item: any) => {
 			for (let condition of booleanAndSearch) {
+				const len = condition.split('.len == ');
+				if (len && len.length > 1 && Number.isInteger(+len[1]) && Array.isArray(item[len[0]])) {
+					const passed = item[len[0]].length === +len[1];
+					if (!passed) return false;
+					continue;
+				}
+
+				const not_len = condition.split('.len != ');
+				if (
+					not_len &&
+					not_len.length > 1 &&
+					Number.isInteger(+not_len[1]) &&
+					Array.isArray(item[not_len[0]])
+				) {
+					const passed = item[not_len[0]].length != +not_len[1];
+					if (!passed) return false;
+					continue;
+				}
+
 				condition = condition.trim();
 				const isNot = condition.startsWith('!');
 				let conditionPassed = false;
@@ -243,11 +282,7 @@
 			}
 			return true;
 		});
-		// } else {
-		// 	filteredData = dataRaw.filter((item: any) =>
-		// 		JSON.stringify(item).toLowerCase().includes(searchText.toLowerCase())
-		// 	);
-		// }
+		sort(filteredData);
 		resetPagination();
 		calculatePagination();
 	}
@@ -294,8 +329,8 @@
 					updateSearchParamWithDebounce();
 					search();
 				}}
-				title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'"
-				placeholder="search (hover for info)"
+				title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
+				placeholder="filter (hover for more info)"
 			/>
 		</div>
 		<div class="flex flex-row my-4 pl-1">
@@ -311,14 +346,15 @@
 		<div class="flex flex-row items-center space-x-2 pl-1">
 			<p class="text-lg">Sort by:</p>
 			<select
-				bind:value={sortKey}
+				bind:value={sortBy}
 				on:change={() => {
+					updateSearchQueryParams({ sortBy: sortBy });
 					updateEvent();
 				}}
 				class="dark:bg-stone-700 shadow shadow-slate-600 border-none w-52 rounded focus:border-none focus:[box-shadow:none]"
 			>
 				{#each Object.keys(dataRaw[0] ?? {}) as key}
-					<option value={key} selected={key == sortKey}>{key}</option>
+					<option value={key} selected={key == sortBy}>{key}</option>
 				{/each}
 			</select>
 		</div>
@@ -330,6 +366,7 @@
 				title={'Controls the sort direction, either ascending or descending'}
 				on:change={async () => {
 					sortAscending.set(!$sortAscending);
+					updateSearchQueryParams({ sortAscending: JSON.stringify(get(sortAscending)) });
 					updateEvent();
 				}}
 			/>
@@ -462,7 +499,7 @@
 				<tr>
 					<th><p class="pl-4">No.</p></th>
 					<th><p class="pl-4">Actions</p></th>
-					{#each entity?.displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
+					{#each displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
 						{#if Object.keys(dataRaw[0] ?? {}).includes(field)}
 							<th scope="col" class="pl-4"> {field} </th>
 						{/if}
@@ -472,7 +509,7 @@
 			<tbody>
 				{#each filteredData.slice(arrayStart, arrayEnd) as item, index}
 					<tr
-						class="hoveritem dark:border-zinc-700 even:bg-stone-200 dark:even:bg-stone-800"
+						class="hoveritem border dark:border-stone-800 rounded"
 						on:auxclick={() => {
 							window.open(
 								`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`,
@@ -523,7 +560,7 @@
 							</div>
 						</td>
 
-						{#each entity?.displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
+						{#each displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
 							{#if Object.keys(item).includes(field)}
 								<td class="p-4">
 									<div class="flex flex-row items-center justify-between">
@@ -570,7 +607,7 @@
 																class="sr-only peer"
 															/>
 															<div
-																class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"
+																class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:dark:bg-stone-900 after:dark:border-none after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-800"
 															></div>
 															<!-- <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Toggle me</span> -->
 														</label>
