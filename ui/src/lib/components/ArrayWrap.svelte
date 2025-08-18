@@ -38,7 +38,7 @@
 	let displayedFields: string[] = [];
 
 	function updateDisplayedFields() {
-		displayedFields = JSON.parse(JSON.stringify(entity?.displayedFields)) ?? [];
+		displayedFields = JSON.parse(JSON.stringify(entity?.displayedFields ?? []));
 		if (!displayedFields.includes(sortBy)) {
 			displayedFields.push(sortBy);
 			displayedFields = displayedFields;
@@ -562,7 +562,7 @@
 
 						{#each displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
 							{#if Object.keys(item).includes(field)}
-								<td class="p-4">
+								<td class="p-2">
 									<div class="flex flex-row items-center justify-between">
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
@@ -659,11 +659,16 @@
 												</div>
 											{:else if Object.is(item[field], null)}
 												-
-											{:else if Array.isArray(item[field]) && item[field].length == 1}
-												<div class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded">
-													<p>
-														{item[field][0]}
-													</p>
+											{:else if Array.isArray(item[field])}
+												<div class="overflow-y-auto h-20 fancy-scroll flex flex-col justify-center pt-4">
+													{#each item[field] as row, index}
+														<!-- content here -->
+														<p class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50"
+														title="copy '{item[field][index]}'"
+														on:click|stopPropagation|preventDefault={()=>{
+															copy(item[field][index])
+														}}>{row}</p>
+													{/each}
 												</div>
 											{:else}
 												{JSON.stringify(item[field], undefined, 2)}

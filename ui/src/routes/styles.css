@@ -18,3 +18,11 @@ body {
 .lf:nth-last-child(2) {
 	display: block;
 }
+
+.fancy-scroll {
+	@apply [&::-webkit-scrollbar]:w-1
+	[&::-webkit-scrollbar-track]:bg-gray-100
+	[&::-webkit-scrollbar-thumb]:bg-gray-300
+	dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600
+	dark:[&::-webkit-scrollbar-track]:bg-neutral-800
+}
