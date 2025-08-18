@@ -155,7 +155,16 @@ export const kongEntities: IKongEntity[] = [
 		defaultAddValue: { name: 'my_keyset_name' }
 	},
 	{ name: 'snis', displayedFields: undefined, apiPath: 'snis' },
-	{ name: 'vaults', displayedFields: undefined, apiPath: 'vaults' },
+	{
+		name: 'vaults',
+		displayedFields: [
+			"prefix",
+			"name",
+			"config",
+			"tags"
+		],
+		apiPath: 'vaults'
+	},
 	{
 		name: 'dataplanes',
 		displayedFields: ['hostname', 'last_seen', 'labels', 'sync_status', 'version', 'config_hash'],
