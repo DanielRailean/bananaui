@@ -13,7 +13,7 @@
 		loadParentInfo: false,
 		paginationSizeUi: 20,
 		paginationSizeApi: 1000,
-		cachedEntities: ["services", "plugins", "routes", "consumers"]
+		// cachedEntities: ["services", "plugins", "routes", "consumers"]
 	};
 
 	onMount(async () => {
