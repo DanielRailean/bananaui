@@ -23,6 +23,10 @@
 		{
 			name: 'settings',
 			appPath: '/settings'
+		},
+		{
+			name: 'preferences',
+			appPath: '/preferences'
 		}
 	];
 	import { onMount } from 'svelte';

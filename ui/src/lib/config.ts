@@ -1,12 +1,12 @@
+import { get } from 'svelte/store';
+import { preferences } from './stores';
 import type { IKongEntity } from './types';
 
 export const staticConfig = {
 	autoLoginDelayMs: 100,
 	name: 'Banana UI'
 };
-export const paginationSizeUi = 20;
 
-export const paginationSize = 1000;
 export const paginationAwaitBetweenPages = 0;
 
 export const dateFields = ['created_at', 'updated_at', 'last_seen'];
@@ -175,7 +175,7 @@ export const kongEntities: IKongEntity[] = [
 	}
 ];
 
-export const preferences = {
+export const oldPrefs = {
 	copyElementOnSingleElementArray: {
 		type: 'boolean',
 		default: true
