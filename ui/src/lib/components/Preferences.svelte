@@ -1,18 +1,33 @@
 <script lang="ts">
-	import { preferences } from '$lib/stores';
+	import {
+		getPreferencesAsJson,
+		getPreferencesFromJson,
+		preferences,
+		savePreferences,
+		setPreferences
+	} from '$lib/stores';
 	import { onMount } from 'svelte';
 
-	const defaultPrefs: {[key:string]:any} = {
-		loadParentInfo: false
+	const defaultPrefs: { [key: string]: any } = {
+		version: 1,
+		loadParentInfo: false,
+		paginationSizeUi: 20,
+		paginationSizeApi: 1000,
+		cachedEntities: ["services", "plugins", "routes", "consumers"]
 	};
 
 	onMount(async () => {
-		const preferencesStr = localStorage.getItem('preferences');
+		let preferencesStr = localStorage.getItem('preferences');
 		if (!preferencesStr) {
-			localStorage.setItem('preferences', JSON.stringify(defaultPrefs, undefined, 2));
-			preferences.set(defaultPrefs)
-		} else {
-			preferences.set(JSON.parse(preferencesStr))
+			preferencesStr = JSON.stringify(defaultPrefs);
+		}
+		setPreferences(getPreferencesFromJson(preferencesStr));
+		if (preferences) {
+			for (const key of Object.keys(preferences)) {
+				preferences[key].subscribe((v) => {
+					savePreferences()
+				});
+			}
 		}
 	});
 </script>

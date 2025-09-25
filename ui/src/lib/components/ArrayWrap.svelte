@@ -8,7 +8,7 @@
 		FileCopyOutline,
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
-	import { dateFields, kongEntities, paginationSizeUi } from '$lib/config';
+	import { dateFields, kongEntities } from '$lib/config';
 	import { apiService } from '$lib/requests';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { createEventDispatcher } from 'svelte';
@@ -19,16 +19,7 @@
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
 	import { preferences, triggerPageUpdate } from '$lib/stores';
 
-	let loadParentName = writable($preferences?.loadParentInfo);
-
-	loadParentName.subscribe((v) => {
-		const prefs = get(preferences);
-		if (!prefs) {
-			return;
-		}
-		prefs.loadParentInfo = v;
-		preferences.set(prefs);
-	});
+	let loadParentName = preferences?.loadParentInfo;
 	const dispatch = createEventDispatcher();
 
 	export let dataRaw: ITooggleableEntityMaybe[];
@@ -51,6 +42,7 @@
 	}
 	let filteredData: any[] = [];
 
+	let paginationSizeUi = get(preferences.paginationSizeUi);
 	let arrayStart = 0;
 	let arrayEnd = paginationSizeUi;
 	let pageNumber = 1;
@@ -236,7 +228,9 @@
 	function search() {
 		if (searchText.length == 0) {
 			filteredData = dataRaw.map((i: any): FilteredEntity => {
-				i.enabledWritable = writable(i.enabled);
+				if (i.enabled != undefined) {
+					i.enabledWritable = writable(i.enabled);
+				}
 				return i as FilteredEntity;
 			});
 		}
@@ -379,7 +373,7 @@
 					if (!conf) {
 						return;
 					}
-					copy(filteredData);
+					copy(filteredData.map(i=>{i.enabledWritable = undefined; return i}));
 				}}
 				class="flex flex-row items-center dark:bg-stone-700 bg-stone-100 rounded p-1 pr-2 m-1"
 			>
@@ -660,14 +654,20 @@
 											{:else if Object.is(item[field], null)}
 												-
 											{:else if Array.isArray(item[field])}
-												<div class="overflow-y-auto h-20 fancy-scroll flex flex-col justify-center pt-4">
+												<div
+													class="overflow-y-auto h-20 fancy-scroll flex flex-col justify-center pt-4"
+												>
 													{#each item[field] as row, index}
 														<!-- content here -->
-														<p class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50"
-														title="copy '{item[field][index]}'"
-														on:click|stopPropagation|preventDefault={()=>{
-															copy(item[field][index])
-														}}>{row}</p>
+														<p
+															class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50"
+															title="copy '{item[field][index]}'"
+															on:click|stopPropagation|preventDefault={() => {
+																copy(item[field][index]);
+															}}
+														>
+															{row}
+														</p>
 													{/each}
 												</div>
 											{:else}

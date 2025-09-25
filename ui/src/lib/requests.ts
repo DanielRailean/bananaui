@@ -1,11 +1,10 @@
 import { goto } from '$app/navigation';
 import { get } from 'svelte/store';
-import { config, userToken } from './stores';
+import { config, preferences, userToken } from './stores';
 import { addToast } from './toastStore';
 import { delay } from './util';
 import type { IEntityBase, IPaginationRes } from './types';
 import type { IRootRes, IResCreateError, ISchemaRes, IPluginConfig } from './responseTypes';
-import { paginationSize } from './config';
 import { base } from '$app/paths';
 import { DateTime } from 'luxon';
 
@@ -124,7 +123,7 @@ class ApiService {
 		pathPrefix: string = ''
 	) {
 		return requestWithResponseBody<T>(
-			`${this.endpoint}${pathPrefix}/${entity}?size=${paginationSize}&sort_by=updated_at`,
+			`${this.endpoint}${pathPrefix}/${entity}?size=${get(preferences.paginationSizeApi)}&sort_by=updated_at`,
 			undefined,
 			undefined,
 			this.headers
