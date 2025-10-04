@@ -18,7 +18,7 @@
 	const localCacheKey = "preferences"
 	onMount(async () => {
 		let prefObject: {[key: string]: any} = {};
-		let localStoragePref = localStorage.getItem('preferences');
+		let localStoragePref = localStorage.getItem(localCacheKey);
 		if (localStoragePref) {
 			try {
 				prefObject = JSON.parse(localStoragePref)
