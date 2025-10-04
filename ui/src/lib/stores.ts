@@ -33,11 +33,10 @@ export function getPreferencesAsJson(): string {
 	return JSON.stringify(val, undefined, 2)
 }
 
-export function getPreferencesFromJson(jsonStr: string): { [key: string]: Writable<any> } {
-	const parsed = JSON.parse(jsonStr)
+export function getPreferencesObject(prefObj: any): { [key: string]: Writable<any> } {
 	const result: any = {}
-	for (const key of Object.keys(parsed)) {
-		result[key] = writable(parsed[key])
+	for (const key of Object.keys(prefObj)) {
+		result[key] = writable(prefObj[key])
 	}
 	return result
 }

@@ -7,7 +7,7 @@
 	import type { IConfig } from '$lib/types.ts';
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
-	import { config, getPreferencesAsJson, getPreferencesFromJson, savePreferences, setPreferences } from '$lib/stores';
+	import { config, getPreferencesAsJson, getPreferencesObject, savePreferences, setPreferences } from '$lib/stores';
 
 	let json = '';
 	onMount(async () => {
@@ -44,7 +44,7 @@
 	function save()
 	{
 		format(false)
-		setPreferences(getPreferencesFromJson(json));
+		setPreferences(getPreferencesObject(JSON.parse(json)));
 		savePreferences()
 		infoToast("preferences saved!")
 	}

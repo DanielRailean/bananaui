@@ -1,31 +1,50 @@
 <script lang="ts">
 	import {
 		getPreferencesAsJson,
-		getPreferencesFromJson,
+		getPreferencesObject,
 		preferences,
 		savePreferences,
 		setPreferences
 	} from '$lib/stores';
 	import { onMount } from 'svelte';
 
-	const defaultPrefs: { [key: string]: any } = {
+	const defaultPref: { [key: string]: any } = {
 		version: 1,
 		loadParentInfo: false,
 		paginationSizeUi: 20,
 		paginationSizeApi: 1000,
-		// cachedEntities: ["services", "plugins", "routes", "consumers"]
 	};
 
+	const localCacheKey = "preferences"
 	onMount(async () => {
-		let preferencesStr = localStorage.getItem('preferences');
-		if (!preferencesStr) {
-			preferencesStr = JSON.stringify(defaultPrefs);
+		let prefObject: {[key: string]: any} = {};
+		let localStoragePref = localStorage.getItem(localCacheKey);
+		if (localStoragePref) {
+			try {
+				prefObject = JSON.parse(localStoragePref)
+			} catch (error) {
+				prefObject = JSON.parse(JSON.stringify(defaultPref))
+			}
 		}
-		setPreferences(getPreferencesFromJson(preferencesStr));
+		if (!prefObject.version || prefObject.version < defaultPref.version) {
+			for (const key of Object.keys(prefObject)) {
+				if (!defaultPref[key]) {
+					prefObject[key] = undefined;
+				}
+			}
+			for (const key of Object.keys(defaultPref)) {
+				if (!prefObject[key] || typeof(prefObject[key]) != typeof(defaultPref[key])) {
+					prefObject[key] = defaultPref[key];
+				}
+			}
+			prefObject.version = defaultPref.version,
+			localStorage.setItem(localCacheKey, JSON.stringify(prefObject))
+		}
+		setPreferences(getPreferencesObject(prefObject));
 		if (preferences) {
 			for (const key of Object.keys(preferences)) {
 				preferences[key].subscribe((v) => {
-					savePreferences()
+					savePreferences();
 				});
 			}
 		}
