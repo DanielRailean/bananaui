@@ -8,6 +8,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { writeToClipboard } from '$lib/util';
+	import * as yaml from "js-yaml"
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import {
 		CirclePlusOutline,
@@ -42,6 +43,13 @@
 	$: $page, load();
 
 	let isMounted = false;
+
+	const yamlOptions: yaml.DumpOptions = {
+		noArrayIndent : true,
+		noRefs: true,
+		noCompatMode: true,
+		quotingType: '"',
+	}
 
 	onMount(() => {
 		isMounted = true;
@@ -224,7 +232,7 @@
 				class="h-10 m-1"
 				title={stateJson}
 				on:click={() => {
-					writeToClipboard(yaml.dump(JSON.parse(stateJson)));
+					writeToClipboard(yaml.dump(JSON.parse(stateJson), yamlOptions));
 				}}
 			>
 				<FileCopyOutline class="m-2" />
