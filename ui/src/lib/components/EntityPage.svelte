@@ -219,6 +219,17 @@
 				<FileCopyOutline class="m-2" />
 				copy JSON</Button
 			>
+			<Button
+				color="alternative"
+				class="h-10 m-1"
+				title={stateJson}
+				on:click={() => {
+					writeToClipboard(yaml.dump(JSON.parse(stateJson)));
+				}}
+			>
+				<FileCopyOutline class="m-2" />
+				copy YAML</Button
+			>
 		{:else}
 			<Button
 				class="h-10 m-1"
@@ -317,7 +328,7 @@
 	{/if}
 </div>
 
-<style>
+<style lang="postcss">
 	.editor {
 		grid-template-columns: 1fr;
 		grid-template-rows: 1fr;
