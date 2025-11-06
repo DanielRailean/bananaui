@@ -637,7 +637,7 @@
 														}}
 													>
 														<div>
-															<p class="dark:text-blue-500 text-blue-700 px-1 truncate">
+															<p class="dark:text-blue-500 text-blue-700 px-1 truncate max-w-[360px]">
 																{#if $loadParentName}
 																	{#await getInfo(field, item[field].id, item.name ?? item.id) then value}
 																		{value}
