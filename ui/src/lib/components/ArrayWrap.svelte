@@ -503,7 +503,7 @@
 			<tbody>
 				{#each filteredData.slice(arrayStart, arrayEnd) as item, index}
 					<tr
-						class="hoveritem border dark:border-stone-800 rounded"
+						class="dark:hover:bg-stone-900 hover:bg-blue-300 border dark:border-stone-800 rounded"
 						on:auxclick={() => {
 							window.open(
 								`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`,
@@ -739,7 +739,4 @@
 </div>
 
 <style lang="postcss">
-	.hoveritem:hover {
-		@apply dark:bg-blue-900 bg-blue-300;
-	}
 </style>
