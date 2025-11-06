@@ -243,7 +243,7 @@
 		{/if}
 	</div>
 		<div
-			class="editor dark:bg-[#1E2021] w-full min-h-[30vh] line-numbers {isEdited
+			class="editor dark:bg-[#1E2021] w-full min-h-[60vh] line-numbers {isEdited
 				? 'grid'
 				: 'hidden'}"
 		>
@@ -332,7 +332,7 @@
 	.editor textarea {
 		background-color: transparent;
 		border: none;
-		color: transparent;
+		color: rgba(255, 255, 255, 0.1);
 		caret-color: gray;
 		overflow: hidden;
 		resize: none;
