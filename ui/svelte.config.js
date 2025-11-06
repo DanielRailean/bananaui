@@ -1,13 +1,12 @@
 import adapter from '@sveltejs/adapter-node';
 import * as staticAd from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
-import { preprocessMeltUI, sequence } from '@melt-ui/pp';
 
 /** @type {import('@sveltejs/kit').Config} */
 let config = {
 	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
 	// for more information about preprocessors
-	preprocess: sequence([vitePreprocess(), preprocessMeltUI()]),
+	preprocess: vitePreprocess(),
 
 	kit: {
 		// adapter-auto only supports some environments, see https://kit.svelte.dev/docs/adapter-auto for a list.
@@ -19,7 +18,7 @@ let config = {
 
 if (process.env.SVELTE_BUILD_STATIC === 'true') {
 	config = {
-		preprocess: sequence([vitePreprocess(), preprocessMeltUI()]),
+		preprocess: vitePreprocess(),
 		kit: {
 			adapter: staticAd.default({
 				// default options are shown. On some platforms
