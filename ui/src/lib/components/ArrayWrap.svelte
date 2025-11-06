@@ -513,7 +513,7 @@
 					>
 						<td class="">
 							<p class="text-center font-light pl-3">
-								{index + 1 + arrayStart}
+								{index + 1 + arrayStart}.
 							</p></td
 						>
 						<td class="p-2">
@@ -525,8 +525,8 @@
 										copy(JSON.stringify(item, undefined, 2));
 									}}
 								>
-									<div class="flex flex-row items-center">
-										<FileCopyOutline class="m-1" />
+									<div class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700">
+										<FileCopyOutline class="m-1" size="lg" />
 									</div>
 								</button>
 								<button title="open" class="h-8" color="alternative">
@@ -534,8 +534,8 @@
 										href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}"
 										class="text-emerald-600"
 									>
-										<div class="flex flex-row items-center">
-											<ArrowUpRightFromSquareOutline class="m-1" />
+										<div class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700">
+											<ArrowUpRightFromSquareOutline class="m-1" size="lg" />
 										</div>
 									</a>
 								</button>
@@ -546,8 +546,8 @@
 										await deleteEntity(entity?.name ?? '', item.id, item.name ?? item.id)}
 								>
 									<div class="text-rose-500">
-										<div class="flex flex-row items-center">
-											<TrashBinOutline class="m-1" />
+										<div class="flex flex-row items-center  rounded hover:outline outline-1 hover:outline-stone-700">
+											<TrashBinOutline class="m-1" size="lg" />
 										</div>
 									</div>
 								</button>
