@@ -49,6 +49,7 @@
 		noRefs: true,
 		noCompatMode: true,
 		quotingType: '"',
+		lineWidth: 9999
 	}
 
 	onMount(() => {
