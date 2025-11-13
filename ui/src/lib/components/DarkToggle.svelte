@@ -90,12 +90,12 @@
 
 <div class="flex flex-col">
 	{#if showTip}
-		<p class="text-[10px]">click on banana to toggle dark mode</p>
+		<p class="text-md ">click on banana to toggle dark/light mode</p>
 	{/if}
 	<div class="flex flex-row items-center">
 		<div class="cursor-pointer {div_class}" title="toggle dark mode" on:click={handleClick}>
-			<img src={logo} alt="bananaui logo" class="w-10 h-10 m-4 {$isDark ? 'invert' : ''}" />
+			<img src={logo} alt="bananaui logo" class="w-14 h-14 m-4 {$isDark ? 'invert' : ''}" />
 		</div>
-		<h1 class="text-2xl font-bold">{staticConfig.name}</h1>
+		<h1 class="text-3xl font-bold">{staticConfig.name}</h1>
 	</div>
 </div>

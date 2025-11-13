@@ -324,7 +324,7 @@
 					search();
 				}}
 				title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
-				placeholder="filter (hover for more info)"
+				placeholder="search (hover for more info)"
 			/>
 		</div>
 		<div class="flex flex-row my-4 pl-1">
@@ -503,7 +503,7 @@
 			<tbody>
 				{#each filteredData.slice(arrayStart, arrayEnd) as item, index}
 					<tr
-						class="hoveritem border dark:border-stone-800 rounded"
+						class="dark:hover:bg-stone-900 hover:bg-blue-300 border dark:border-stone-800 rounded"
 						on:auxclick={() => {
 							window.open(
 								`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`,
@@ -513,7 +513,7 @@
 					>
 						<td class="">
 							<p class="text-center font-light pl-3">
-								{index + 1 + arrayStart}
+								{index + 1 + arrayStart}.
 							</p></td
 						>
 						<td class="p-2">
@@ -525,8 +525,8 @@
 										copy(JSON.stringify(item, undefined, 2));
 									}}
 								>
-									<div class="flex flex-row items-center">
-										<FileCopyOutline class="m-1" />
+									<div class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700">
+										<FileCopyOutline class="m-1" size="lg" />
 									</div>
 								</button>
 								<button title="open" class="h-8" color="alternative">
@@ -534,8 +534,8 @@
 										href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}"
 										class="text-emerald-600"
 									>
-										<div class="flex flex-row items-center">
-											<ArrowUpRightFromSquareOutline class="m-1" />
+										<div class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700">
+											<ArrowUpRightFromSquareOutline class="m-1" size="lg" />
 										</div>
 									</a>
 								</button>
@@ -546,8 +546,8 @@
 										await deleteEntity(entity?.name ?? '', item.id, item.name ?? item.id)}
 								>
 									<div class="text-rose-500">
-										<div class="flex flex-row items-center">
-											<TrashBinOutline class="m-1" />
+										<div class="flex flex-row items-center  rounded hover:outline outline-1 hover:outline-stone-700">
+											<TrashBinOutline class="m-1" size="lg" />
 										</div>
 									</div>
 								</button>
@@ -561,7 +561,7 @@
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 										<p
-											class="mr-2 cursor-pointer overflow-hidden max-h-20"
+											class="mr-2 cursor-pointer overflow-hidden max-h-40"
 											title={field == 'name'
 												? `open ${item.name ?? ''} (${item.id})`
 												: `click to copy '${field}'\n${JSON.stringify(item[field], undefined, 2)} `}
@@ -637,7 +637,7 @@
 														}}
 													>
 														<div>
-															<p class="dark:text-blue-500 text-blue-700 px-1 truncate">
+															<p class="dark:text-blue-500 text-blue-700 px-1 truncate max-w-[360px]">
 																{#if $loadParentName}
 																	{#await getInfo(field, item[field].id, item.name ?? item.id) then value}
 																		{value}
@@ -655,12 +655,12 @@
 												-
 											{:else if Array.isArray(item[field])}
 												<div
-													class="overflow-y-auto h-20 fancy-scroll flex flex-col justify-center pt-4"
+													class="flex flex-row flex-wrap justify-start max-w-[650px] {field == "methods" ? `max-w-[200px]`: "max-w-[650px]"}"
 												>
 													{#each item[field] as row, index}
 														<!-- content here -->
 														<p
-															class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50"
+															class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50 {field == "methods" ? `http-method method-${item[field][index].toLowerCase()}`: ""}"
 															title="copy '{item[field][index]}'"
 															on:click|stopPropagation|preventDefault={() => {
 																copy(item[field][index]);
@@ -739,7 +739,4 @@
 </div>
 
 <style lang="postcss">
-	.hoveritem:hover {
-		@apply dark:bg-blue-900 bg-blue-300;
-	}
 </style>

@@ -77,11 +77,11 @@
 <header
 	class="flex flex-col shadow shadow-zinc-300 dark:shadow-zinc-800 p-4 pt-10 bg-stone-100 dark:bg-[#1E2021] font-light"
 >
-	<div class="flex flex-row items-center min-w-[230px]">
+	<div class="flex flex-row items-center min-w-[280px]">
 		<DarkToggle div_class="" />
 	</div>
 
-	<nav class="text-xl text-stone-400">
+	<nav class="text-2xl text-stone-400">
 		<ul class="flex flex-col">
 			{#each items as item}
 				{#if item.uiSpaceBefore}

@@ -7,7 +7,7 @@
 	import { base } from '$app/paths';
 	import { writable } from 'svelte/store';
 	import Toggle from './Toggle.svelte';
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import { confirmToast, infoToast } from '$lib/toastStore';
 	import { apiService } from '$lib/requests';
 	export let data: any;
@@ -39,8 +39,8 @@
 		>
 			<table class="w-full text-sm text-left rtl:text-right text-gray-800 dark:text-zinc-300">
 				<tbody>
-					{#each Object.entries(data) as [key, value]}
-						<tr class="bg-white border-t dark:bg-[#1E2021] dark:border-gray-700 hoveritem">
+					{#each Object.keys(data).filter(key=> data[key] !=null) as key}
+						<tr class="bg-white border-t dark:bg-[#1E2021] dark:border-gray-700 dark:hover:bg-stone-900 hover:bg-blue-300">
 							<th
 								on:click={async ()=> {
 									if(keyClickHandler)
@@ -145,8 +145,5 @@
 
 		--json-tree-font-size: 15px;
 		--json-tree-font-family: 'JetBrains Mono', monospace;
-	}
-	.hoveritem:hover {
-		@apply dark:bg-blue-900 bg-blue-300;
 	}
 </style>

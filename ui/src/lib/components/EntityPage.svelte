@@ -8,6 +8,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { writeToClipboard } from '$lib/util';
+	import * as yaml from "js-yaml"
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import {
 		CirclePlusOutline,
@@ -43,9 +44,19 @@
 
 	let isMounted = false;
 
+	const yamlOptions: yaml.DumpOptions = {
+		noArrayIndent : true,
+		noRefs: true,
+		noCompatMode: true,
+		quotingType: '"',
+	}
+
 	onMount(() => {
 		isMounted = true;
 		load();
+		setTimeout(() => {
+			triggerHighlight()
+		}, 100)
 	});
 
 	function updateIsEdited() {
@@ -219,6 +230,17 @@
 				<FileCopyOutline class="m-2" />
 				copy JSON</Button
 			>
+			<Button
+				color="alternative"
+				class="h-10 m-1"
+				title={stateJson}
+				on:click={() => {
+					writeToClipboard(yaml.dump(JSON.parse(stateJson), yamlOptions));
+				}}
+			>
+				<FileCopyOutline class="m-2" />
+				copy YAML</Button
+			>
 		{:else}
 			<Button
 				class="h-10 m-1"
@@ -243,7 +265,7 @@
 		{/if}
 	</div>
 		<div
-			class="editor dark:bg-[#1E2021] w-full min-h-[30vh] line-numbers {isEdited
+			class="editor dark:bg-[#1E2021] w-full min-h-[60vh] line-numbers {isEdited
 				? 'grid'
 				: 'hidden'}"
 		>
@@ -317,7 +339,7 @@
 	{/if}
 </div>
 
-<style>
+<style lang="postcss">
 	.editor {
 		grid-template-columns: 1fr;
 		grid-template-rows: 1fr;
@@ -332,7 +354,7 @@
 	.editor textarea {
 		background-color: transparent;
 		border: none;
-		color: transparent;
+		color: rgba(255, 255, 255, 0.1);
 		caret-color: gray;
 		overflow: hidden;
 		resize: none;
