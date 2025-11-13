@@ -54,6 +54,9 @@
 	onMount(() => {
 		isMounted = true;
 		load();
+		setTimeout(() => {
+			triggerHighlight()
+		}, 100)
 	});
 
 	function updateIsEdited() {

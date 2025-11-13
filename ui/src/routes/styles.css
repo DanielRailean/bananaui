@@ -26,3 +26,31 @@ body {
 	dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600
 	dark:[&::-webkit-scrollbar-track]:bg-neutral-800
 }
+
+.http-method{
+	@apply text-white;
+}
+
+.method-get {
+	@apply bg-emerald-400 dark:bg-emerald-900;
+}
+
+.method-post {
+	@apply bg-indigo-400 dark:bg-indigo-900;
+}
+
+.method-put {
+	@apply bg-orange-400 dark:bg-orange-900;
+}
+
+.method-patch {
+	@apply bg-yellow-400 dark:bg-yellow-900;
+}
+
+.method-delete {
+	@apply bg-red-400 dark:bg-red-900;
+}
+
+.method-options {
+	@apply bg-cyan-400 dark:bg-cyan-900;
+}

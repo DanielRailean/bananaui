@@ -324,7 +324,7 @@
 					search();
 				}}
 				title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
-				placeholder="filter (hover for more info)"
+				placeholder="search (hover for more info)"
 			/>
 		</div>
 		<div class="flex flex-row my-4 pl-1">
@@ -561,7 +561,7 @@
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 										<p
-											class="mr-2 cursor-pointer overflow-hidden max-h-20"
+											class="mr-2 cursor-pointer overflow-hidden max-h-40"
 											title={field == 'name'
 												? `open ${item.name ?? ''} (${item.id})`
 												: `click to copy '${field}'\n${JSON.stringify(item[field], undefined, 2)} `}
@@ -655,12 +655,12 @@
 												-
 											{:else if Array.isArray(item[field])}
 												<div
-													class="overflow-y-auto h-20 fancy-scroll flex flex-col justify-center pt-4"
+													class="flex flex-row flex-wrap justify-start max-w-[650px] {field == "methods" ? `max-w-[200px]`: "max-w-[650px]"}"
 												>
 													{#each item[field] as row, index}
 														<!-- content here -->
 														<p
-															class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50"
+															class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50 {field == "methods" ? `http-method method-${item[field][index].toLowerCase()}`: ""}"
 															title="copy '{item[field][index]}'"
 															on:click|stopPropagation|preventDefault={() => {
 																copy(item[field][index]);
