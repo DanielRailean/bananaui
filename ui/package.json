@@ -37,7 +37,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"js-yaml": "4.1.0",
+		"js-yaml": "4.1.1",
 		"@sveltejs/adapter-node": "5.2.0"
 	}
 }
