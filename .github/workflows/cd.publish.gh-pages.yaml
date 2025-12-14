@@ -15,15 +15,13 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: yarn install
-        working-directory: ui
-        run: yarn
+      - working-directory: ui
+        run: pnpm i
 
-      - name: build
-        working-directory: ui
+      - working-directory: ui
         env:
           SVELTE_BUILD_STATIC: true
-        run: yarn build
+        run: pnpm build
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
