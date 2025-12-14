@@ -9,10 +9,11 @@
 	import { onMount } from 'svelte';
 
 	const defaultPref: { [key: string]: any } = {
-		version: 1,
+		version: 2,
 		loadParentInfo: false,
 		paginationSizeUi: 20,
 		paginationSizeApi: 1000,
+		showPluginOrder: false
 	};
 
 	const localCacheKey = "preferences"
