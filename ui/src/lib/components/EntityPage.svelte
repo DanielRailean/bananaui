@@ -25,6 +25,8 @@
 	import Spinner from './Spinner.svelte';
 	import { preferences } from '$lib/stores';
 	import { get } from 'svelte/store';
+	import { icons } from '$lib/icons';
+	import Link from './Link.svelte';
 
 	let stateJson = '';
 	let json = '';
@@ -138,12 +140,13 @@
 		relevantPlugins = relevantPlugins.map((plugin) => {
 			return {
 				...plugin,
-				name: plugin.service ? `${plugin.name} - service` : `${plugin.name} - route`,
 				priority: info[plugin.name]
 			};
 		});
 		// console.log(relevantPlugins);
 	}
+
+	let openedPlugins: any = {};
 
 	async function deleteEntity(type: string, id: string, name: string) {
 		const conf = confirm(`Please confirm deletion of '${name}'`);
@@ -325,21 +328,49 @@
 				title="show plugin execution order"
 				on:click={() => {
 					showPluginOrder.set(!get(showPluginOrder));
+					openedPlugins = {};
 				}}
 			>
 				<CaretDownOutline class="m-2" />
 				show plugin order</Button
 			>
 			{#if relevantPlugins && $showPluginOrder}
-				<div class="flex flex-col p-4">
+				<div class="flex flex-wrap items-center p-4">
 					{#each relevantPlugins as plugin}
 						<div class="border border-stone-600 rounded-lg dark:border-stone-600 my-2">
-							<p class="p-4 py-3">{plugin.name} - {plugin.priority}</p>
-							<TreeWrapper expandFields={[]} data={{ id: plugin.id, config: plugin.config }}
-							></TreeWrapper>
+							<div
+								class="flex flex-row items-center cursor-pointer p-4"
+								on:click={() => {
+									if (openedPlugins[plugin.id]) {
+										openedPlugins[plugin.id] = !openedPlugins[plugin.id];
+									} else {
+										openedPlugins[plugin.id] = true;
+									}
+									openedPlugins = openedPlugins;
+								}}
+							>
+								{#if plugin.service}
+									<div class="mr-1 h-6 w-6" title="service plugin. priority={plugin.priority}">
+										{@html icons['globe']}
+									</div>
+								{:else if plugin.route}
+									<div class="mr-1 h-6 w-6" title="route plugin. priority={plugin.priority}">
+										{@html icons['shuffle']}
+									</div>
+								{/if}
+								<p class="ml-2 cursor-pointer">
+									{plugin.name}
+								</p>
+								<Link classes="pl-3" href="{base}/entity?type=plugins&id={plugin.id}" title="open {plugin.name} page"/>
+
+							</div>
+							{#if openedPlugins[plugin.id]}
+								<TreeWrapper expandFields={[]} data={plugin.config}></TreeWrapper>
+								<!-- content here -->
+							{/if}
 						</div>
 						{#if relevantPlugins.indexOf(plugin) + 1 != relevantPlugins.length}
-							<span class="text-3xl text-center">&#8595;</span>
+							<span class="text-3xl text-center p-1">→</span>
 						{/if}
 					{/each}
 				</div>

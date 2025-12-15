@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Link from './Link.svelte';
 	import { capitalizeFirstLetter, delay, writeToClipboard } from '$lib/util';
 	import { goto } from '$app/navigation';
 	import { onDestroy, onMount } from 'svelte';
@@ -529,16 +530,7 @@
 										<FileCopyOutline class="m-1" size="lg" />
 									</div>
 								</button>
-								<button title="open" class="h-8" color="alternative">
-									<a
-										href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}"
-										class="text-emerald-600"
-									>
-										<div class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700">
-											<ArrowUpRightFromSquareOutline class="m-1" size="lg" />
-										</div>
-									</a>
-								</button>
+								<Link href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}"/>
 								<button
 									class="h-8"
 									title="delete"
