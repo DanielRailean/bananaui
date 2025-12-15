@@ -11,6 +11,7 @@
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 	import { base } from '$app/paths';
 	import { kongEntities } from '$lib/config';
+	import { delay } from '$lib/util';
 
 	// let entity?.name: string;
 	let entity: IKongEntity | undefined;
@@ -94,6 +95,10 @@
 		}
 		json = JSON.stringify(entity.defaultAddValue ?? dummyObject, undefined, 2);
 		triggerHighlight();
+
+		selectedPlugin = pluginSelect[Math.round(Math.random() * selectedPlugin.length)].value;
+		infoToast(`loaded schema for ${selectedPlugin} (selected randomly)`);
+		pluginSelected();
 	});
 
 	function format(confirmOk = true) {
@@ -146,7 +151,6 @@
 		addField('name', selectedPlugin);
 		const res = await (await apiService()).pluginConfig(selectedPlugin);
 		if (res.ok && res.data) {
-			const config: any = {};
 			let configSchema = res.data.fields.find((i) => Object.entries(i)[0][0] == 'config');
 			if (!configSchema) {
 				addToast({ message: `failed to load config for ${selectedPlugin}` });
@@ -158,23 +162,36 @@
 				const key = entries[0];
 				const value = entries[1];
 				pluginSchema[key] = value;
-				if (value.default || value.required) {
-					config[key] = value.default ?? null;
-					const maybeFields: any = {};
-					for (const field of value.fields ?? []) {
-						const fieldEntries = Object.entries(param)[0];
-						const key = fieldEntries[0];
-						const value = fieldEntries[1];
-						maybeFields[key] = value.default ?? null;
-					}
-					if (Object.keys(maybeFields).length > 0) {
-						config[key] = maybeFields;
-					}
-				}
 			}
+			const config = getDefaultFields(configSchema.config.fields, false);
 			addField('config', config);
 			triggerHighlight();
 		}
+	}
+
+	function getDefaultFields(fields: any[], forcePopulate: boolean): any {
+		const result: any = {};
+		for (const param of fields) {
+			const entries = Object.entries(param)[0];
+			const key: string = entries[0];
+			const value: any = entries[1];
+			if (value.default || value.default === false) {
+				result[key] = value.default;
+				continue;
+			}
+			if (value.type == 'map') {
+				result[key] = getDefault(value);
+				continue;
+			}
+			if (value.required === true || forcePopulate) {
+				result[key] = value.default ?? getDefault(value);
+			}
+			if (value.fields || value.type == 'record') {
+				result[key] = getDefaultFields(value.fields, true);
+				continue;
+			}
+		}
+		return result;
 	}
 
 	let editorWindow: HTMLTextAreaElement;
@@ -186,6 +203,38 @@
 
 		// Highlight the syntax
 		(globalThis as any).Prism.highlightElement(editorSyntax);
+	}
+
+	function getDefault(schemaKey: any): any {
+		if (schemaKey.default) {
+			return schemaKey.default;
+		}
+		if (schemaKey.type == 'number' || schemaKey.type == 'integer') {
+			return -1;
+		}
+		if (schemaKey.type == 'string') {
+			return '';
+		}
+		if (schemaKey.type == 'array') {
+			if (schemaKey.elements) {
+				return [getDefault(schemaKey.elements)];
+			}
+			return [];
+		}
+		if (schemaKey.type == 'record') {
+			if (schemaKey.fields) {
+				return getDefaultFields(schemaKey.fields, true);
+			}
+			return {};
+		}
+		if (schemaKey.type == 'map') {
+			const res: any = {};
+			const key: any = getDefault(schemaKey.keys);
+			res[key] = getDefault(schemaKey.values);
+			return res;
+		}
+		infoToast(`default not found for: ${JSON.stringify(schemaKey)}`);
+		return '';
 	}
 </script>
 
@@ -261,7 +310,7 @@
 		allowCopy={false}
 		allowKeyCopy={true}
 		keyClickHandler={(key) => {
-			addField(key, pluginSchema[key].default ?? '', 'config');
+			addField(key, getDefault(pluginSchema[key]), 'config');
 			infoToast(`'config.${key}' added`);
 		}}
 		keyTitle={() => `click to add to config`}
@@ -285,7 +334,7 @@
 	allowKeyCopy={false}
 />
 
-<style>
+<style lang="postcss">
 	.editor {
 		display: grid;
 		grid-template-columns: 1fr;
