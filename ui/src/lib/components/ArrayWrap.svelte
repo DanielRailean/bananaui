@@ -353,7 +353,10 @@
 			}
 			result = [...result, ...(orPassed ?? [])];
 		}
-		return result;
+		return result.filter(onlyUnique);
+	}
+	function onlyUnique(value:any, index: number, array: any[]) {
+		return array.indexOf(value) === index;
 	}
 
 	// getLogicalGroups('hello && test, no || test.len == 2 && no, yes.len != 2');
