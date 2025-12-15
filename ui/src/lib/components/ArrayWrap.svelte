@@ -21,6 +21,7 @@
 	import { preferences, triggerPageUpdate } from '$lib/stores';
 
 	let loadParentName = preferences?.loadParentInfo;
+	let useNewSearch = preferences?.useNewSearch;
 	const dispatch = createEventDispatcher();
 
 	export let dataRaw: ITooggleableEntityMaybe[];
@@ -264,53 +265,46 @@
 	// console.log(itemPassesLength(objWithArr, {"hello": 2}))
 	// console.log(itemPassesLength(objWithArr, {"hell": 2}))
 
-	function itemPassesValidation(obj: any, validation: any[]): boolean {
-		// console.log(obj);
-		// console.log(validation);
+	function itemPassesOrValidations(obj: any, validation: any[]): boolean {
 		const json = JSON.stringify(obj).toLowerCase();
 		for (const condition of validation) {
 			if (typeof condition === 'string') {
-				// console.log('json checked');
 				const conditionStr = `${condition}`.toLowerCase();
-				// console.log(json);
-				// console.log(conditionStr);
 				if (json.includes(conditionStr)) {
-					continue;
-				} else {
-					return false;
+					return true;
 				}
+				continue;
 			}
-			// console.log(condition);
-			// console.log("is array", Array.isArray(condition))
 			if (Object.keys(condition).length > 0 && !Array.isArray(condition)) {
-				// console.log('len checked');
 				if (itemPassesLength(obj, condition)) {
-					continue;
+					return true;
 				}
-				return false;
+				continue;
 			}
 			if (Array.isArray(condition)) {
-				// console.log('arr checked');
-				let res = itemPassesValidation(obj, condition);
+				let res = itemPassesOrValidations(obj, condition);
 				if (res) {
-					continue;
+					return true;
 				}
-				return false;
+				continue;
 			}
 		}
-		return true;
+		return false;
 	}
 
 	// const objWithArr2 = { hello: ['2', 2], yes: 'no', nr: 3 };
-	// console.log(itemPassesValidation(objWithArr2, [{ hello: 2 }, {hello: -3}, ['no', '3'], "hello"]));
+	// console.log(itemPassesValidation(objWithArr2, [{ hello: 1 }, {hello: -3}, ['noa', '31'], "helloo"]));
+
 	const lenNotEqOp = '.len != ';
 	const lenEqOp = '.len == ';
-	function getAndArray(input: string) {}
 	function getLogicalGroups(input: string) {
+		if (input.trim().length == 0) {
+			return [];
+		}
 		const inputCommaSplit = input.split(',');
 		let groups = [];
 		for (let anyConditions of inputCommaSplit) {
-			console.log(anyConditions.trim());
+			// console.log(anyConditions.trim());
 			let andGroups = [];
 			const booleanAndSearch = anyConditions.split(/\s*&&\s*/);
 			for (const andCondition of booleanAndSearch) {
@@ -320,23 +314,49 @@
 					if (orCondition.includes(lenNotEqOp) || orCondition.includes(lenEqOp)) {
 						const lenNotEq: any = {};
 						let split = orCondition.split(lenNotEqOp);
+						let sign = -1;
 						if (split.length == 1) {
 							split = orCondition.split(lenEqOp);
+							sign = 1;
 						}
-						lenNotEq[split[0].trim()] = +split[1].trim();
+						lenNotEq[split[0].trim()] = +split[1].trim() * sign;
 						orGroups.push(lenNotEq);
 						continue;
 					}
-					orGroups.push(orCondition.trim())
+					orGroups.push(orCondition.trim());
 				}
-				andGroups.push(orGroups)
+				andGroups.push(orGroups);
 			}
-			groups.push(andGroups)
+			groups.push(andGroups);
 		}
-		console.log(JSON.stringify(groups, undefined, 2))
+		return groups;
+	}
+	function doSearch(input: string, arr: any[]) {
+		if (!dataRaw) {
+			return;
+		}
+		const orAndOr = getLogicalGroups(input);
+		console.log(JSON.stringify(orAndOr));
+		if (orAndOr.length == 0) {
+			return arr;
+		}
+		let result: ITooggleableEntityMaybe[] = [];
+		for (const orGroup of orAndOr) {
+			let orPassed: ITooggleableEntityMaybe[] | undefined = undefined;
+			for (const orAndGroup of orGroup) {
+				let temp = arr.filter((item: any) => itemPassesOrValidations(item, orAndGroup));
+				// console.log(JSON.stringify(orGroup, undefined, 2));
+				if (!orPassed) {
+					orPassed = temp;
+				}
+				orPassed = orPassed!.filter((item) => temp.find((i) => i.id === item.id) != undefined);
+			}
+			result = [...result, ...(orPassed ?? [])];
+		}
+		return result;
 	}
 
-	getLogicalGroups('hello && test, no || test.len == 2 && no, yes.len != 2');
+	// getLogicalGroups('hello && test, no || test.len == 2 && no, yes.len != 2');
 	function search() {
 		if (searchText.length == 0) {
 			filteredData = dataRaw.map((i: any): FilteredEntity => {
@@ -346,48 +366,50 @@
 				return i as FilteredEntity;
 			});
 		}
-
-		const booleanAndSearch = searchText.split(/\s*&&\s*/);
-		// if (booleanAndSearch.length > 1) {
-		filteredData = dataRaw.filter((item: any) => {
-			for (let condition of booleanAndSearch) {
-				const len = condition.split('.len == ');
-				if (len && len.length > 1 && Number.isInteger(+len[1]) && Array.isArray(item[len[0]])) {
-					const passed = item[len[0]].length === +len[1];
-					if (!passed) return false;
-					continue;
-				}
-
-				const not_len = condition.split('.len != ');
-				if (
-					not_len &&
-					not_len.length > 1 &&
-					Number.isInteger(+not_len[1]) &&
-					Array.isArray(item[not_len[0]])
-				) {
-					const passed = item[not_len[0]].length != +not_len[1];
-					if (!passed) return false;
-					continue;
-				}
-				condition = condition.trim();
-				const isNot = condition.startsWith('!');
-				let conditionPassed = false;
-				if (isNot) {
-					const truthCondition = condition.substring(1).trim();
-					if (truthCondition.length > 1) {
-						conditionPassed = !JSON.stringify(item)
-							.toLowerCase()
-							.includes(truthCondition.toLowerCase());
-					} else {
-						conditionPassed = true;
+		if (get(useNewSearch)) {
+			filteredData = doSearch(searchText, dataRaw) ?? [];
+		} else {
+			const booleanAndSearch = searchText.split(/\s*&&\s*/);
+			filteredData = dataRaw.filter((item: any) => {
+				for (let condition of booleanAndSearch) {
+					const len = condition.split('.len == ');
+					if (len && len.length > 1 && Number.isInteger(+len[1]) && Array.isArray(item[len[0]])) {
+						const passed = item[len[0]].length === +len[1];
+						if (!passed) return false;
+						continue;
 					}
-				} else {
-					conditionPassed = JSON.stringify(item).toLowerCase().includes(condition.toLowerCase());
+
+					const not_len = condition.split('.len != ');
+					if (
+						not_len &&
+						not_len.length > 1 &&
+						Number.isInteger(+not_len[1]) &&
+						Array.isArray(item[not_len[0]])
+					) {
+						const passed = item[not_len[0]].length != +not_len[1];
+						if (!passed) return false;
+						continue;
+					}
+					condition = condition.trim();
+					const isNot = condition.startsWith('!');
+					let conditionPassed = false;
+					if (isNot) {
+						const truthCondition = condition.substring(1).trim();
+						if (truthCondition.length > 1) {
+							conditionPassed = !JSON.stringify(item)
+								.toLowerCase()
+								.includes(truthCondition.toLowerCase());
+						} else {
+							conditionPassed = true;
+						}
+					} else {
+						conditionPassed = JSON.stringify(item).toLowerCase().includes(condition.toLowerCase());
+					}
+					if (!conditionPassed) return false;
 				}
-				if (!conditionPassed) return false;
-			}
-			return true;
-		});
+				return true;
+			});
+		}
 		sort(filteredData);
 		resetPagination();
 		calculatePagination();
