@@ -6,11 +6,13 @@ WORKDIR /app
 # copy everything to the container
 COPY . .
 
+RUN npm install -g pnpm@latest-10
+
 # clean install all dependencies
-RUN npm install
+RUN pnpm install
 
 # build SvelteKit app
-RUN npm run build
+RUN pnpm run build
 
 
 # stage run

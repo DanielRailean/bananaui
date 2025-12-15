@@ -11,18 +11,19 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     steps:
-      - name: Check out
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: yarn install
-        working-directory: ui
-        run: yarn
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
-      - name: build
-        working-directory: ui
+      - working-directory: ui
+        run: pnpm i
+
+      - working-directory: ui
         env:
           SVELTE_BUILD_STATIC: true
-        run: yarn build
+        run: pnpm build
 
   build-static:
     permissions:
@@ -32,10 +33,23 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: yarn install
-        working-directory: ui
-        run: yarn
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
-      - name: build
-        working-directory: ui
-        run: yarn build
+      - working-directory: ui
+        run: pnpm i
+
+      - working-directory: ui
+        run: pnpm build
+
+  build-docker:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - working-directory: ui
+        run: docker build .

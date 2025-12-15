@@ -1,3 +1,5 @@
+import type { IPluginConfig } from "./responseTypes";
+
 export interface IEntityBase {
 	id: string;
 }
@@ -85,4 +87,16 @@ export interface IKongEntity {
 	uiSpaceBefore?: boolean;
 	showInMenu?: boolean
 	logo?: string
+}
+
+export interface IKongPlugin extends IEntityBase {
+	service: {
+		id: string
+	},
+	route: {
+		id: string,
+	}
+	name: string,
+	priority: number,
+	config: IPluginConfig
 }

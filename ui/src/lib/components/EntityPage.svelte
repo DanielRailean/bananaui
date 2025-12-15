@@ -7,10 +7,11 @@
 	import { apiService } from '$lib/requests';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { writeToClipboard } from '$lib/util';
-	import * as yaml from "js-yaml"
+	import { getPluginPriorityMap, getPlugins, writeToClipboard } from '$lib/util';
+	import * as yaml from 'js-yaml';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import {
+		CaretDownOutline,
 		CirclePlusOutline,
 		EditOutline,
 		FileCopyOutline,
@@ -19,9 +20,11 @@
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import { fieldOrder, kongEntities, sortObjectFieldsByOrder, staticConfig } from '$lib/config';
-	import type { IKongEntity } from '$lib/types';
+	import type { IKongEntity, IKongPlugin } from '$lib/types';
 	import { base } from '$app/paths';
 	import Spinner from './Spinner.svelte';
+	import { preferences } from '$lib/stores';
+	import { get } from 'svelte/store';
 
 	let stateJson = '';
 	let json = '';
@@ -39,25 +42,29 @@
 		entitySubPath: string;
 	}
 	let subEntities: IEntities[];
+	let relevantPlugins: IKongPlugin[] = [];
 
 	$: $page, load();
 
 	let isMounted = false;
 
 	const yamlOptions: yaml.DumpOptions = {
-		noArrayIndent : true,
+		noArrayIndent: true,
 		noRefs: true,
 		noCompatMode: true,
 		quotingType: '"',
 		lineWidth: 9999
-	}
+	};
 
-	onMount(() => {
+	let info: any;
+
+	onMount(async () => {
 		isMounted = true;
-		load();
+		info = await getPluginPriorityMap();
+		await load();
 		setTimeout(() => {
-			triggerHighlight()
-		}, 100)
+			triggerHighlight();
+		}, 100);
 	});
 
 	function updateIsEdited() {
@@ -117,6 +124,25 @@
 			}
 		}
 		triggerHighlight();
+
+		const plugins = await getPlugins(`/${entityType}/${id}`);
+		relevantPlugins = plugins;
+		if (data.service) {
+			const plugins = await getPlugins(`/services/${data.service.id}`);
+			relevantPlugins = [...plugins, ...relevantPlugins];
+		}
+
+		relevantPlugins.sort((b, a) => {
+			return info[a.name] - info[b.name];
+		});
+		relevantPlugins = relevantPlugins.map((plugin) => {
+			return {
+				...plugin,
+				name: plugin.service ? `${plugin.name} - service` : `${plugin.name} - route`,
+				priority: info[plugin.name]
+			};
+		});
+		// console.log(relevantPlugins);
 	}
 
 	async function deleteEntity(type: string, id: string, name: string) {
@@ -183,10 +209,9 @@
 			return;
 		}
 		editorSyntax.textContent = json;
-
-		// Highlight the syntax
 		(globalThis as any).Prism.highlightElement(editorSyntax);
 	}
+	let showPluginOrder = preferences.showPluginOrder;
 </script>
 
 <svelte:head>
@@ -195,76 +220,76 @@
 
 <div class="mb-2">
 	{#if data}
-	<div class="flex flex-row flex-wrap m-2">
-		<Button
-			class="h-10 m-1 focus:shadow-none"
-			on:click={() => {
-				isEdited = !isEdited;
-				updateIsEdited();
-				triggerHighlight();
-			}}
-		>
-			<EditOutline class="m-2" />edit
-		</Button>
-		{#if !isEdited}
+		<div class="flex flex-row flex-wrap m-2">
 			<Button
-				class="h-10 m-1"
-				title="delete"
-				color="alternative"
-				on:click={async () => await deleteEntity(entityType, id, data.name ?? data.id)}
+				class="h-10 m-1 focus:shadow-none"
+				on:click={() => {
+					isEdited = !isEdited;
+					updateIsEdited();
+					triggerHighlight();
+				}}
 			>
-				<div class="text-rose-500">
-					<div class="flex flex-row items-center">
-						<TrashBinOutline class="m-1" />
-						delete
+				<EditOutline class="m-2" />edit
+			</Button>
+			{#if !isEdited}
+				<Button
+					class="h-10 m-1"
+					title="delete"
+					color="alternative"
+					on:click={async () => await deleteEntity(entityType, id, data.name ?? data.id)}
+				>
+					<div class="text-rose-500">
+						<div class="flex flex-row items-center">
+							<TrashBinOutline class="m-1" />
+							delete
+						</div>
 					</div>
-				</div>
-			</Button>
-			<Button
-				color="alternative"
-				class="h-10 m-1"
-				title={stateJson}
-				on:click={() => {
-					writeToClipboard(stateJson);
-				}}
-			>
-				<FileCopyOutline class="m-2" />
-				copy JSON</Button
-			>
-			<Button
-				color="alternative"
-				class="h-10 m-1"
-				title={stateJson}
-				on:click={() => {
-					writeToClipboard(yaml.dump(JSON.parse(stateJson), yamlOptions));
-				}}
-			>
-				<FileCopyOutline class="m-2" />
-				copy YAML</Button
-			>
-		{:else}
-			<Button
-				class="h-10 m-1"
-				on:click={format}
-				color="blue"
-				title={stateJson == json ? 'entity unchanged' : ''}
-				disabled={stateJson == json}
-			>
-				<PaletteOutline class="m-2" />
-				format and validate JSON
-			</Button>
-			<Button
-				class="h-10 m-1"
-				disabled={stateJson == json}
-				title={stateJson == json ? 'entity unchanged' : ''}
-				on:click={async () => await save()}
-				color="green"
-			>
-				<FloppyDiskAltOutline class="m-2" />
-				save</Button
-			>
-		{/if}
-	</div>
+				</Button>
+				<Button
+					color="alternative"
+					class="h-10 m-1"
+					title={stateJson}
+					on:click={() => {
+						writeToClipboard(stateJson);
+					}}
+				>
+					<FileCopyOutline class="m-2" />
+					copy JSON</Button
+				>
+				<Button
+					color="alternative"
+					class="h-10 m-1"
+					title={stateJson}
+					on:click={() => {
+						writeToClipboard(yaml.dump(JSON.parse(stateJson), yamlOptions));
+					}}
+				>
+					<FileCopyOutline class="m-2" />
+					copy YAML</Button
+				>
+			{:else}
+				<Button
+					class="h-10 m-1"
+					on:click={format}
+					color="blue"
+					title={stateJson == json ? 'entity unchanged' : ''}
+					disabled={stateJson == json}
+				>
+					<PaletteOutline class="m-2" />
+					format and validate JSON
+				</Button>
+				<Button
+					class="h-10 m-1"
+					disabled={stateJson == json}
+					title={stateJson == json ? 'entity unchanged' : ''}
+					on:click={async () => await save()}
+					color="green"
+				>
+					<FloppyDiskAltOutline class="m-2" />
+					save</Button
+				>
+			{/if}
+		</div>
 		<div
 			class="editor dark:bg-[#1E2021] w-full min-h-[60vh] line-numbers {isEdited
 				? 'grid'
@@ -294,6 +319,31 @@
 					load();
 				}}
 			/>
+			<Button
+				color="alternative"
+				class="h-10 m-1 ml-4"
+				title="show plugin execution order"
+				on:click={() => {
+					showPluginOrder.set(!get(showPluginOrder));
+				}}
+			>
+				<CaretDownOutline class="m-2" />
+				show plugin order</Button
+			>
+			{#if relevantPlugins && $showPluginOrder}
+				<div class="flex flex-col p-4">
+					{#each relevantPlugins as plugin}
+						<div class="border border-stone-600 rounded-lg dark:border-stone-600 my-2">
+							<p class="p-4 py-3">{plugin.name} - {plugin.priority}</p>
+							<TreeWrapper expandFields={[]} data={{ id: plugin.id, config: plugin.config }}
+							></TreeWrapper>
+						</div>
+						{#if relevantPlugins.indexOf(plugin) + 1 != relevantPlugins.length}
+							<span class="text-3xl text-center">&#8595;</span>
+						{/if}
+					{/each}
+				</div>
+			{/if}
 			{#if subEntities}
 				{#each subEntities as subEntity}
 					<div class="flex flex-row m-4 h-8 items-center">
@@ -335,7 +385,10 @@
 		{/if}
 	{:else}
 		<div class="flex flex-row items-center m-4">
-			<Spinner uppercased={false} text="loading {entityType.substring(0,entityType.length-1)} with id='{id}'"/>
+			<Spinner
+				uppercased={false}
+				text="loading {entityType.substring(0, entityType.length - 1)} with id='{id}'"
+			/>
 		</div>
 	{/if}
 </div>
