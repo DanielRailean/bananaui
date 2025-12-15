@@ -6,7 +6,7 @@
 	import { triggerPageUpdate } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '$lib/components/ArrayWrap.svelte';
-	import { apiService } from '$lib/requests';
+	import { apiService, requestsCacheMap, type ResWrapped } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { kongEntities } from '$lib/config';
@@ -74,13 +74,25 @@
 				}
 				await delay(paginationAwaitBetweenPages);
 			}
+			// dataplanes don't have a page of their own.
+			// populating the cache to fake as if the request went through
+			if (kongEntity.apiPath === 'clustering/data-planes') {
+				for (const dp of data) {
+					const res: ResWrapped<any, any> = {
+						code: 200,
+						ok: true,
+						data: dp
+					};
+					requestsCacheMap[`/dataplanes/${dp.id}`] = res;
+				}
+			}
 			triggerPageUpdate.set(entity + DateTime.now().toMillis());
 			if (isRefresh) {
 				infoToast('refresh finished!');
 			}
 		} catch (error: any) {
-			console.log(error);
-			addToast({ message: `Failed fetching the ${entity}. ${error.message ? error.message : ''}` });
+			console.error(error);
+			addToast({ message: `Failed fetching ${entity}. ${error.message ? error.message : ''}` });
 		}
 	}
 </script>

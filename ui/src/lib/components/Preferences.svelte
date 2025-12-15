@@ -9,12 +9,13 @@
 	import { onMount } from 'svelte';
 
 	const defaultPref: { [key: string]: any } = {
-		version: 3,
+		version: 4,
 		loadParentInfo: false,
 		paginationSizeUi: 20,
 		paginationSizeApi: 1000,
 		showPluginOrder: false,
-		useNewSearch: false
+		useNewSearch: false,
+		useEphemeralGetRequestsCache: true,
 	};
 
 	const localCacheKey = 'preferences';

@@ -38,6 +38,31 @@ export type ResWrapped<T, E> = {
 	code: number;
 };
 
+export let requestsCacheMap: {[key:string]: any} = {}
+
+async function requestWithResponseBodyCached<ResType, ErrType = void>(
+	url: string,
+	method: string = 'GET',
+	body?: object,
+	headers?: Record<string, string>,
+	cacheKey?: string
+): Promise<ResWrapped<ResType, ErrType>> {
+	if(method == 'GET' && get(preferences.useEphemeralGetRequestsCache))
+	{
+		if(requestsCacheMap[cacheKey ?? url])
+		{
+			console.log(`[GET] cache hit. Total cache keys: ${Object.keys(requestsCacheMap).length}`)
+			return requestsCacheMap[cacheKey ?? url]
+		}
+		const res = await requestWithResponseBody(url, method, body, headers)
+		if(res.ok)
+		{
+			requestsCacheMap[cacheKey ?? url] = res
+		}
+	}
+	return requestWithResponseBody(url, method, body, headers)
+}
+
 async function requestWithResponseBody<ResType, ErrType = void>(
 	url: string,
 	method: string = 'GET',
@@ -86,14 +111,15 @@ class ApiService {
 		body?: object,
 		headers: Record<string, string> = this.headers
 	): Promise<ResWrapped<T, E>> {
-		return requestWithResponseBody<T, E>(
+		return requestWithResponseBodyCached<T, E>(
 			`${this.endpoint}${path.startsWith('/') ? path : `/${path}`}`,
 			method,
 			body,
 			{
 				...this.headers,
 				...headers
-			}
+			},
+			path.startsWith('/') ? path : `/${path}`
 		);
 	}
 
@@ -122,20 +148,22 @@ class ApiService {
 		params: Record<string, unknown> = {},
 		pathPrefix: string = ''
 	) {
-		return requestWithResponseBody<T>(
+		return requestWithResponseBodyCached<T>(
 			`${this.endpoint}${pathPrefix}/${entity}?size=${get(preferences.paginationSizeApi)}&sort_by=updated_at`,
 			undefined,
 			undefined,
-			this.headers
+			this.headers,
+			`${pathPrefix}/${entity}?size=${get(preferences.paginationSizeApi)}&sort_by=updated_at`
 		);
 	}
 
 	findRecord<T>(entity: string, id: string, pathPrefix: string = '') {
-		return requestWithResponseBody<T>(
+		return requestWithResponseBodyCached<T>(
 			`${this.endpoint}${pathPrefix}/${entity}/${id}`,
 			undefined,
 			undefined,
-			this.headers
+			this.headers,
+			`/${entity}/${id}`
 		);
 	}
 
