@@ -96,7 +96,7 @@
 		json = JSON.stringify(entity.defaultAddValue ?? dummyObject, undefined, 2);
 		triggerHighlight();
 
-		selectedPlugin = pluginSelect[Math.round(Math.random() * selectedPlugin.length)].value;
+		selectedPlugin = pluginSelect[Math.round(Math.random() * pluginSelect.length)].value;
 		infoToast(`loaded schema for ${selectedPlugin} (selected randomly)`);
 		pluginSelected();
 	});
