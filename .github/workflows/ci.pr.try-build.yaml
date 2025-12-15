@@ -52,4 +52,4 @@ jobs:
         uses: actions/checkout@v4
 
       - working-directory: ui
-        run: docker build
+        run: docker build .
