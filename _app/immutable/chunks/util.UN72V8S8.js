@@ -1,1 +1,0 @@
-import{c as o}from"./toastStore.DQsilM7O.js";const i=t=>new Promise(e=>setTimeout(e,t)),c=(t,e=()=>{o("copied")})=>{navigator.clipboard.writeText(t).then(e,()=>{})};function n(t){return t?t.charAt(0).toUpperCase()+t.slice(1):""}const r="BANANA_UI_CONFIG";function s(){const t=localStorage.getItem(r);if(t)return JSON.parse(t)}export{r as L,n as c,i as d,s as g,c as w};
