@@ -38,25 +38,26 @@ export type ResWrapped<T, E> = {
 	code: number;
 };
 
-let cache: {[key:string]: any} = {}
+export let requestsCacheMap: {[key:string]: any} = {}
 
 async function requestWithResponseBodyCached<ResType, ErrType = void>(
 	url: string,
 	method: string = 'GET',
 	body?: object,
-	headers?: Record<string, string>
+	headers?: Record<string, string>,
+	cacheKey?: string
 ): Promise<ResWrapped<ResType, ErrType>> {
 	if(method == 'GET' && get(preferences.useEphemeralGetRequestsCache))
 	{
-		if(cache[url])
+		if(requestsCacheMap[cacheKey ?? url])
 		{
-			console.log(`[GET] cache hit. Total cache keys: ${Object.keys(cache).length}`)
-			return cache[url]
+			console.log(`[GET] cache hit. Total cache keys: ${Object.keys(requestsCacheMap).length}`)
+			return requestsCacheMap[cacheKey ?? url]
 		}
 		const res = await requestWithResponseBody(url, method, body, headers)
 		if(res.ok)
 		{
-			cache[url] = res
+			requestsCacheMap[cacheKey ?? url] = res
 		}
 	}
 	return requestWithResponseBody(url, method, body, headers)
@@ -117,7 +118,8 @@ class ApiService {
 			{
 				...this.headers,
 				...headers
-			}
+			},
+			path.startsWith('/') ? path : `/${path}`
 		);
 	}
 
@@ -150,16 +152,18 @@ class ApiService {
 			`${this.endpoint}${pathPrefix}/${entity}?size=${get(preferences.paginationSizeApi)}&sort_by=updated_at`,
 			undefined,
 			undefined,
-			this.headers
+			this.headers,
+			`${pathPrefix}/${entity}?size=${get(preferences.paginationSizeApi)}&sort_by=updated_at`
 		);
 	}
 
 	findRecord<T>(entity: string, id: string, pathPrefix: string = '') {
-		return requestWithResponseBody<T>(
+		return requestWithResponseBodyCached<T>(
 			`${this.endpoint}${pathPrefix}/${entity}/${id}`,
 			undefined,
 			undefined,
-			this.headers
+			this.headers,
+			`/${entity}/${id}`
 		);
 	}
 
