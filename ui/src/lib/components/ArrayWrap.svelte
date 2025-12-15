@@ -226,6 +226,117 @@
 
 		history.pushState(null, '', url);
 	}
+	// {
+	// [and inside here]
+	// []
+	// or between those
+	// []
+	// }
+
+	// ex: (hello && test) || (no || test && no) && yes.len != 2
+	// becomes [["hello", "test"], [["no"], ["test", "no"], [{"yes": -2}]]]
+	// loop over initial array, any object satisfying 1st level arrays are allowed
+	// if array of array encountered, any object must satisfy all conditions in the subarray
+	function itemPassesLength(obj: any, len: { [key: string]: number }): boolean {
+		if (!obj) {
+			return false;
+		}
+		for (const [key, val] of Object.entries(len)) {
+			if (!obj[key] || !Array.isArray(obj[key])) {
+				return false;
+			}
+			var arrayValue = obj[key];
+			if (val < 0) {
+				if (arrayValue.length === val * -1) {
+					return false;
+				}
+			} else {
+				if (arrayValue.length != val) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	// const objWithArr = {"hello": ["2", 2]}
+	// console.log(itemPassesLength(objWithArr, {"hello": -2}))
+	// console.log(itemPassesLength(objWithArr, {"hello": -3}))
+	// console.log(itemPassesLength(objWithArr, {"hello": 2}))
+	// console.log(itemPassesLength(objWithArr, {"hell": 2}))
+
+	function itemPassesValidation(obj: any, validation: any[]): boolean {
+		// console.log(obj);
+		// console.log(validation);
+		const json = JSON.stringify(obj).toLowerCase();
+		for (const condition of validation) {
+			if (typeof condition === 'string') {
+				// console.log('json checked');
+				const conditionStr = `${condition}`.toLowerCase();
+				// console.log(json);
+				// console.log(conditionStr);
+				if (json.includes(conditionStr)) {
+					continue;
+				} else {
+					return false;
+				}
+			}
+			// console.log(condition);
+			// console.log("is array", Array.isArray(condition))
+			if (Object.keys(condition).length > 0 && !Array.isArray(condition)) {
+				// console.log('len checked');
+				if (itemPassesLength(obj, condition)) {
+					continue;
+				}
+				return false;
+			}
+			if (Array.isArray(condition)) {
+				// console.log('arr checked');
+				let res = itemPassesValidation(obj, condition);
+				if (res) {
+					continue;
+				}
+				return false;
+			}
+		}
+		return true;
+	}
+
+	// const objWithArr2 = { hello: ['2', 2], yes: 'no', nr: 3 };
+	// console.log(itemPassesValidation(objWithArr2, [{ hello: 2 }, {hello: -3}, ['no', '3'], "hello"]));
+	const lenNotEqOp = '.len != ';
+	const lenEqOp = '.len == ';
+	function getAndArray(input: string) {}
+	function getLogicalGroups(input: string) {
+		const inputCommaSplit = input.split(',');
+		let groups = [];
+		for (let anyConditions of inputCommaSplit) {
+			console.log(anyConditions.trim());
+			let andGroups = [];
+			const booleanAndSearch = anyConditions.split(/\s*&&\s*/);
+			for (const andCondition of booleanAndSearch) {
+				let orGroups = [];
+				const boolOrSearch = andCondition.split(/\s*\|\|\s*/);
+				for (const orCondition of boolOrSearch) {
+					if (orCondition.includes(lenNotEqOp) || orCondition.includes(lenEqOp)) {
+						const lenNotEq: any = {};
+						let split = orCondition.split(lenNotEqOp);
+						if (split.length == 1) {
+							split = orCondition.split(lenEqOp);
+						}
+						lenNotEq[split[0].trim()] = +split[1].trim();
+						orGroups.push(lenNotEq);
+						continue;
+					}
+					orGroups.push(orCondition.trim())
+				}
+				andGroups.push(orGroups)
+			}
+			groups.push(andGroups)
+		}
+		console.log(JSON.stringify(groups, undefined, 2))
+	}
+
+	getLogicalGroups('hello && test, no || test.len == 2 && no, yes.len != 2');
 	function search() {
 		if (searchText.length == 0) {
 			filteredData = dataRaw.map((i: any): FilteredEntity => {
@@ -235,6 +346,7 @@
 				return i as FilteredEntity;
 			});
 		}
+
 		const booleanAndSearch = searchText.split(/\s*&&\s*/);
 		// if (booleanAndSearch.length > 1) {
 		filteredData = dataRaw.filter((item: any) => {
@@ -257,7 +369,6 @@
 					if (!passed) return false;
 					continue;
 				}
-
 				condition = condition.trim();
 				const isNot = condition.startsWith('!');
 				let conditionPassed = false;
@@ -374,7 +485,12 @@
 					if (!conf) {
 						return;
 					}
-					copy(filteredData.map(i=>{i.enabledWritable = undefined; return i}));
+					copy(
+						filteredData.map((i) => {
+							i.enabledWritable = undefined;
+							return i;
+						})
+					);
 				}}
 				class="flex flex-row items-center dark:bg-stone-700 bg-stone-100 rounded p-1 pr-2 m-1"
 			>
@@ -526,11 +642,13 @@
 										copy(JSON.stringify(item, undefined, 2));
 									}}
 								>
-									<div class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700">
+									<div
+										class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700"
+									>
 										<FileCopyOutline class="m-1" size="lg" />
 									</div>
 								</button>
-								<Link href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}"/>
+								<Link href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}" />
 								<button
 									class="h-8"
 									title="delete"
@@ -538,7 +656,9 @@
 										await deleteEntity(entity?.name ?? '', item.id, item.name ?? item.id)}
 								>
 									<div class="text-rose-500">
-										<div class="flex flex-row items-center  rounded hover:outline outline-1 hover:outline-stone-700">
+										<div
+											class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700"
+										>
 											<TrashBinOutline class="m-1" size="lg" />
 										</div>
 									</div>
@@ -629,7 +749,9 @@
 														}}
 													>
 														<div>
-															<p class="dark:text-blue-500 text-blue-700 px-1 truncate max-w-[360px]">
+															<p
+																class="dark:text-blue-500 text-blue-700 px-1 truncate max-w-[360px]"
+															>
 																{#if $loadParentName}
 																	{#await getInfo(field, item[field].id, item.name ?? item.id) then value}
 																		{value}
@@ -647,12 +769,18 @@
 												-
 											{:else if Array.isArray(item[field])}
 												<div
-													class="flex flex-row flex-wrap justify-start max-w-[650px] {field == "methods" ? `max-w-[200px]`: "max-w-[650px]"}"
+													class="flex flex-row flex-wrap justify-start max-w-[650px] {field ==
+													'methods'
+														? `max-w-[200px]`
+														: 'max-w-[650px]'}"
 												>
 													{#each item[field] as row, index}
 														<!-- content here -->
 														<p
-															class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50 {field == "methods" ? `http-method method-${item[field][index].toLowerCase()}`: ""}"
+															class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50 {field ==
+															'methods'
+																? `http-method method-${item[field][index].toLowerCase()}`
+																: ''}"
 															title="copy '{item[field][index]}'"
 															on:click|stopPropagation|preventDefault={() => {
 																copy(item[field][index]);
