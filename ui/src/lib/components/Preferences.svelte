@@ -15,7 +15,7 @@
 		paginationSizeApi: 1000,
 		showPluginOrder: false,
 		useNewSearch: false,
-		useEphemeralGetRequestsCache: true
+		useEphemeralGetRequestsCache: true,
 	};
 
 	const localCacheKey = 'preferences';
