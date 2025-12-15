@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Link from './Link.svelte';
 	import { capitalizeFirstLetter, delay, writeToClipboard } from '$lib/util';
 	import { goto } from '$app/navigation';
 	import { onDestroy, onMount } from 'svelte';
@@ -20,6 +21,7 @@
 	import { preferences, triggerPageUpdate } from '$lib/stores';
 
 	let loadParentName = preferences?.loadParentInfo;
+	let useNewSearch = preferences?.useNewSearch;
 	const dispatch = createEventDispatcher();
 
 	export let dataRaw: ITooggleableEntityMaybe[];
@@ -225,6 +227,139 @@
 
 		history.pushState(null, '', url);
 	}
+	// {
+	// [and inside here]
+	// []
+	// or between those
+	// []
+	// }
+
+	// ex: (hello && test) || (no || test && no) && yes.len != 2
+	// becomes [["hello", "test"], [["no"], ["test", "no"], [{"yes": -2}]]]
+	// loop over initial array, any object satisfying 1st level arrays are allowed
+	// if array of array encountered, any object must satisfy all conditions in the subarray
+	function itemPassesLength(obj: any, len: { [key: string]: number }): boolean {
+		if (!obj) {
+			return false;
+		}
+		for (const [key, val] of Object.entries(len)) {
+			if (!obj[key] || !Array.isArray(obj[key])) {
+				return false;
+			}
+			var arrayValue = obj[key];
+			if (val < 0) {
+				if (arrayValue.length === val * -1) {
+					return false;
+				}
+			} else {
+				if (arrayValue.length != val) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	// const objWithArr = {"hello": ["2", 2]}
+	// console.log(itemPassesLength(objWithArr, {"hello": -2}))
+	// console.log(itemPassesLength(objWithArr, {"hello": -3}))
+	// console.log(itemPassesLength(objWithArr, {"hello": 2}))
+	// console.log(itemPassesLength(objWithArr, {"hell": 2}))
+
+	function itemPassesOrValidations(obj: any, validation: any[]): boolean {
+		const json = JSON.stringify(obj).toLowerCase();
+		for (const condition of validation) {
+			if (typeof condition === 'string') {
+				const conditionStr = `${condition}`.toLowerCase();
+				if (json.includes(conditionStr)) {
+					return true;
+				}
+				continue;
+			}
+			if (Object.keys(condition).length > 0 && !Array.isArray(condition)) {
+				if (itemPassesLength(obj, condition)) {
+					return true;
+				}
+				continue;
+			}
+			if (Array.isArray(condition)) {
+				let res = itemPassesOrValidations(obj, condition);
+				if (res) {
+					return true;
+				}
+				continue;
+			}
+		}
+		return false;
+	}
+
+	// const objWithArr2 = { hello: ['2', 2], yes: 'no', nr: 3 };
+	// console.log(itemPassesValidation(objWithArr2, [{ hello: 1 }, {hello: -3}, ['noa', '31'], "helloo"]));
+
+	const lenNotEqOp = '.len != ';
+	const lenEqOp = '.len == ';
+	function getLogicalGroups(input: string) {
+		if (input.trim().length == 0) {
+			return [];
+		}
+		const inputCommaSplit = input.split(',');
+		let groups = [];
+		for (let anyConditions of inputCommaSplit) {
+			// console.log(anyConditions.trim());
+			let andGroups = [];
+			const booleanAndSearch = anyConditions.split(/\s*&&\s*/);
+			for (const andCondition of booleanAndSearch) {
+				let orGroups = [];
+				const boolOrSearch = andCondition.split(/\s*\|\|\s*/);
+				for (const orCondition of boolOrSearch) {
+					if (orCondition.includes(lenNotEqOp) || orCondition.includes(lenEqOp)) {
+						const lenNotEq: any = {};
+						let split = orCondition.split(lenNotEqOp);
+						let sign = -1;
+						if (split.length == 1) {
+							split = orCondition.split(lenEqOp);
+							sign = 1;
+						}
+						lenNotEq[split[0].trim()] = +split[1].trim() * sign;
+						orGroups.push(lenNotEq);
+						continue;
+					}
+					orGroups.push(orCondition.trim());
+				}
+				andGroups.push(orGroups);
+			}
+			groups.push(andGroups);
+		}
+		return groups;
+	}
+	function doSearch(input: string, arr: any[]) {
+		if (!dataRaw) {
+			return;
+		}
+		const orAndOr = getLogicalGroups(input);
+		console.log(JSON.stringify(orAndOr));
+		if (orAndOr.length == 0) {
+			return arr;
+		}
+		let result: ITooggleableEntityMaybe[] = [];
+		for (const orGroup of orAndOr) {
+			let orPassed: ITooggleableEntityMaybe[] | undefined = undefined;
+			for (const orAndGroup of orGroup) {
+				let temp = arr.filter((item: any) => itemPassesOrValidations(item, orAndGroup));
+				// console.log(JSON.stringify(orGroup, undefined, 2));
+				if (!orPassed) {
+					orPassed = temp;
+				}
+				orPassed = orPassed!.filter((item) => temp.find((i) => i.id === item.id) != undefined);
+			}
+			result = [...result, ...(orPassed ?? [])];
+		}
+		return result.filter(onlyUnique);
+	}
+	function onlyUnique(value:any, index: number, array: any[]) {
+		return array.indexOf(value) === index;
+	}
+
+	// getLogicalGroups('hello && test, no || test.len == 2 && no, yes.len != 2');
 	function search() {
 		if (searchText.length == 0) {
 			filteredData = dataRaw.map((i: any): FilteredEntity => {
@@ -234,48 +369,50 @@
 				return i as FilteredEntity;
 			});
 		}
-		const booleanAndSearch = searchText.split(/\s*&&\s*/);
-		// if (booleanAndSearch.length > 1) {
-		filteredData = dataRaw.filter((item: any) => {
-			for (let condition of booleanAndSearch) {
-				const len = condition.split('.len == ');
-				if (len && len.length > 1 && Number.isInteger(+len[1]) && Array.isArray(item[len[0]])) {
-					const passed = item[len[0]].length === +len[1];
-					if (!passed) return false;
-					continue;
-				}
-
-				const not_len = condition.split('.len != ');
-				if (
-					not_len &&
-					not_len.length > 1 &&
-					Number.isInteger(+not_len[1]) &&
-					Array.isArray(item[not_len[0]])
-				) {
-					const passed = item[not_len[0]].length != +not_len[1];
-					if (!passed) return false;
-					continue;
-				}
-
-				condition = condition.trim();
-				const isNot = condition.startsWith('!');
-				let conditionPassed = false;
-				if (isNot) {
-					const truthCondition = condition.substring(1).trim();
-					if (truthCondition.length > 1) {
-						conditionPassed = !JSON.stringify(item)
-							.toLowerCase()
-							.includes(truthCondition.toLowerCase());
-					} else {
-						conditionPassed = true;
+		if (get(useNewSearch)) {
+			filteredData = doSearch(searchText, dataRaw) ?? [];
+		} else {
+			const booleanAndSearch = searchText.split(/\s*&&\s*/);
+			filteredData = dataRaw.filter((item: any) => {
+				for (let condition of booleanAndSearch) {
+					const len = condition.split('.len == ');
+					if (len && len.length > 1 && Number.isInteger(+len[1]) && Array.isArray(item[len[0]])) {
+						const passed = item[len[0]].length === +len[1];
+						if (!passed) return false;
+						continue;
 					}
-				} else {
-					conditionPassed = JSON.stringify(item).toLowerCase().includes(condition.toLowerCase());
+
+					const not_len = condition.split('.len != ');
+					if (
+						not_len &&
+						not_len.length > 1 &&
+						Number.isInteger(+not_len[1]) &&
+						Array.isArray(item[not_len[0]])
+					) {
+						const passed = item[not_len[0]].length != +not_len[1];
+						if (!passed) return false;
+						continue;
+					}
+					condition = condition.trim();
+					const isNot = condition.startsWith('!');
+					let conditionPassed = false;
+					if (isNot) {
+						const truthCondition = condition.substring(1).trim();
+						if (truthCondition.length > 1) {
+							conditionPassed = !JSON.stringify(item)
+								.toLowerCase()
+								.includes(truthCondition.toLowerCase());
+						} else {
+							conditionPassed = true;
+						}
+					} else {
+						conditionPassed = JSON.stringify(item).toLowerCase().includes(condition.toLowerCase());
+					}
+					if (!conditionPassed) return false;
 				}
-				if (!conditionPassed) return false;
-			}
-			return true;
-		});
+				return true;
+			});
+		}
 		sort(filteredData);
 		resetPagination();
 		calculatePagination();
@@ -373,7 +510,12 @@
 					if (!conf) {
 						return;
 					}
-					copy(filteredData.map(i=>{i.enabledWritable = undefined; return i}));
+					copy(
+						filteredData.map((i) => {
+							i.enabledWritable = undefined;
+							return i;
+						})
+					);
 				}}
 				class="flex flex-row items-center dark:bg-stone-700 bg-stone-100 rounded p-1 pr-2 m-1"
 			>
@@ -525,20 +667,13 @@
 										copy(JSON.stringify(item, undefined, 2));
 									}}
 								>
-									<div class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700">
+									<div
+										class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700"
+									>
 										<FileCopyOutline class="m-1" size="lg" />
 									</div>
 								</button>
-								<button title="open" class="h-8" color="alternative">
-									<a
-										href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}"
-										class="text-emerald-600"
-									>
-										<div class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700">
-											<ArrowUpRightFromSquareOutline class="m-1" size="lg" />
-										</div>
-									</a>
-								</button>
+								<Link href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}" />
 								<button
 									class="h-8"
 									title="delete"
@@ -546,7 +681,9 @@
 										await deleteEntity(entity?.name ?? '', item.id, item.name ?? item.id)}
 								>
 									<div class="text-rose-500">
-										<div class="flex flex-row items-center  rounded hover:outline outline-1 hover:outline-stone-700">
+										<div
+											class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700"
+										>
 											<TrashBinOutline class="m-1" size="lg" />
 										</div>
 									</div>
@@ -637,7 +774,9 @@
 														}}
 													>
 														<div>
-															<p class="dark:text-blue-500 text-blue-700 px-1 truncate max-w-[360px]">
+															<p
+																class="dark:text-blue-500 text-blue-700 px-1 truncate max-w-[360px]"
+															>
 																{#if $loadParentName}
 																	{#await getInfo(field, item[field].id, item.name ?? item.id) then value}
 																		{value}
@@ -655,12 +794,18 @@
 												-
 											{:else if Array.isArray(item[field])}
 												<div
-													class="flex flex-row flex-wrap justify-start max-w-[650px] {field == "methods" ? `max-w-[200px]`: "max-w-[650px]"}"
+													class="flex flex-row flex-wrap justify-start max-w-[650px] {field ==
+													'methods'
+														? `max-w-[200px]`
+														: 'max-w-[650px]'}"
 												>
 													{#each item[field] as row, index}
 														<!-- content here -->
 														<p
-															class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50 {field == "methods" ? `http-method method-${item[field][index].toLowerCase()}`: ""}"
+															class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50 {field ==
+															'methods'
+																? `http-method method-${item[field][index].toLowerCase()}`
+																: ''}"
 															title="copy '{item[field][index]}'"
 															on:click|stopPropagation|preventDefault={() => {
 																copy(item[field][index]);

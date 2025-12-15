@@ -9,22 +9,23 @@
 	import { onMount } from 'svelte';
 
 	const defaultPref: { [key: string]: any } = {
-		version: 2,
+		version: 3,
 		loadParentInfo: false,
 		paginationSizeUi: 20,
 		paginationSizeApi: 1000,
-		showPluginOrder: false
+		showPluginOrder: false,
+		useNewSearch: false
 	};
 
-	const localCacheKey = "preferences"
+	const localCacheKey = 'preferences';
 	onMount(async () => {
-		let prefObject: {[key: string]: any} = {};
+		let prefObject: { [key: string]: any } = {};
 		let localStoragePref = localStorage.getItem(localCacheKey);
 		if (localStoragePref) {
 			try {
-				prefObject = JSON.parse(localStoragePref)
+				prefObject = JSON.parse(localStoragePref);
 			} catch (error) {
-				prefObject = JSON.parse(JSON.stringify(defaultPref))
+				prefObject = JSON.parse(JSON.stringify(defaultPref));
 			}
 		}
 		if (!prefObject.version || prefObject.version < defaultPref.version) {
@@ -34,12 +35,12 @@
 				}
 			}
 			for (const key of Object.keys(defaultPref)) {
-				if (!prefObject[key] || typeof(prefObject[key]) != typeof(defaultPref[key])) {
+				if (!prefObject[key] || typeof prefObject[key] != typeof defaultPref[key]) {
 					prefObject[key] = defaultPref[key];
 				}
 			}
-			prefObject.version = defaultPref.version,
-			localStorage.setItem(localCacheKey, JSON.stringify(prefObject))
+			(prefObject.version = defaultPref.version),
+				localStorage.setItem(localCacheKey, JSON.stringify(prefObject));
 		}
 		setPreferences(getPreferencesObject(prefObject));
 		if (preferences) {
