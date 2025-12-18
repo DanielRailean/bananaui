@@ -192,8 +192,12 @@ class ApiService {
 		);
 	}
 
-	updateRecord<T = any>(entity: string, id: string, data: Record<string, unknown>, pathPrefix: string = '') {
-		return requestWithResponseBody<T>(`${this.endpoint}${pathPrefix}/${entity}/${id}`, 'PATCH', data, this.headers);
+	async updateRecord<T = any>(entity: string, id: string, data: Record<string, unknown>, pathPrefix: string = '') {
+		const res = await requestWithResponseBody<T>(`${this.endpoint}${pathPrefix}/${entity}/${id}`, 'PATCH', data, this.headers);
+		if (res.ok) {
+			clearCache(entity)
+		}
+		return res
 	}
 
 	async deleteRecord(entity: string, id: string, pathPrefix: string = '') {
