@@ -355,7 +355,7 @@
 		}
 		return result.filter(onlyUnique);
 	}
-	function onlyUnique(value:any, index: number, array: any[]) {
+	function onlyUnique(value: any, index: number, array: any[]) {
 		return array.indexOf(value) === index;
 	}
 

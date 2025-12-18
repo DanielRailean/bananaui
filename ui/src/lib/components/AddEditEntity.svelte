@@ -4,21 +4,18 @@
 	import type { IEntityBase, IKongEntity } from '$lib/types';
 	import type { ResWrapped } from '$lib/requests';
 	import { goto } from '$app/navigation';
-	import { apiService } from '$lib/requests';
+	import { apiService, clearCache } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { Button, Label, Select } from 'flowbite-svelte';
 	import { addToast, errorToast, infoToast } from '$lib/toastStore';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 	import { base } from '$app/paths';
 	import { kongEntities } from '$lib/config';
-	import { delay } from '$lib/util';
 
-	// let entity?.name: string;
 	let entity: IKongEntity | undefined;
 
 	let json = '';
 	let dummyObject: any = {};
-	// let schema: ISchemaRes | undefined;
 	let postPath: string | undefined;
 	let entitySchema: any | undefined;
 	let pluginSchema: any | undefined;
@@ -137,7 +134,8 @@
 				return;
 			}
 			if (res.data?.id) {
-				goto(`${base}/entities?type=${entity?.name}&id=${res.data.id}&prefix=${pathPrefix}`);
+				clearCache(entity?.name)
+				goto(`${base}/entity?type=${entity?.name}&id=${res.data.id}&prefix=${pathPrefix}`);
 			} else {
 				addToast({ message: 'failed to read the new entity' });
 				return;
