@@ -6,7 +6,7 @@
 	import { triggerPageUpdate } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '$lib/components/ArrayWrap.svelte';
-	import { apiService, requestsCacheMap, type ResWrapped } from '$lib/requests';
+	import { apiService, cacheMap, type ResWrapped } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { kongEntities } from '$lib/config';
@@ -53,7 +53,7 @@
 			if (!kongEntity) {
 				return;
 			}
-			let res = await (await apiService()).findAll<any>(kongEntity.apiPath, {}, pathPrefix);
+			let res = await (await apiService()).findAll<any>(kongEntity.apiPath, {}, pathPrefix, isRefresh);
 			if (!res.ok) {
 				errorToast(`failed to fetch the ${entity}. ${res.err} (${res.code})`);
 				return;
@@ -83,7 +83,7 @@
 						ok: true,
 						data: dp
 					};
-					requestsCacheMap[`/dataplanes/${dp.id}`] = res;
+					cacheMap[`/dataplanes/${dp.id}`] = res;
 				}
 			}
 			triggerPageUpdate.set(entity + DateTime.now().toMillis());
@@ -129,7 +129,7 @@
 	</div>
 </div>
 {#if data}
-	<ArrayWrap dataRaw={data} type={entity} entity={kongEntity} on:refresh={async () => await load()}
+	<ArrayWrap dataRaw={data} type={entity} entity={kongEntity} on:refresh={async () => await load(true)}
 	></ArrayWrap>
 {:else}
 	<div class="flex flex-row items-center pl-5 pb-4">

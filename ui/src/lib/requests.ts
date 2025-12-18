@@ -1,9 +1,9 @@
 import { goto } from '$app/navigation';
 import { get } from 'svelte/store';
 import { config, preferences, userToken } from './stores';
-import { addToast } from './toastStore';
+import { addToast, errorToast, infoToast } from './toastStore';
 import { delay } from './util';
-import type { IEntityBase, IPaginationRes } from './types';
+import { type IEntityBase, type IPaginationRes } from './types';
 import type { IRootRes, IResCreateError, ISchemaRes, IPluginConfig } from './responseTypes';
 import { base } from '$app/paths';
 import { DateTime } from 'luxon';
@@ -38,26 +38,40 @@ export type ResWrapped<T, E> = {
 	code: number;
 };
 
-export let requestsCacheMap: {[key:string]: any} = {}
+export let cacheMap: { [key: string]: any } = {}
+
+export function clearCache(contains?: string) {
+	if (contains) {
+		for (const key of Object.keys(cacheMap)) {
+			if (key.includes(contains)) {
+				cacheMap[key] = undefined
+				console.log(`cleared cache key ${key}`)
+			}
+		}
+		return
+	}
+	cacheMap = {}
+}
 
 async function requestWithResponseBodyCached<ResType, ErrType = void>(
 	url: string,
 	method: string = 'GET',
 	body?: object,
 	headers?: Record<string, string>,
-	cacheKey?: string
+	cacheKey?: string,
+	clearOldCache?: boolean
 ): Promise<ResWrapped<ResType, ErrType>> {
-	if(method == 'GET' && get(preferences.useEphemeralGetRequestsCache))
-	{
-		if(requestsCacheMap[cacheKey ?? url])
-		{
-			console.log(`[GET] cache hit. Total cache keys: ${Object.keys(requestsCacheMap).length}`)
-			return requestsCacheMap[cacheKey ?? url]
+	if (clearOldCache) {
+		cacheMap[cacheKey ?? url] = undefined
+	}
+	if (method == 'GET' && get(preferences.useEphemeralGetRequestsCache)) {
+		if (cacheMap[cacheKey ?? url]) {
+			console.log(`[GET] cache hit. Total cache keys: ${Object.keys(cacheMap).length}`)
+			return cacheMap[cacheKey ?? url]
 		}
 		const res = await requestWithResponseBody(url, method, body, headers)
-		if(res.ok)
-		{
-			requestsCacheMap[cacheKey ?? url] = res
+		if (res.ok) {
+			cacheMap[cacheKey ?? url] = res
 		}
 	}
 	return requestWithResponseBody(url, method, body, headers)
@@ -77,12 +91,12 @@ async function requestWithResponseBody<ResType, ErrType = void>(
 	if (res.ok) {
 		try {
 			result.data = (await res.json()) as ResType;
-		} catch {}
+		} catch { }
 	} else {
 		result.err = await res.text();
 		try {
 			result.errTyped = JSON.parse(result.err) as ErrType;
-		} catch {}
+		} catch { }
 	}
 	return result;
 }
@@ -146,14 +160,16 @@ class ApiService {
 	async findAll<T extends IPaginationRes>(
 		entity: string,
 		params: Record<string, unknown> = {},
-		pathPrefix: string = ''
+		pathPrefix: string = '',
+		clearOldCache = false
 	) {
 		return requestWithResponseBodyCached<T>(
 			`${this.endpoint}${pathPrefix}/${entity}?size=${get(preferences.paginationSizeApi)}&sort_by=updated_at`,
 			undefined,
 			undefined,
 			this.headers,
-			`${pathPrefix}/${entity}?size=${get(preferences.paginationSizeApi)}&sort_by=updated_at`
+			`${pathPrefix}/${entity}?size=${get(preferences.paginationSizeApi)}&sort_by=updated_at`,
+			clearOldCache
 		);
 	}
 
@@ -176,17 +192,42 @@ class ApiService {
 		);
 	}
 
-	updateRecord<T = any>(entity: string, id: string, data: Record<string, unknown>, pathPrefix: string = '') {
-		return requestWithResponseBody<T>(`${this.endpoint}${pathPrefix}/${entity}/${id}`, 'PATCH', data, this.headers);
+	async updateRecord<T = any>(entity: string, id: string, data: Record<string, unknown>, pathPrefix: string = '') {
+		const res = await requestWithResponseBody<T>(`${this.endpoint}${pathPrefix}/${entity}/${id}`, 'PATCH', data, this.headers);
+		if (res.ok) {
+			clearCache(entity)
+		}
+		return res
 	}
 
-	deleteRecord(entity: string, id: string, pathPrefix: string = '') {
-		return requestWithResponseBody(
+	async deleteRecord(entity: string, id: string, pathPrefix: string = '') {
+		if (entity == "services") {
+			const routes = await (await apiService()).findAll("routes", {}, `/services/${id}`);
+			if (!routes.ok) {
+				errorToast(`failed to load routes for service ${id}`);
+				return routes
+			}
+			for (const element of routes.data?.data ?? []) {
+				const routeDelete = await this.deleteRecord("routes", element.id)
+				if (!routeDelete.ok) {
+					errorToast(`failed to delete service route with id ${element.id}. ${routeDelete.err}`)
+					clearCache(id)
+				} else {
+					infoToast(`service route ${element.id} deleted!`)
+				}
+			}
+			clearCache('routes')
+		}
+		const res = await requestWithResponseBody(
 			`${this.endpoint}${pathPrefix}/${entity}/${id}`,
 			'DELETE',
 			undefined,
 			this.headers
 		);
+		if (res.ok) {
+			clearCache(entity)
+		}
+		return res;
 	}
 }
 
@@ -198,8 +239,7 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 		addToast({ message: `Failed to return apiService after ${maxRetries} retries` });
 	}
 	const token = get(userToken);
-	if(token && DateTime.now().toUnixInteger() > token.expires)
-	{
+	if (token && DateTime.now().toUnixInteger() > token.expires) {
 		userToken.set(undefined)
 		goto(`${base}/login?auto=true`);
 	}
