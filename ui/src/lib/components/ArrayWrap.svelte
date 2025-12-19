@@ -6,6 +6,7 @@
 	import { DateTime } from 'luxon';
 	import {
 		ArrowUpRightFromSquareOutline,
+		CaretDownOutline,
 		FileCopyOutline,
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
@@ -19,6 +20,7 @@
 	import { get, writable, type Writable } from 'svelte/store';
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
 	import { preferences, triggerPageUpdate } from '$lib/stores';
+	import { Button } from 'flowbite-svelte';
 
 	let loadParentName = preferences?.loadParentInfo;
 	let useNewSearch = preferences?.useNewSearch;
@@ -442,6 +444,38 @@
 		idToInfo[id] = res.data.name ?? res.data.tags ?? res.data.id;
 		return idToInfo[id];
 	}
+
+	let editorWindow: HTMLTextAreaElement;
+	let editorSyntax: HTMLElement;
+	let multiEditBody = '';
+
+	function triggerHighlight() {
+		multiEditBody = multiEditBody.replace(/\t/g, '  ');
+		multiEditBody = multiEditBody.replace(/\s\n$/g, '\n ');
+
+		if (!editorSyntax) {
+			return;
+		}
+		editorSyntax.textContent = multiEditBody;
+		(globalThis as any).Prism.highlightElement(editorSyntax);
+	}
+
+	async function applyMultiUpdate() {
+		const updateBody = JSON.parse(multiEditBody);
+		for (const element of filteredData) {
+			console.log(updateBody);
+			console.log(element);
+
+			const res = await (await apiService()).updateRecord(type, element.id, updateBody);
+			console.log(res);
+			if (!res.ok) {
+				errorToast(res.err ?? `failed to update ${element.id}`);
+			} else {
+				infoToast(`ok update ${element.id} with ${JSON.stringify(updateBody)}`);
+			}
+		}
+	}
+	let updateMultipleOpened = false;
 </script>
 
 <div class="w-full text-sm text-left rtl:text-right text-stone-800 font-light dark:text-stone-300">
@@ -572,7 +606,57 @@
 				<TrashBinOutline class="m-1" />
 				DELETE ALL
 			</button>
+			<Button
+				color="alternative"
+				class="h-10 m-1"
+				title="multi-update"
+				on:click={() => {
+					multiEditBody = JSON.stringify(
+						filteredData[0].config ? { config: filteredData[0].config ?? {} } : {},
+						undefined,
+						2
+					);
+					updateMultipleOpened = !updateMultipleOpened;
+					triggerHighlight();
+				}}
+			>
+				<CaretDownOutline class="" />
+				multi-update</Button
+			>
 		</div>
+		{#if updateMultipleOpened}
+			<div>
+				<Button
+					color="alternative"
+					class="h-10 m-1"
+					title="multi-update"
+					on:click={async () => {
+						await applyMultiUpdate();
+					}}>apply</Button
+				>
+			</div>
+			<div
+				class="editor dark:bg-[#1E2021] w-full min-h-[80vh] line-numbers {updateMultipleOpened
+					? 'grid'
+					: 'hidden'}"
+			>
+				<pre class="language-json"><code bind:this={editorSyntax}></code></pre>
+				<textarea
+					bind:this={editorWindow}
+					spellcheck="false"
+					wrap="hard"
+					autocorrect="off"
+					autocapitalize="off"
+					translate="no"
+					class="relative"
+					bind:value={multiEditBody}
+					on:input={() => {
+						triggerHighlight();
+					}}
+				></textarea>
+			</div>
+			<!-- content here -->
+		{/if}
 	</div>
 	{#if filteredData.length > paginationSizeUi}
 		<div class="info py-4 flex flex-row items-center space-x-4 pl-6">
@@ -884,4 +968,54 @@
 </div>
 
 <style lang="postcss">
+	.editor {
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr;
+		gap: 0;
+	}
+
+	.editor pre,
+	.editor textarea {
+		grid-area: 1 / 1 / 2 / 2;
+	}
+
+	.editor textarea {
+		background-color: transparent;
+		border: none;
+		color: rgba(255, 255, 255, 0.1);
+		caret-color: gray;
+		overflow: hidden;
+		resize: none;
+		width: 100%;
+	}
+
+	textarea,
+	pre {
+		padding: 0;
+		margin: 0;
+	}
+
+	textarea,
+	pre,
+	code {
+		outline: none;
+		border: none;
+		box-shadow: none;
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 20px;
+		line-height: 30px;
+		border-radius: 0;
+		white-space: break-spaces;
+	}
+
+	textarea,
+	pre {
+		padding: 10px;
+		padding-left: 75px;
+	}
+
+	code,
+	pre {
+		@apply dark:bg-zinc-900 bg-stone-800;
+	}
 </style>
