@@ -34,8 +34,8 @@
 
 	function updateDisplayedFields() {
 		displayedFields = JSON.parse(JSON.stringify(entity?.displayedFields ?? []));
-		if (!displayedFields.includes(sortBy)) {
-			displayedFields.push(sortBy);
+		if (!displayedFields.includes(sortByField)) {
+			displayedFields.push(sortByField);
 			displayedFields = displayedFields;
 		}
 	}
@@ -90,7 +90,7 @@
 		}
 		writeToClipboard(result);
 	}
-	let sortBy = entity?.sortBy ?? 'updated_at';
+	let sortByField = entity?.sortBy ?? 'updated_at';
 	let sortAscending = writable(entity?.sortAscending ?? false);
 
 	function updateEvent() {
@@ -98,7 +98,7 @@
 		if (searchText.length == 0) {
 			searchText = params.get('search') ?? '';
 		}
-		sortBy = params.get('sortBy') ?? sortBy;
+		sortByField = params.get('sortBy') ?? sortByField;
 		sortAscending.set(params.get('sortAscending') === 'true');
 
 		// filteredData = dataRaw;
@@ -112,8 +112,8 @@
 
 	function sort(arr: any[]) {
 		arr.sort((a, b) => {
-			let fieldA = a[sortBy];
-			let fieldB = b[sortBy];
+			let fieldA = a[sortByField];
+			let fieldB = b[sortByField];
 			if (typeof fieldA == 'object') {
 				fieldA = JSON.stringify(fieldA);
 				fieldB = JSON.stringify(fieldB);
@@ -511,7 +511,7 @@
 					updateSearchParamWithDebounce();
 					search();
 				}}
-				title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
+				title="Searches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
 				placeholder="search (hover for more info)"
 			/>
 		</div>
@@ -528,15 +528,15 @@
 		<div class="flex flex-row items-center space-x-2 pl-1">
 			<p class="text-lg">Sort by:</p>
 			<select
-				bind:value={sortBy}
+				bind:value={sortByField}
 				on:change={() => {
-					updateSearchQueryParams({ sortBy: sortBy });
+					updateSearchQueryParams({ sortBy: sortByField });
 					updateEvent();
 				}}
 				class="dark:bg-stone-700 shadow shadow-slate-600 h-6 p-0 max-w-36 pl-2 border-none rounded focus:border-none focus:[box-shadow:none]"
 			>
 				{#each Object.keys(dataRaw[0] ?? {}) as key}
-					<option value={key} selected={key == sortBy}>{key}</option>
+					<option value={key} selected={key == sortByField}>{key}</option>
 				{/each}
 			</select>
 		</div>
