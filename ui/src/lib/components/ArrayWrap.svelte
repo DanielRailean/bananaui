@@ -11,7 +11,7 @@
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import { dateFields, kongEntities } from '$lib/config';
-	import { apiService } from '$lib/requests';
+	import { apiService, clearCache } from '$lib/requests';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { createEventDispatcher } from 'svelte';
 	import type { IKongEntity, ITooggleableEntityMaybe } from '$lib/types';
@@ -72,6 +72,10 @@
 	calculatePagination();
 
 	function copy(data: any) {
+		data.enabledWritable = undefined;
+		if (Array.isArray(data)) {
+			data.forEach((el) => (el.enabledWritable = undefined));
+		}
 		let result = JSON.stringify(data, undefined, 2);
 		if (typeof data == 'string') {
 			result = data;
@@ -447,31 +451,31 @@
 
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
-	let multiEditBody = '';
+	let json = '';
 
-	const max = 5
+	const max = 5;
 	async function triggerHighlight(selfCalled = 0) {
-		if(selfCalled > max)
-		{
-			errorToast("highlight not triggered!")
+		if (selfCalled > max) {
+			errorToast('highlight not triggered!');
 			return;
 		}
-		multiEditBody = multiEditBody.replace(/\t/g, '  ');
-		multiEditBody = multiEditBody.replace(/\s\n$/g, '\n ');
-		
+		json = json.replace(/\t/g, '  ');
+		json = json.replace(/\s\n$/g, '\n ');
+
 		if (!editorSyntax) {
 			// needed as sometimes the function is called before the editor is added to the DOM
 			await delay(5);
-			await triggerHighlight(selfCalled+1)
+			await triggerHighlight(selfCalled + 1);
 			return;
 		}
-		editorSyntax.textContent = multiEditBody;
+		editorSyntax.textContent = json;
 		(globalThis as any).Prism.highlightElement(editorSyntax);
-		console.log(`Triggered on try ${selfCalled}`)
+		console.log(`Triggered on try ${selfCalled}`);
 	}
 
-	async function applyMultiUpdate() {
-		const updateBody = JSON.parse(multiEditBody);
+	async function applyBulkUpdate() {
+		bulkUpdateOpened = false;
+		const updateBody = JSON.parse(json);
 		for (const element of filteredData) {
 			console.log(updateBody);
 			console.log(element);
@@ -484,8 +488,11 @@
 				infoToast(`ok update ${element.id} with ${JSON.stringify(updateBody)}`);
 			}
 		}
+		infoToast(`bulk update finished`);
+		clearCache(type);
+		dispatch('refresh');
 	}
-	let updateMultipleOpened = false;
+	let bulkUpdateOpened = false;
 </script>
 
 <div class="w-full text-sm text-left rtl:text-right text-stone-800 font-light dark:text-stone-300">
@@ -621,35 +628,45 @@
 				class="h-10 m-1"
 				title="bulk-update"
 				on:click={() => {
-					multiEditBody = JSON.stringify(
-						filteredData[0].config ? { config: filteredData[0].config ?? {} } : {},
-						undefined,
-						2
-					);
-					updateMultipleOpened = !updateMultipleOpened;
-					if(updateMultipleOpened)
-					{
-						triggerHighlight()
-					};
+					if (json.length == 0) {
+						json = JSON.stringify(
+							filteredData[0].config ? { config: filteredData[0].config ?? {} } : {},
+							undefined,
+							2
+						);
+					}
+					bulkUpdateOpened = !bulkUpdateOpened;
+					if (bulkUpdateOpened) {
+						triggerHighlight();
+					}
 				}}
 			>
 				<CaretDownOutline class="" />
 				bulk-update</Button
 			>
 		</div>
-		{#if updateMultipleOpened}
+		{#if bulkUpdateOpened}
 			<div>
 				<Button
 					color="alternative"
 					class="h-10 m-1"
 					title="bulk-update"
 					on:click={async () => {
-						await applyMultiUpdate();
+						let ok = confirm(
+							`confirm bulk update of ${filteredData.length} items ?\n${JSON.stringify(
+								filteredData.map((i) => i.name ?? i.id ?? 'no name/id')
+							)}`
+						);
+						if (ok) {
+							await applyBulkUpdate();
+						} else {
+							infoToast('aborted bulk-update');
+						}
 					}}>apply</Button
 				>
 			</div>
 			<div
-				class="editor dark:bg-[#1E2021] w-full min-h-[80vh] line-numbers {updateMultipleOpened
+				class="editor dark:bg-[#1E2021] w-full min-h-[80vh] line-numbers {bulkUpdateOpened
 					? 'grid'
 					: 'hidden'}"
 			>
@@ -662,7 +679,7 @@
 					autocapitalize="off"
 					translate="no"
 					class="relative"
-					bind:value={multiEditBody}
+					bind:value={json}
 					on:input={() => {
 						triggerHighlight();
 					}}
@@ -761,7 +778,7 @@
 									class="h-8"
 									title={JSON.stringify(item, undefined, 2)}
 									on:click={() => {
-										copy(JSON.stringify(item, undefined, 2));
+										copy(item);
 									}}
 								>
 									<div
@@ -821,8 +838,8 @@
 																bind:checked={item.enabled}
 																on:change|stopPropagation|preventDefault={async () => {
 																	let ok = confirm('confirm action');
-																	item.enabled = !item.enabled;
 																	if (ok) {
+																		item.enabled = !item.enabled;
 																		const res = await disable(item['id'], !item.enabled);
 																		if (res.ok) {
 																			console.log(res);
