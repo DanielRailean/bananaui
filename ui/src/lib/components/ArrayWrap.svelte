@@ -617,7 +617,10 @@
 						2
 					);
 					updateMultipleOpened = !updateMultipleOpened;
-					triggerHighlight();
+					if(updateMultipleOpened)
+					{
+						triggerHighlight()
+					};
 				}}
 			>
 				<CaretDownOutline class="" />
