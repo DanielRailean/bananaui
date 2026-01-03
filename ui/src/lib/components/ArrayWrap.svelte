@@ -533,7 +533,7 @@
 					updateSearchQueryParams({ sortBy: sortBy });
 					updateEvent();
 				}}
-				class="dark:bg-stone-700 shadow shadow-slate-600 border-none w-52 rounded focus:border-none focus:[box-shadow:none]"
+				class="dark:bg-stone-700 shadow shadow-slate-600 h-6 p-0 max-w-36 pl-2 border-none rounded focus:border-none focus:[box-shadow:none]"
 			>
 				{#each Object.keys(dataRaw[0] ?? {}) as key}
 					<option value={key} selected={key == sortBy}>{key}</option>
