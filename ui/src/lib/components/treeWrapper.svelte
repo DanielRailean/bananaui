@@ -53,7 +53,7 @@
 									? 'cursor-pointer'
 									: ''}"
 								title={keyTitle(key) ?? ""}
-								on:click={() => {
+								on:dblclick={() => {
 									if (!allowKeyCopy) return;
 									writeToClipboard(key);
 								}}
@@ -63,7 +63,7 @@
 							<td
 								class="px-6 py-4 flex flex-row items-center {allowCopy ? 'cursor-pointer' : ''}"
 								title="click to copy"
-								on:click={() => {
+								on:dblclick={() => {
 									if (!allowCopy) return;
 									writeToClipboard(
 										typeof data[key] == 'string' ? data[key] : JSON.stringify(data[key])

@@ -11,7 +11,7 @@
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import { dateFields, kongEntities } from '$lib/config';
-	import { apiService } from '$lib/requests';
+	import { apiService, clearCache } from '$lib/requests';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { createEventDispatcher } from 'svelte';
 	import type { IKongEntity, ITooggleableEntityMaybe } from '$lib/types';
@@ -34,8 +34,8 @@
 
 	function updateDisplayedFields() {
 		displayedFields = JSON.parse(JSON.stringify(entity?.displayedFields ?? []));
-		if (!displayedFields.includes(sortBy)) {
-			displayedFields.push(sortBy);
+		if (!displayedFields.includes(sortByField)) {
+			displayedFields.push(sortByField);
 			displayedFields = displayedFields;
 		}
 	}
@@ -72,6 +72,12 @@
 	calculatePagination();
 
 	function copy(data: any) {
+		if (Array.isArray(data)) {
+			data.forEach((el) => (el.enabledWritable = undefined));
+		}
+		if (Object.keys(data).length > 0 && typeof data == 'object') {
+			data.enabledWritable = undefined;
+		}
 		let result = JSON.stringify(data, undefined, 2);
 		if (typeof data == 'string') {
 			result = data;
@@ -86,7 +92,7 @@
 		}
 		writeToClipboard(result);
 	}
-	let sortBy = entity?.sortBy ?? 'updated_at';
+	let sortByField = entity?.sortBy ?? 'updated_at';
 	let sortAscending = writable(entity?.sortAscending ?? false);
 
 	function updateEvent() {
@@ -94,7 +100,7 @@
 		if (searchText.length == 0) {
 			searchText = params.get('search') ?? '';
 		}
-		sortBy = params.get('sortBy') ?? sortBy;
+		sortByField = params.get('sortBy') ?? sortByField;
 		sortAscending.set(params.get('sortAscending') === 'true');
 
 		// filteredData = dataRaw;
@@ -108,8 +114,8 @@
 
 	function sort(arr: any[]) {
 		arr.sort((a, b) => {
-			let fieldA = a[sortBy];
-			let fieldB = b[sortBy];
+			let fieldA = a[sortByField];
+			let fieldB = b[sortByField];
 			if (typeof fieldA == 'object') {
 				fieldA = JSON.stringify(fieldA);
 				fieldB = JSON.stringify(fieldB);
@@ -447,21 +453,31 @@
 
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
-	let multiEditBody = '';
+	let json = '';
 
-	function triggerHighlight() {
-		multiEditBody = multiEditBody.replace(/\t/g, '  ');
-		multiEditBody = multiEditBody.replace(/\s\n$/g, '\n ');
-
-		if (!editorSyntax) {
+	const max = 5;
+	async function triggerHighlight(selfCalled = 0) {
+		if (selfCalled > max) {
+			errorToast('highlight not triggered!');
 			return;
 		}
-		editorSyntax.textContent = multiEditBody;
+		json = json.replace(/\t/g, '  ');
+		json = json.replace(/\s\n$/g, '\n ');
+
+		if (!editorSyntax) {
+			// needed as sometimes the function is called before the editor is added to the DOM
+			await delay(5);
+			await triggerHighlight(selfCalled + 1);
+			return;
+		}
+		editorSyntax.textContent = json;
 		(globalThis as any).Prism.highlightElement(editorSyntax);
+		console.log(`Triggered on try ${selfCalled}`);
 	}
 
-	async function applyMultiUpdate() {
-		const updateBody = JSON.parse(multiEditBody);
+	async function applyBulkUpdate() {
+		bulkUpdateOpened = false;
+		const updateBody = JSON.parse(json);
 		for (const element of filteredData) {
 			console.log(updateBody);
 			console.log(element);
@@ -474,8 +490,11 @@
 				infoToast(`ok update ${element.id} with ${JSON.stringify(updateBody)}`);
 			}
 		}
+		infoToast(`bulk update finished`);
+		clearCache(type);
+		dispatch('refresh');
 	}
-	let updateMultipleOpened = false;
+	let bulkUpdateOpened = false;
 </script>
 
 <div class="w-full text-sm text-left rtl:text-right text-stone-800 font-light dark:text-stone-300">
@@ -494,7 +513,7 @@
 					updateSearchParamWithDebounce();
 					search();
 				}}
-				title="Seaches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
+				title="Searches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
 				placeholder="search (hover for more info)"
 			/>
 		</div>
@@ -511,15 +530,15 @@
 		<div class="flex flex-row items-center space-x-2 pl-1">
 			<p class="text-lg">Sort by:</p>
 			<select
-				bind:value={sortBy}
+				bind:value={sortByField}
 				on:change={() => {
-					updateSearchQueryParams({ sortBy: sortBy });
+					updateSearchQueryParams({ sortBy: sortByField });
 					updateEvent();
 				}}
-				class="dark:bg-stone-700 shadow shadow-slate-600 border-none w-52 rounded focus:border-none focus:[box-shadow:none]"
+				class="dark:bg-stone-700 shadow shadow-slate-600 h-6 p-0 max-w-36 pl-2 border-none rounded focus:border-none focus:[box-shadow:none]"
 			>
 				{#each Object.keys(dataRaw[0] ?? {}) as key}
-					<option value={key} selected={key == sortBy}>{key}</option>
+					<option value={key} selected={key == sortByField}>{key}</option>
 				{/each}
 			</select>
 		</div>
@@ -609,34 +628,47 @@
 			<Button
 				color="alternative"
 				class="h-10 m-1"
-				title="multi-update"
+				title="bulk-update"
 				on:click={() => {
-					multiEditBody = JSON.stringify(
-						filteredData[0].config ? { config: filteredData[0].config ?? {} } : {},
-						undefined,
-						2
-					);
-					updateMultipleOpened = !updateMultipleOpened;
-					triggerHighlight();
+					if (json.length == 0) {
+						json = JSON.stringify(
+							filteredData[0].config ? { config: filteredData[0].config ?? {} } : {},
+							undefined,
+							2
+						);
+					}
+					bulkUpdateOpened = !bulkUpdateOpened;
+					if (bulkUpdateOpened) {
+						triggerHighlight();
+					}
 				}}
 			>
 				<CaretDownOutline class="" />
-				multi-update</Button
+				bulk-update</Button
 			>
 		</div>
-		{#if updateMultipleOpened}
+		{#if bulkUpdateOpened}
 			<div>
 				<Button
 					color="alternative"
 					class="h-10 m-1"
-					title="multi-update"
+					title="bulk-update"
 					on:click={async () => {
-						await applyMultiUpdate();
+						let ok = confirm(
+							`confirm bulk update of ${filteredData.length} items ?\n${JSON.stringify(
+								filteredData.map((i) => i.name ?? i.id ?? 'no name/id')
+							)}`
+						);
+						if (ok) {
+							await applyBulkUpdate();
+						} else {
+							infoToast('aborted bulk-update');
+						}
 					}}>apply</Button
 				>
 			</div>
 			<div
-				class="editor dark:bg-[#1E2021] w-full min-h-[80vh] line-numbers {updateMultipleOpened
+				class="editor dark:bg-[#1E2021] w-full min-h-[80vh] line-numbers {bulkUpdateOpened
 					? 'grid'
 					: 'hidden'}"
 			>
@@ -649,7 +681,7 @@
 					autocapitalize="off"
 					translate="no"
 					class="relative"
-					bind:value={multiEditBody}
+					bind:value={json}
 					on:input={() => {
 						triggerHighlight();
 					}}
@@ -748,7 +780,7 @@
 									class="h-8"
 									title={JSON.stringify(item, undefined, 2)}
 									on:click={() => {
-										copy(JSON.stringify(item, undefined, 2));
+										copy(item);
 									}}
 								>
 									<div
@@ -786,7 +818,8 @@
 											title={field == 'name'
 												? `open ${item.name ?? ''} (${item.id})`
 												: `click to copy '${field}'\n${JSON.stringify(item[field], undefined, 2)} `}
-											on:click|stopPropagation={() => {
+											on:dblclick={() => {
+												errorToast('dbl click');
 												if (field == 'name') {
 													goto(`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`);
 													return;
@@ -808,8 +841,8 @@
 																bind:checked={item.enabled}
 																on:change|stopPropagation|preventDefault={async () => {
 																	let ok = confirm('confirm action');
-																	item.enabled = !item.enabled;
 																	if (ok) {
+																		item.enabled = !item.enabled;
 																		const res = await disable(item['id'], !item.enabled);
 																		if (res.ok) {
 																			console.log(res);
@@ -884,14 +917,13 @@
 														: 'max-w-[650px]'}"
 												>
 													{#each item[field] as row, index}
-														<!-- content here -->
 														<p
 															class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50 {field ==
 															'methods'
 																? `http-method method-${item[field][index].toLowerCase()}`
 																: ''}"
 															title="copy '{item[field][index]}'"
-															on:click|stopPropagation|preventDefault={() => {
+															on:dblclick={() => {
 																copy(item[field][index]);
 															}}
 														>

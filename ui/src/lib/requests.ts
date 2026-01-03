@@ -40,10 +40,10 @@ export type ResWrapped<T, E> = {
 
 export let cacheMap: { [key: string]: any } = {}
 
-export function clearCache(contains?: string) {
-	if (contains) {
+export function clearCache(cacheKeyContains?: string) {
+	if (cacheKeyContains) {
 		for (const key of Object.keys(cacheMap)) {
-			if (key.includes(contains)) {
+			if (key.includes(cacheKeyContains)) {
 				cacheMap[key] = undefined
 				console.log(`cleared cache key ${key}`)
 			}

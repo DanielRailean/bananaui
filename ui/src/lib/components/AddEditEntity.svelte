@@ -11,6 +11,7 @@
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 	import { base } from '$app/paths';
 	import { kongEntities } from '$lib/config';
+	import { delay } from '$lib/util';
 
 	let entity: IKongEntity | undefined;
 
@@ -195,12 +196,25 @@
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
 
-	async function triggerHighlight() {
+	const max = 5
+	async function triggerHighlight(selfCalled = 0) {
+		if(selfCalled > max)
+		{
+			errorToast("highlight not triggered!")
+			return;
+		}
 		json = json.replace(/\t/g, '  ');
+		json = json.replace(/\s\n$/g, '\n ');
+		
+		if (!editorSyntax) {
+			// needed as sometimes the function is called before the editor is added to the DOM
+			await delay(5);
+			await triggerHighlight(selfCalled+1)
+			return;
+		}
 		editorSyntax.textContent = json;
-
-		// Highlight the syntax
 		(globalThis as any).Prism.highlightElement(editorSyntax);
+		console.log(`Triggered on try ${selfCalled}`)
 	}
 
 	function getDefault(schemaKey: any): any {
