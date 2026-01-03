@@ -7,7 +7,7 @@
 	import { apiService } from '$lib/requests';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { getPluginPriorityMap, getPlugins, writeToClipboard } from '$lib/util';
+	import { delay, getPluginPriorityMap, getPlugins, writeToClipboard } from '$lib/util';
 	import * as yaml from 'js-yaml';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import {
@@ -64,9 +64,7 @@
 		isMounted = true;
 		info = await getPluginPriorityMap();
 		await load();
-		setTimeout(() => {
-			triggerHighlight();
-		}, 100);
+		triggerHighlight();
 	});
 
 	function updateIsEdited() {
@@ -204,15 +202,25 @@
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
 
-	async function triggerHighlight() {
+		const max = 5
+	async function triggerHighlight(selfCalled = 0) {
+		if(selfCalled > max)
+		{
+			errorToast("highlight not triggered!")
+			return;
+		}
 		json = json.replace(/\t/g, '  ');
 		json = json.replace(/\s\n$/g, '\n ');
-
+		
 		if (!editorSyntax) {
+			// needed as sometimes the function is called before the editor is added to the DOM
+			await delay(5);
+			await triggerHighlight(selfCalled+1)
 			return;
 		}
 		editorSyntax.textContent = json;
 		(globalThis as any).Prism.highlightElement(editorSyntax);
+		console.log(`Triggered on try ${selfCalled}`)
 	}
 	let showPluginOrder = preferences.showPluginOrder;
 </script>

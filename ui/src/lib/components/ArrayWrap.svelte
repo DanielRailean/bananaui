@@ -449,15 +449,25 @@
 	let editorSyntax: HTMLElement;
 	let multiEditBody = '';
 
-	function triggerHighlight() {
+	const max = 5
+	async function triggerHighlight(selfCalled = 0) {
+		if(selfCalled > max)
+		{
+			errorToast("highlight not triggered!")
+			return;
+		}
 		multiEditBody = multiEditBody.replace(/\t/g, '  ');
 		multiEditBody = multiEditBody.replace(/\s\n$/g, '\n ');
-
+		
 		if (!editorSyntax) {
+			// needed as sometimes the function is called before the editor is added to the DOM
+			await delay(5);
+			await triggerHighlight(selfCalled+1)
 			return;
 		}
 		editorSyntax.textContent = multiEditBody;
 		(globalThis as any).Prism.highlightElement(editorSyntax);
+		console.log(`Triggered on try ${selfCalled}`)
 	}
 
 	async function applyMultiUpdate() {
@@ -609,7 +619,7 @@
 			<Button
 				color="alternative"
 				class="h-10 m-1"
-				title="multi-update"
+				title="bulk-update"
 				on:click={() => {
 					multiEditBody = JSON.stringify(
 						filteredData[0].config ? { config: filteredData[0].config ?? {} } : {},
@@ -624,7 +634,7 @@
 				}}
 			>
 				<CaretDownOutline class="" />
-				multi-update</Button
+				bulk-update</Button
 			>
 		</div>
 		{#if updateMultipleOpened}
@@ -632,7 +642,7 @@
 				<Button
 					color="alternative"
 					class="h-10 m-1"
-					title="multi-update"
+					title="bulk-update"
 					on:click={async () => {
 						await applyMultiUpdate();
 					}}>apply</Button
