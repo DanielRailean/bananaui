@@ -20,7 +20,7 @@
 	let postPath: string | undefined;
 	let entitySchema: any | undefined;
 	let pluginSchema: any | undefined;
-	let selectedPlugin: any;
+	let selectedPluginName: any;
 	let pluginSelect: any | undefined;
 	let pathPrefix: string = '';
 
@@ -94,9 +94,9 @@
 		json = JSON.stringify(entity.defaultAddValue ?? dummyObject, undefined, 2);
 		triggerHighlight();
 
-		selectedPlugin = pluginSelect[Math.round(Math.random() * pluginSelect.length)].value;
-		infoToast(`loaded schema for ${selectedPlugin} (selected randomly)`);
-		pluginSelected();
+		selectedPluginName = pluginSelect[Math.round(Math.random() * pluginSelect.length)].value;
+		infoToast(`loaded schema for ${selectedPluginName} (selected randomly)`);
+		pluginSelected(true);
 	});
 
 	function format(confirmOk = true) {
@@ -135,7 +135,7 @@
 				return;
 			}
 			if (res.data?.id) {
-				clearCache(entity?.name)
+				clearCache(entity?.name);
 				goto(`${base}/entity?type=${entity?.name}&id=${res.data.id}&prefix=${pathPrefix}`);
 			} else {
 				addToast({ message: 'failed to read the new entity' });
@@ -146,13 +146,13 @@
 			addToast({ message: err.message });
 		}
 	}
-	async function pluginSelected() {
-		addField('name', selectedPlugin);
-		const res = await (await apiService()).pluginConfig(selectedPlugin);
+	async function pluginSelected(loadDefaultConfig: boolean) {
+		addField('name', selectedPluginName);
+		const res = await (await apiService()).pluginConfig(selectedPluginName);
 		if (res.ok && res.data) {
 			let configSchema = res.data.fields.find((i) => Object.entries(i)[0][0] == 'config');
 			if (!configSchema) {
-				addToast({ message: `failed to load config for ${selectedPlugin}` });
+				addToast({ message: `failed to load config for ${selectedPluginName}` });
 				return;
 			}
 			pluginSchema = {};
@@ -162,8 +162,10 @@
 				const value = entries[1];
 				pluginSchema[key] = value;
 			}
-			const config = getDefaultFields(configSchema.config.fields, false);
-			addField('config', config);
+			if(loadDefaultConfig){
+				const config = getDefaultFields(configSchema.config.fields, false);
+				addField('config', config);
+			}
 			triggerHighlight();
 		}
 	}
@@ -196,25 +198,39 @@
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
 
-	const max = 5
+	const max = 5;
 	async function triggerHighlight(selfCalled = 0) {
-		if(selfCalled > max)
-		{
-			errorToast("highlight not triggered!")
+		if (selfCalled > max) {
+			errorToast('highlight not triggered!');
 			return;
 		}
 		json = json.replace(/\t/g, '  ');
 		json = json.replace(/\s\n$/g, '\n ');
-		
+
 		if (!editorSyntax) {
 			// needed as sometimes the function is called before the editor is added to the DOM
 			await delay(5);
-			await triggerHighlight(selfCalled+1)
+			await triggerHighlight(selfCalled + 1);
 			return;
 		}
 		editorSyntax.textContent = json;
 		(globalThis as any).Prism.highlightElement(editorSyntax);
-		console.log(`Triggered on try ${selfCalled}`)
+		console.log(`Triggered on try ${selfCalled}`);
+	}
+
+	function checkIfPlugin() {
+		if (!entity || entity.name != 'plugins') {
+			return;
+		}
+		try {
+			const body = JSON.parse(json);
+			if (body) {
+				if (body && body.name && body.name != selectedPluginName) {
+					selectedPluginName = body.name;
+					pluginSelected(!(body.config != undefined && Object.keys(body.config).length >= 0));
+				}
+			}
+		} catch (error) {}
 	}
 
 	function getDefault(schemaKey: any): any {
@@ -269,12 +285,12 @@
 					</div>
 				</a>
 			</Button>
-			{#if selectedPlugin}
+			{#if selectedPluginName}
 				<Button class="h-10 m-1" color="alternative">
-					<a target="_blank" href="https://docs.konghq.com/hub/kong-inc/{selectedPlugin}/">
+					<a target="_blank" href="https://docs.konghq.com/hub/kong-inc/{selectedPluginName}/">
 						<div class="flex flex-row items-center">
 							<LinkOutline class="m-2" />
-							{selectedPlugin} plugin - configuration reference
+							{selectedPluginName} plugin - configuration reference
 						</div>
 					</a>
 				</Button>
@@ -287,8 +303,8 @@
 					<Select
 						class="mt-2"
 						items={pluginSelect}
-						bind:value={selectedPlugin}
-						on:change={pluginSelected}
+						bind:value={selectedPluginName}
+						on:change={() => pluginSelected(true)}
 					/>
 				</Label>
 			</div>
@@ -310,6 +326,7 @@
 			bind:value={json}
 			on:input={() => {
 				triggerHighlight();
+				checkIfPlugin();
 			}}
 		></textarea>
 	</div>

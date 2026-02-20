@@ -91,7 +91,10 @@ export const kongEntities: IKongEntity[] = [
 			'name', 'host', 'port', 'path',
 			'updated_at'],
 		apiPath: 'services',
-		subEntities: ['routes', 'plugins'],
+		subEntities: [
+			'plugins',
+			'routes', 
+		],
 		sortBy: 'updated_at',
 		sortAscending: false,
 		uiSpaceBefore: true,
@@ -121,21 +124,22 @@ export const kongEntities: IKongEntity[] = [
 			'service', 'route',
 			'updated_at'],
 		apiPath: 'plugins',
-		uiSpaceAfter: true,
 		logo: 'puzzle'
-	},
-	{
-		name: 'certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'certificates',
-	},
-	{
-		name: 'ca_certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'ca_certificates',
 	},
 	{
 		name: 'consumers', displayedFields: ['username', 'custom_id', 'updated_at'], apiPath: 'consumers',
 		defaultAddValue: {
 			username: "",
 			custom_id: ""
-		}
+		},
+		uiSpaceAfter: true,
+		logo: "user_group"
+	},
+	{
+		name: 'certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'certificates',
+	},
+	{
+		name: 'ca_certificates', displayedFields: ['id', 'tags', 'updated_at'], apiPath: 'ca_certificates',
 	},
 	{
 		name: 'upstreams', displayedFields: ['name', 'updated_at'],

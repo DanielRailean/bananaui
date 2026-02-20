@@ -105,14 +105,17 @@
 			stateJson = json;
 
 			currentEntity = kongEntities.find((ent) => ent.name == entityType);
-			subEntities = kongEntities
-				.filter((subEnt) => currentEntity?.subEntities?.includes(subEnt.name))
-				.map((subEnt) => {
-					return {
-						...subEnt,
-						entitySubPath: `${entityType}/${id}/${subEnt.name}`
-					};
-				});
+			subEntities = []
+			for (const entity of currentEntity?.subEntities ?? []) {
+				const found = kongEntities.find(ent => ent.name == entity )
+				if (!found) {
+					continue
+				}
+				subEntities.push({
+					...found, 
+					entitySubPath: `${entityType}/${id}/${found.name}`
+				})
+			}
 			for (const ent of subEntities) {
 				const res2 = await (await apiService()).findAll(ent.name, {}, `/${entityType}/${id}`);
 				if (!res2.ok) {
