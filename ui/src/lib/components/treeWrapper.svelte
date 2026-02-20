@@ -61,8 +61,8 @@
 								{key}
 							</th>
 							<td
-								class="px-6 py-4 flex flex-row items-center {allowCopy ? 'cursor-pointer' : ''}"
-								title="click to copy"
+								class="px-6 py-4 flex flex-row select-none items-center {allowCopy ? 'cursor-pointer' : ''}"
+								title="double-click to copy"
 								on:dblclick={() => {
 									if (!allowCopy) return;
 									writeToClipboard(

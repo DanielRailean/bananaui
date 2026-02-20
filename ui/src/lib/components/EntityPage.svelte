@@ -4,9 +4,9 @@
 	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import TreeWrapper from './treeWrapper.svelte';
-	import { apiService } from '$lib/requests';
+	import { apiService, clearCache } from '$lib/requests';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page, navigating, updated } from '$app/stores';
 	import { delay, getPluginPriorityMap, getPlugins, writeToClipboard } from '$lib/util';
 	import * as yaml from 'js-yaml';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
@@ -67,7 +67,9 @@
 		triggerHighlight();
 	});
 
-	function updateIsEdited() {
+	function flipIsEdited() {
+		isEdited = !isEdited
+		isEdited = isEdited;
 		const url = new URL(window.location.toString());
 		if (isEdited == true) {
 			url.searchParams.set('isEdited', 'true');
@@ -105,14 +107,17 @@
 			stateJson = json;
 
 			currentEntity = kongEntities.find((ent) => ent.name == entityType);
-			subEntities = kongEntities
-				.filter((subEnt) => currentEntity?.subEntities?.includes(subEnt.name))
-				.map((subEnt) => {
-					return {
-						...subEnt,
-						entitySubPath: `${entityType}/${id}/${subEnt.name}`
-					};
-				});
+			subEntities = []
+			for (const entity of currentEntity?.subEntities ?? []) {
+				const found = kongEntities.find(ent => ent.name == entity )
+				if (!found) {
+					continue
+				}
+				subEntities.push({
+					...found, 
+					entitySubPath: `${entityType}/${id}/${found.name}`
+				})
+			}
 			for (const ent of subEntities) {
 				const res2 = await (await apiService()).findAll(ent.name, {}, `/${entityType}/${id}`);
 				if (!res2.ok) {
@@ -141,7 +146,6 @@
 				priority: info[plugin.name]
 			};
 		});
-		// console.log(relevantPlugins);
 	}
 
 	let openedPlugins: any = {};
@@ -193,10 +197,11 @@
 			confirmToast(`entity successfully updated`);
 		}
 
-		isEdited = !isEdited;
-		isEdited = isEdited;
+		flipIsEdited();
 		data = JSON.parse(json);
 		stateJson = json;
+		clearCache(id)
+		load()
 	}
 
 	let editorWindow: HTMLTextAreaElement;
@@ -235,8 +240,7 @@
 			<Button
 				class="h-10 m-1 focus:shadow-none"
 				on:click={() => {
-					isEdited = !isEdited;
-					updateIsEdited();
+					flipIsEdited();
 					triggerHighlight();
 				}}
 			>

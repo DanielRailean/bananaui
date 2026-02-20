@@ -814,7 +814,7 @@
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 										<p
-											class="mr-2 cursor-pointer overflow-hidden max-h-40"
+											class="mr-2 cursor-pointer overflow-hidden max-h-40 {field.includes("name") ? "text-[16px] font-extralight": ""}"
 											title={field == 'name'
 												? `open ${item.name ?? ''} (${item.id})`
 												: `click to copy '${field}'\n${JSON.stringify(item[field], undefined, 2)} `}
