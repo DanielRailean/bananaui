@@ -87,13 +87,15 @@ export const kongEntities: IKongEntity[] = [
 		name: 'services',
 		displayedFields: [
 			'enabled',
-			'tags',
-			'name', 'host', 'port', 'path',
-			'updated_at'],
+			'id',
+			'name',
+			'host',
+			'updated_at'
+		],
 		apiPath: 'services',
 		subEntities: [
 			'plugins',
-			'routes', 
+			'routes',
 		],
 		sortBy: 'updated_at',
 		sortAscending: false,
