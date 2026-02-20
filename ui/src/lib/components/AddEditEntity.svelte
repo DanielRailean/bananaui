@@ -180,7 +180,7 @@
 				result[key] = value.default;
 				continue;
 			}
-			if (value.type == 'map') {
+			if (["map", "array"].includes(value.type)) {
 				result[key] = getDefault(value);
 				continue;
 			}
@@ -242,6 +242,9 @@
 		}
 		if (schemaKey.type == 'string') {
 			return '';
+		}
+		if (schemaKey.type == 'boolean') {
+			return false;
 		}
 		if (schemaKey.type == 'array') {
 			if (schemaKey.elements) {
