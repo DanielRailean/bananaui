@@ -87,9 +87,9 @@ export const kongEntities: IKongEntity[] = [
 		name: 'services',
 		displayedFields: [
 			'enabled',
-			'id',
 			'name',
 			'host',
+			'id',
 			'updated_at'
 		],
 		apiPath: 'services',

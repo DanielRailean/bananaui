@@ -26,7 +26,7 @@
 </script>
 
 <div class="w-full">
-	<TreeWrapper data={token} expandLevel={0} />
+	<TreeWrapper data={token} expandLevel={2} />
 	<div class="flex flex-row items-center">
 		<Button class="m-2" on:click={() => {writeToClipboard($userToken?.token ?? "", ()=> {
 			confirmToast(`copied! expires at ${DateTime.fromMillis(token.payload.exp * 1000).toFormat("T")}`)
