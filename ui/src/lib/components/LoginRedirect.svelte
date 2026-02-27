@@ -6,11 +6,16 @@
 	import { onMount } from 'svelte';
 
 	onMount(() => {
+		// userToken.subscribe(t => {
+		// 	console.log(t)
+		// })
 		config.subscribe((v) => {
+			// console.log(v)
 			if (v && v.config.oidc?.enabled && !$userToken) {
 				const path = $page.url.pathname;
 				const search = $page.url.search;
 				if (!path.includes('/login')) {
+					// console.log("redirect!")
 					goto(`${base}/login?source=${btoa(path + search)}`);
 				}
 			}

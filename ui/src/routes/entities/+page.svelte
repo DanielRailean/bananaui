@@ -53,7 +53,9 @@
 			if (!kongEntity) {
 				return;
 			}
-			let res = await (await apiService()).findAll<any>(kongEntity.apiPath, {}, pathPrefix, isRefresh);
+			let res = await (
+				await apiService()
+			).findAll<any>(kongEntity.apiPath, {}, pathPrefix, isRefresh);
 			if (!res.ok) {
 				errorToast(`failed to fetch the ${entity}. ${res.err} (${res.code})`);
 				return;
@@ -101,38 +103,42 @@
 	<title>{capitalizeFirstLetter(entity)} {entity ? '|' : ''} {staticConfig.name}</title>
 </svelte:head>
 
-<div class="flex flex-col m-4 mb-3 font-light text-2xl">
-	<div class="flex flex-row mb-2 h-10">
-		<Button
-			class=" flex flex-row mr-2  items-center bg-green-500 dark:bg-green-700"
-			on:click={() => {
-				load(true);
-				infoToast('refresh started!');
-			}}
-		>
-			<RefreshOutline class="mr-2"></RefreshOutline>
-			Refresh
-		</Button>
-		<Button
-			class="flex flex-row mr-2 bg-blue-500 dark:bg-blue-600"
-			on:click={() => {
-				goto(`${base}/add?type=${entity}`);
-			}}
-		>
-			<a href="{base}/add?type={entity}">
-				<div class="flex flex-row items-center space-x-1">
-					<CirclePlusOutline class="mr-2" />
-					Add
-				</div>
-			</a>
-		</Button>
-	</div>
-</div>
 {#if data}
-	<ArrayWrap dataRaw={data} type={entity} entity={kongEntity} on:refresh={async () => await load(true)}
+	<div class="flex flex-col m-4 mb-3 font-light text-2xl">
+		<div class="flex flex-row mb-2 h-10">
+			<Button
+				class=" flex flex-row mr-2  items-center bg-green-500 dark:bg-green-700"
+				on:click={() => {
+					load(true);
+					infoToast('refresh started!');
+				}}
+			>
+				<RefreshOutline class="mr-2"></RefreshOutline>
+				Refresh
+			</Button>
+			<Button
+				class="flex flex-row mr-2 bg-blue-500 dark:bg-blue-600"
+				on:click={() => {
+					goto(`${base}/add?type=${entity}`);
+				}}
+			>
+				<a href="{base}/add?type={entity}">
+					<div class="flex flex-row items-center space-x-1">
+						<CirclePlusOutline class="mr-2" />
+						Add
+					</div>
+				</a>
+			</Button>
+		</div>
+	</div>
+	<ArrayWrap
+		dataRaw={data}
+		type={entity}
+		entity={kongEntity}
+		on:refresh={async () => await load(true)}
 	></ArrayWrap>
 {:else}
-	<div class="flex flex-row items-center pl-5 pb-4">
-		<Spinner text="Loading {entity ?? ''}" />
+	<div class="flex flex-row items-center p-5 h-full w-full">
+		<Spinner text={entity ? `loading ${entity}` : ''} />
 	</div>
 {/if}

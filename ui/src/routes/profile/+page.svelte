@@ -1,15 +1,15 @@
 <script lang="ts">
 	import TreeWrapper from './../../lib/components/treeWrapper.svelte';
 	import { onMount } from 'svelte';
-	import { userToken } from '$lib/stores';
+	import { config, userToken } from '$lib/stores';
 	import { addToast, confirmToast, infoToast } from '$lib/toastStore';
-	import { DateTime, Duration } from 'luxon';
+	import { DateTime } from 'luxon';
 	import { Button } from 'flowbite-svelte';
 	import { writeToClipboard } from '$lib/util';
-	let token: any = {
+	let info: any = {
 		username: '',
 		email: '',
-		payload : {}
+		payload: {}
 	};
 
 	onMount(() => {
@@ -18,18 +18,35 @@
 			addToast({ message: 'no token!' });
 			return;
 		}
-		const token_parsed = JSON.parse(atob(split[1]))
-		token.payload = token_parsed;
-		token.username = token_parsed.name;
-		token.email = token_parsed.unique_name
+		const token_parsed = JSON.parse(atob(split[1]));
+		info.payload = token_parsed;
+		info.username = token_parsed.name;
+		info.email = token_parsed.unique_name;
 	});
 </script>
 
 <div class="w-full">
-	<TreeWrapper data={token} expandLevel={2} />
+	<TreeWrapper data={info} expandLevel={2} />
 	<div class="flex flex-row items-center">
-		<Button class="m-2" on:click={() => {writeToClipboard($userToken?.token ?? "", ()=> {
-			confirmToast(`copied! expires at ${DateTime.fromMillis(token.payload.exp * 1000).toFormat("T")}`)
-		})}}>copy personal API token </Button>
+		<Button
+			class="m-2"
+			disabled={$userToken?.expires == -1}
+			on:click={() => {
+				writeToClipboard($userToken?.token ?? '', () => {
+					confirmToast(
+						`copied! expires at ${DateTime.fromMillis(info.payload.exp * 1000).toFormat('T')}`
+					);
+				});
+			}}
+			>copy personal API token
+		</Button>
+		<Button
+			class="m-2"
+			disabled={$userToken?.expires != -1}
+			on:click={() => {
+				userToken.set(undefined);
+				config.set($config);
+			}}>login again</Button
+		>
 	</div>
 </div>
