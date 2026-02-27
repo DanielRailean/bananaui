@@ -1,5 +1,5 @@
 # stage build
-FROM node:18-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 
@@ -7,6 +7,10 @@ WORKDIR /app
 COPY . .
 
 RUN npm install -g pnpm@latest-10
+
+ARG build_prefix
+
+ENV SVELTE_BUILD_PREFIX=$build_prefix
 
 # clean install all dependencies
 RUN pnpm install
@@ -16,7 +20,7 @@ RUN pnpm run build
 
 
 # stage run
-FROM node:18-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 
