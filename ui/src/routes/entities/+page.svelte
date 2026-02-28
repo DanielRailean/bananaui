@@ -3,7 +3,6 @@
 	import type { IKongEntity } from '$lib/types';
 	import { CirclePlusOutline, RefreshOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
-	import { triggerPageUpdate } from '$lib/stores';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '$lib/components/ArrayWrap.svelte';
 	import { apiService, cacheMap, type ResWrapped } from '$lib/requests';
@@ -61,7 +60,6 @@
 				return;
 			}
 			data.set(res.data.data);
-			triggerPageUpdate.set('init.load+' + entity + DateTime.now().toMillis());
 			var loopStarted = loadStart;
 			await delay(paginationAwaitBetweenPages);
 

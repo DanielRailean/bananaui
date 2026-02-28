@@ -14,7 +14,7 @@
 	import Toggle from './Toggle.svelte';
 	import { get, writable, type Writable } from 'svelte/store';
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
-	import { preferences, triggerPageUpdate } from '$lib/stores';
+	import { preferences } from '$lib/stores';
 	import { Button } from 'flowbite-svelte';
 	import { dump } from 'js-yaml';
 
