@@ -43,7 +43,6 @@
 		}
 		const params = new URLSearchParams(window.location.search);
 		loadStart = DateTime.now();
-		const oldEntity = entity;
 		entity = params.get('type') ?? 'none';
 		pathPrefix = params.get('prefix') ?? '';
 
@@ -99,7 +98,7 @@
 	<title>{capitalizeFirstLetter(entity)} {entity ? '|' : ''} {staticConfig.name}</title>
 </svelte:head>
 
-{#if $data}
+{#if entity}
 	<div class="flex flex-col m-4 mb-3 font-light text-2xl">
 		<div class="flex flex-row mb-2 h-10">
 			<Button
