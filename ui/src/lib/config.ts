@@ -2,7 +2,7 @@ import type { DumpOptions } from 'js-yaml';
 
 export const staticConfig = {
 	autoLoginDelayMs: 100,
-	name: 'Banana UI'
+	name: 'BananaUI'
 };
 
 export const yamlDumpOptions: DumpOptions = {
