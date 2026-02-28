@@ -13,8 +13,11 @@
 	import {
 		CaretDownOutline,
 		CirclePlusOutline,
+		CodeOutline,
 		EditOutline,
+		FileCopyAltOutline,
 		FileCopyOutline,
+		FilePenOutline,
 		FloppyDiskAltOutline,
 		PaletteOutline,
 		TrashBinOutline
@@ -32,6 +35,7 @@
 	let json = '';
 
 	let isEdited = false;
+	let highlightDisabled = false;
 	let id: string;
 	let entityType: string;
 	let pathPrefix: string = '';
@@ -68,7 +72,7 @@
 	});
 
 	function flipIsEdited() {
-		isEdited = !isEdited
+		isEdited = !isEdited;
 		isEdited = isEdited;
 		const url = new URL(window.location.toString());
 		if (isEdited == true) {
@@ -107,16 +111,16 @@
 			stateJson = json;
 
 			currentEntity = kongEntities.find((ent) => ent.name == entityType);
-			subEntities = []
+			subEntities = [];
 			for (const entity of currentEntity?.subEntities ?? []) {
-				const found = kongEntities.find(ent => ent.name == entity )
+				const found = kongEntities.find((ent) => ent.name == entity);
 				if (!found) {
-					continue
+					continue;
 				}
 				subEntities.push({
-					...found, 
+					...found,
 					entitySubPath: `${entityType}/${id}/${found.name}`
-				})
+				});
 			}
 			for (const ent of subEntities) {
 				const res2 = await (await apiService()).findAll(ent.name, {}, `/${entityType}/${id}`);
@@ -200,34 +204,37 @@
 		flipIsEdited();
 		data = JSON.parse(json);
 		stateJson = json;
-		clearCache(id)
-		load()
+		clearCache(id);
+		load();
 	}
 
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
 
-		const max = 5
+	const max = 5;
 	async function triggerHighlight(selfCalled = 0) {
-		if(selfCalled > max)
-		{
-			errorToast("highlight not triggered!")
+		if (selfCalled > max) {
+			errorToast('highlight not triggered!');
 			return;
 		}
 		json = json.replace(/\t/g, '  ');
 		json = json.replace(/\s\n$/g, '\n ');
-		
+
 		if (!editorSyntax) {
 			// needed as sometimes the function is called before the editor is added to the DOM
 			await delay(5);
-			await triggerHighlight(selfCalled+1)
+			await triggerHighlight(selfCalled + 1);
 			return;
 		}
 		editorSyntax.textContent = json;
 		(globalThis as any).Prism.highlightElement(editorSyntax);
-		console.log(`Triggered on try ${selfCalled}`)
+		console.log(`Triggered on try ${selfCalled}`);
 	}
 	let showPluginOrder = preferences.showPluginOrder;
+
+	function setTextareaHeight() {
+		editorWindow.style.height = editorWindow.scrollHeight + 3 + 'px';
+	}
 </script>
 
 <svelte:head>
@@ -244,7 +251,7 @@
 					triggerHighlight();
 				}}
 			>
-				<EditOutline class="m-2" />edit
+				<FilePenOutline class="m-2" />edit
 			</Button>
 			{#if !isEdited}
 				<Button
@@ -279,10 +286,23 @@
 						writeToClipboard(yaml.dump(JSON.parse(stateJson), yamlOptions));
 					}}
 				>
-					<FileCopyOutline class="m-2" />
+					<FileCopyAltOutline class="m-2" />
 					copy YAML</Button
 				>
 			{:else}
+				<Button
+					class="h-10 m-1"
+					on:click={() => {
+						setTextareaHeight();
+						highlightDisabled = !highlightDisabled;
+						triggerHighlight();
+					}}
+					color="blue"
+					title="might be needed for json with long strings"
+				>
+					<CodeOutline class="m-2" />
+					toggle syntax highlight
+				</Button>
 				<Button
 					class="h-10 m-1"
 					on:click={format}
@@ -310,7 +330,8 @@
 				? 'grid'
 				: 'hidden'}"
 		>
-			<pre class="language-json"><code bind:this={editorSyntax}></code></pre>
+			<pre class="language-json {highlightDisabled ? 'hidden' : ''}"><code bind:this={editorSyntax}
+				></code></pre>
 			<textarea
 				bind:this={editorWindow}
 				spellcheck="false"
@@ -318,9 +339,10 @@
 				autocorrect="off"
 				autocapitalize="off"
 				translate="no"
-				class="relative"
+				class="relative {highlightDisabled ? "opacity-100": "opacity-10"}"
 				bind:value={json}
 				on:input={() => {
+					setTextareaHeight();
 					triggerHighlight();
 				}}
 			></textarea>
@@ -373,8 +395,11 @@
 								<p class="ml-2 cursor-pointer">
 									{plugin.name}
 								</p>
-								<Link classes="pl-3" href="{base}/entity?type=plugins&id={plugin.id}" title="open {plugin.name} page"/>
-
+								<Link
+									classes="pl-3"
+									href="{base}/entity?type=plugins&id={plugin.id}"
+									title="open {plugin.name} page"
+								/>
 							</div>
 							{#if openedPlugins[plugin.id]}
 								<TreeWrapper expandFields={[]} data={plugin.config}></TreeWrapper>
@@ -451,11 +476,11 @@
 	.editor textarea {
 		background-color: transparent;
 		border: none;
-		color: rgba(255, 255, 255, 0.1);
 		caret-color: gray;
 		overflow: hidden;
 		resize: none;
 		width: 100%;
+		@apply text-purple-400;
 	}
 
 	textarea,
@@ -481,6 +506,12 @@
 	pre {
 		padding: 10px;
 		padding-left: 75px;
+	}
+
+	code {
+		overflow-x: hidden;
+		word-wrap: break-word;
+		resize: none;
 	}
 
 	code,

@@ -32,6 +32,10 @@ export function getLocalStorageConfig(): IConfig | undefined {
 	return undefined;
 }
 
+export function setLocalStorageConfig(config: IConfig) {
+	const confStr = localStorage.setItem(LOCALSTORAGE_CONFIG_KEY, JSON.stringify(config));
+}
+
 let pluginMap: { [key: string]: number } | undefined = undefined
 export async function getPluginPriorityMap(): Promise<{ [key: string]: number }> {
 	if (pluginMap) {

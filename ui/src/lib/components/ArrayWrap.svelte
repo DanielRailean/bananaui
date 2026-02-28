@@ -814,12 +814,11 @@
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 										<p
-											class="mr-2 cursor-pointer overflow-hidden max-h-40 {field.includes("name") ? "text-[16px] font-extralight": ""}"
+											class="mr-2 cursor-pointer select-none overflow-hidden max-h-40 {field.includes("name") ? "text-[16px] font-extralight": ""}"
 											title={field == 'name'
 												? `open ${item.name ?? ''} (${item.id})`
-												: `click to copy '${field}'\n${JSON.stringify(item[field], undefined, 2)} `}
+												: `double-click to copy '${field}'\n${JSON.stringify(item[field], undefined, 2)} `}
 											on:dblclick={() => {
-												errorToast('dbl click');
 												if (field == 'name') {
 													goto(`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`);
 													return;
@@ -918,11 +917,11 @@
 												>
 													{#each item[field] as row, index}
 														<p
-															class="text-xs p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50 {field ==
+															class="text-xs cursor-pointer select-none p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50 {field ==
 															'methods'
 																? `http-method method-${item[field][index].toLowerCase()}`
 																: ''}"
-															title="copy '{item[field][index]}'"
+															title="double-click to copy '{item[field][index]}'"
 															on:dblclick={() => {
 																copy(item[field][index]);
 															}}

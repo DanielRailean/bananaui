@@ -239,7 +239,7 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 		addToast({ message: `Failed to return apiService after ${maxRetries} retries` });
 	}
 	const token = get(userToken);
-	if (token && DateTime.now().toUnixInteger() > token.expires) {
+	if (token && token.expires > 0 && DateTime.now().toUnixInteger() > token.expires) {
 		userToken.set(undefined)
 		goto(`${base}/login?auto=true`);
 	}
@@ -251,11 +251,11 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 		await delay(200);
 		return await apiService(retryNo ? retryNo + 1 : 0);
 	}
-	if (!token && conf.oidc?.enabled) {
-		goto(`${base}/login`);
-		await delay(200);
-		return await apiService(retryNo ? retryNo + 1 : 0);
-	}
+	// if (!token && conf.oidc?.enabled) {
+	// 	// goto(`${base}/login`);
+	// 	await delay(200);
+	// 	return await apiService(retryNo ? retryNo + 1 : 0);
+	// }
 	apiInstance = new ApiService(conf.kongApi.endpoint, token?.token, conf.kongApi.requestHeaders);
 	return apiInstance;
 };

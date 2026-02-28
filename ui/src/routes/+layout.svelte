@@ -3,19 +3,21 @@
 	import { page } from '$app/stores';
 	import ConfigLoader from '$lib/components/ConfigLoader.svelte';
 	import Sidebar from '$lib/components/SideBar.svelte';
-	import Login from '$lib/components/LoginRedirect.svelte';
 	import './styles.css';
 	import Toasts from '$lib/components/Toasts.svelte';
 	import Preferences from '$lib/components/Preferences.svelte';
+	import LoginRedirect from '$lib/components/LoginRedirect.svelte';
+	import { base } from '$app/paths';
 </script>
 
 <svelte:head>
 	<title>{staticConfig.name}</title>
+	<script src={`${base}/prism.js`}></script>
 </svelte:head>
 
-<Preferences />
 <ConfigLoader />
-<Login />
+<Preferences />
+<LoginRedirect />
 <Toasts />
 <div class="flex flex-row min-h-[100vh]">
 	{#if !$page.url.pathname.includes('/login')}

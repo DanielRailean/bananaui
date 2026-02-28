@@ -5,6 +5,7 @@
 	import { apiService } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
+	import { config } from '$lib/stores';
 
 	let info: any | undefined;
 	onMount(async () => {
@@ -15,7 +16,9 @@
 			const sortedPlugins = Object.entries(infoRaw?.plugins.available_on_server ?? {}).sort((a,b)=>b[1].priority - a[1].priority)
 			const plugins = Object.fromEntries(sortedPlugins)
 			infoRaw!.plugins.available_on_server = plugins
-			info = infoRaw
+			info = {}
+			info.api_url = $config?.config.kongApi.endpoint
+			info = {...info, ...infoRaw}
 		} catch (error: any) {
 			addToast({ message: `Failed fetching the info. ${error.message ? error.message : ''}` });
 		}
@@ -26,7 +29,7 @@
 	<h1 class="text-xl text-center p-2">
 		<div class="flex flex-row items-center justify-center">
 			{#if info}
-				Kong Control-Plane info
+				Control Plane info
 			{:else}
 				<Spinner text="loading control plane info" />
 			{/if}
