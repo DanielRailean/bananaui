@@ -10,8 +10,9 @@
 	import { addToast, errorToast, infoToast } from '$lib/toastStore';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 	import { base } from '$app/paths';
-	import { kongEntities } from '$lib/config';
 	import { delay } from '$lib/util';
+	import { get } from 'svelte/store';
+	import { preferences } from '$lib/stores';
 
 	let entity: IKongEntity | undefined;
 
@@ -53,7 +54,7 @@
 		let type = query.get('type');
 		pathPrefix = query.get('prefix') ?? '';
 		if (type) {
-			entity = kongEntities.find((i) => i.name == type);
+			entity = get(preferences.kongEntities).find((i) => i.name == type);
 		}
 		if (!entity) {
 			errorToast(`entity named ${type} not found!`);

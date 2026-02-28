@@ -5,7 +5,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { DateTime } from 'luxon';
 	import { CaretDownOutline, FileCopyOutline, TrashBinOutline } from 'flowbite-svelte-icons';
-	import { dateFields, kongEntities, yamlDumpOptions } from '$lib/config';
+	import { dateFields, yamlDumpOptions } from '$lib/config';
 	import { apiService, clearCache } from '$lib/requests';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { createEventDispatcher } from 'svelte';
@@ -925,7 +925,7 @@
 												{:else}
 													{item[field]}
 												{/if}
-											{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
+											{:else if item[field] && Object.keys(item[field]).includes('id') && get(preferences.kongEntities).find((i) => i.apiPath == `${field}s`)}
 												<!-- svelte-ignore a11y-no-static-element-interactions -->
 												<div
 													class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded"

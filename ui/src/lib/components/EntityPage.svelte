@@ -23,7 +23,6 @@
 	} from 'flowbite-svelte-icons';
 	import {
 		fieldOrder,
-		kongEntities,
 		sortObjectFieldsByOrder,
 		staticConfig,
 		yamlDumpOptions
@@ -113,10 +112,10 @@
 			json = JSON.stringify(data, undefined, 2);
 			stateJson = json;
 
-			currentEntity = kongEntities.find((ent) => ent.name == entityType);
+			currentEntity = get(preferences.kongEntities).find((ent) => ent.name == entityType);
 			subEntities = [];
 			for (const entity of currentEntity?.subEntities ?? []) {
-				const found = kongEntities.find((ent) => ent.name == entity);
+				const found = get(preferences.kongEntities).find((ent) => ent.name == entity);
 				if (!found) {
 					continue;
 				}

@@ -1,5 +1,5 @@
 import { get, writable, type Writable } from 'svelte/store';
-import type { IConfig, IConfigWrap } from './types';
+import type { IConfig, IConfigWrap, IKongEntity } from './types';
 import { DateTime } from 'luxon';
 
 export const isDark = writable(0);
@@ -9,10 +9,13 @@ export const config: Writable<IConfigWrap | undefined | null> = writable(undefin
 export function setPreferences(prefs: any) {
 	preferences = prefs
 }
-export let preferences: { [key: string]: Writable<any> } = {}
+export let preferences: {
+	kongEntities: Writable<IKongEntity[]>
+} & { [key: string]: Writable<any> } = {
+	kongEntities: writable([])
+}
 
-export function savePreferences()
-{
+export function savePreferences() {
 	localStorage.setItem('preferences', getPreferencesAsJson());
 }
 export function getPreferencesAsJson(): string {

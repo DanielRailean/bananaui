@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { dateFields, kongEntities } from '$lib/config';
+	import { dateFields } from '$lib/config';
 	import { writeToClipboard } from '$lib/util';
 	import JSONTree from 'svelte-json-tree';
 	import { DateTime } from 'luxon';
 	import { base } from '$app/paths';
-	import { writable } from 'svelte/store';
+	import { get, writable } from 'svelte/store';
 	import Toggle from './Toggle.svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { confirmToast, infoToast } from '$lib/toastStore';
 	import { apiService } from '$lib/requests';
+	import { preferences } from '$lib/stores';
 	export let data: any;
 	export let expandLevel = 0;
 	export let allowCopy = true;
@@ -70,7 +71,7 @@
 									);
 								}}
 							>
-								{#if data[key] && Object.keys(data[key]).includes('id') && kongEntities.find((i) => i.apiPath == `${key}s`)}
+								{#if data[key] && Object.keys(data[key]).includes('id') && get(preferences.kongEntities).find((i) => i.apiPath == `${key}s`)}
 									<!-- svelte-ignore a11y-click-events-have-key-events -->
 									<!-- svelte-ignore a11y-no-static-element-interactions -->
 									<a href="{base}/entity?type={key}s&id={data[key].id}" on:click|preventDefault>

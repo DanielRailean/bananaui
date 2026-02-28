@@ -7,7 +7,6 @@
 	import { apiService, cacheMap, type ResWrapped } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { kongEntities } from '$lib/config';
 	import { capitalizeFirstLetter, delay } from '$lib/util';
 	import { base } from '$app/paths';
 	import { DateTime } from 'luxon';
@@ -47,7 +46,7 @@
 		pathPrefix = params.get('prefix') ?? '';
 
 		try {
-			kongEntity = kongEntities.find((i) => i.name == entity);
+			kongEntity = get(preferences.kongEntities).find((i) => i.name == entity);
 			if (!kongEntity) {
 				return;
 			}
