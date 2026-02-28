@@ -1,5 +1,3 @@
-import { get } from 'svelte/store';
-import { preferences } from './stores';
 import type { DumpOptions } from 'js-yaml';
 
 export const staticConfig = {
@@ -87,14 +85,3 @@ export function sortObjectFieldsByOrder<T extends AnyObject>(
 	// Reconstruct the object
 	return Object.fromEntries(sortedEntries) as T;
 }
-
-export const oldPrefs = {
-	copyElementOnSingleElementArray: {
-		type: 'boolean',
-		default: true
-	},
-	showSelfLinkOnSubEntities: {
-		type: 'boolean',
-		default: false
-	}
-};
