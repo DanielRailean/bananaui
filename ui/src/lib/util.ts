@@ -39,6 +39,7 @@ export function debouncedCall<T extends (...args: any[]) => any>(fn: T, delay: n
 	};
 
 	debounced.flush = (...args: Parameters<T>) => {
+		if (timeoutId) {
 			clearTimeout(timeoutId);
 			timeoutId = null;
 		}
