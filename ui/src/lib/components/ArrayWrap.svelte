@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Link from './Link.svelte';
-	import { capitalizeFirstLetter, delay, writeToClipboard } from '$lib/util';
+	import { capitalizeFirstLetter, debouncedCall, delay, writeToClipboard } from '$lib/util';
 	import { goto } from '$app/navigation';
 	import { onDestroy, onMount } from 'svelte';
 	import { DateTime } from 'luxon';
@@ -65,38 +65,23 @@
 		intervalsIterable = intervalsIterable.slice(0, intervals);
 	}
 
-	let timeout: number | undefined = undefined;
-	function copyItemSingleDoubleClick(format: "yaml" | "json", data: any) {
-		data.enabledWritable = undefined;
-		if (timeout) {
-			clearTimeout(timeout);
-			timeout = undefined;
+	function copyYamlOrJson(format: 'yaml' | 'json', data: any) {
+		if (Array.isArray(data)) {
+			data.forEach((el) => (el.enabledWritable = undefined));
 		}
-		timeout = setTimeout(() => {
-			copyYamlOrJson(format, data)
-		}, 510);
-		// setTimeout(() => {
-		// 	if (!doubleTriggered) {
-		// 		writeToClipboard(JSON.stringify(data, undefined, 2), ` JSON`);
-		// 	} else if (isDouble) {
-		// 		writeToClipboard(dump(data, yamlDumpOptions), ' YAML');
-		// 		doubleTriggered = false;
-		// 	}
-		// }, 550);
+		if (Object.keys(data).length > 0 && typeof data == 'object') {
+			data.enabledWritable = undefined;
+		}
+		if (format == 'yaml') {
+			writeToClipboard(dump(data, yamlDumpOptions), ' YAML');
+		}
+		if (format == 'json') {
+			copy(data);
+		}
 	}
 
-	let doubleTriggered = false;
-	function handleCopyWithDebounce(format: 'yaml' | 'json', isDouble: boolean) {
-		setTimeout(() => {
-			if (!doubleTriggered) {
-				handleCopy(format);
-			} else if (isDouble) {
-				handleCopy(format);
-				doubleTriggered = false;
-			}
-		}, 550);
-	}
-	function handleCopy(format: 'yaml' | 'json') {
+	let debouncedCopy = debouncedCall(copyYamlOrJson, 510);
+	let debouncedCopyAllConfirm = debouncedCall((format: 'yaml' | 'json') => {
 		const conf = confirm(
 			`confirm ${format.toUpperCase()} copy of ${filteredData.length} entities?`
 		);
@@ -107,17 +92,21 @@
 			i.enabledWritable = undefined;
 			return i;
 		});
-		copyYamlOrJson(format, data)
-	}
+		copyYamlOrJson(format, data);
+	}, 510);
 
-	function copyYamlOrJson(format: 'yaml' | 'json', data: any) {
-		if (format == 'yaml') {
-			writeToClipboard(dump(data, yamlDumpOptions), ' YAML');
+	let updateSearchParamWithDebounce = debouncedCall((map: { [key: string]: string }) => {
+		const url = new URL(window.location.toString());
+		for (const [key, val] of Object.entries(map)) {
+			if (val.length > 0) {
+				url.searchParams.set(key, val);
+			} else {
+				url.searchParams.delete(key);
+			}
 		}
-		if (format == 'json') {
-			copy(data);
-		}
-	}
+
+		history.pushState(null, '', url);
+	}, 550);
 
 	calculatePagination();
 
@@ -272,32 +261,6 @@
 			return true;
 		}
 		return false;
-	}
-
-	let searchDebounce: number | undefined = undefined;
-	// time after which the search will be written to the url query if unmodified
-	let debounceTimeoutMs = 550;
-	function updateSearchParamWithDebounce() {
-		if (searchDebounce) {
-			clearTimeout(searchDebounce);
-			searchDebounce = undefined;
-		}
-		searchDebounce = setTimeout(updateSearchQueryParams, debounceTimeoutMs, { search: searchText });
-	}
-	onDestroy(() => {
-		clearTimeout(searchDebounce);
-	});
-	function updateSearchQueryParams(map: { [key: string]: string }) {
-		const url = new URL(window.location.toString());
-		for (const [key, val] of Object.entries(map)) {
-			if (val.length > 0) {
-				url.searchParams.set(key, val);
-			} else {
-				url.searchParams.delete(key);
-			}
-		}
-
-		history.pushState(null, '', url);
 	}
 	// {
 	// [and inside here]
@@ -561,6 +524,12 @@
 		dispatch('refresh');
 	}
 	let bulkUpdateOpened = false;
+
+	onDestroy(() => {
+		updateSearchParamWithDebounce.cancel();
+		debouncedCopy.cancel();
+		debouncedCopyAllConfirm.cancel();
+	});
 </script>
 
 <div class="w-full text-sm text-left rtl:text-right text-stone-800 font-light dark:text-stone-300">
@@ -580,7 +549,7 @@
 				}}
 				on:input={() => {
 					console.log(searchText);
-					updateSearchParamWithDebounce();
+					updateSearchParamWithDebounce({ search: searchText });
 					search();
 				}}
 				title="Searches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
@@ -602,7 +571,7 @@
 			<select
 				bind:value={sortByField}
 				on:change={() => {
-					updateSearchQueryParams({ sortBy: sortByField });
+					updateSearchParamWithDebounce({ sortBy: sortByField });
 					updateEvent('select sort by');
 				}}
 				class="dark:bg-stone-700 shadow shadow-slate-600 h-6 p-0 max-w-36 pl-2 border-none rounded focus:border-none focus:[box-shadow:none]"
@@ -620,7 +589,7 @@
 				title={'Controls the sort direction, either ascending or descending'}
 				on:change={async () => {
 					sortAscending.set(!$sortAscending);
-					updateSearchQueryParams({ sortAscending: JSON.stringify(get(sortAscending)) });
+					updateSearchParamWithDebounce({ sortAscending: JSON.stringify(get(sortAscending)) });
 					updateEvent('toggle sort direction');
 				}}
 			/>
@@ -629,11 +598,10 @@
 			<button
 				title="copies all entities as JSON (sorted).&#13;Double click for YAML, single click for JSON"
 				on:click={() => {
-					handleCopyWithDebounce('json', false);
+					debouncedCopyAllConfirm('json');
 				}}
 				on:dblclick={() => {
-					doubleTriggered = true;
-					handleCopyWithDebounce('yaml', true);
+					debouncedCopyAllConfirm.flush('yaml');
 				}}
 				class="flex flex-row items-center dark:bg-stone-700 bg-stone-100 rounded p-1 pr-2 m-1"
 			>
@@ -856,11 +824,10 @@
 									title={'copy (single click for JSON, double click for YAML) ' +
 										JSON.stringify(item, undefined, 2)}
 									on:click={() => {
-										copyItemSingleDoubleClick("json", item);
+										debouncedCopy('json', item);
 									}}
 									on:dblclick={() => {
-										doubleTriggered = true;
-										copyItemSingleDoubleClick("yaml", item);
+										debouncedCopy.flush('yaml', item);
 									}}
 								>
 									<div
@@ -906,11 +873,13 @@
 														undefined,
 														2
 													)} `}
-											on:dblclick={() => {
+											on:click={() => {
 												if (field == 'name') {
 													goto(`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`);
 													return;
 												}
+											}}
+											on:dblclick={() => {
 												copy(item[field]);
 											}}
 										>
@@ -918,7 +887,7 @@
 												{item[field]}
 											{:else if typeof item[field] == 'boolean'}
 												{#if field === 'enabled'}
-													<div on:click|stopPropagation>
+													<div on:click|stopPropagation role="button" tabindex="0">
 														<label
 															class="inline-flex items-center cursor-pointer"
 															title="enable or disable"

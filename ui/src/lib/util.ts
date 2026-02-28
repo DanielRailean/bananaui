@@ -19,6 +19,38 @@ export const writeToClipboard = (
 	});
 };
 
+export function debouncedCall<T extends (...args: any[]) => any>(fn: T, delay: number) {
+	let timeoutId: number | null = null;
+
+	const debounced = function (...args: Parameters<T>): void {
+		if (timeoutId) {
+			clearTimeout(timeoutId)
+		}
+		timeoutId = setTimeout(() => {
+			fn(...args)
+		}, delay);
+	}
+
+	debounced.cancel = () => {
+		if (timeoutId) {
+			clearTimeout(timeoutId);
+			timeoutId = null;
+		}
+	};
+
+	debounced.flush = (...args: Parameters<T>) => {
+			clearTimeout(timeoutId);
+			timeoutId = null;
+		}
+		fn(...args);
+	};
+
+	return debounced as typeof debounced & {
+		cancel: () => void,
+		flush: (...args: Parameters<T>) => void,
+	}
+}
+
 export function capitalizeFirstLetter(string?: string) {
 	if (!string) return "";
 	return string.charAt(0).toUpperCase() + string.slice(1);
