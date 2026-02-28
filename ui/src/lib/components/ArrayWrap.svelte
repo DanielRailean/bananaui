@@ -66,16 +66,23 @@
 	}
 
 	let timeout: number | undefined = undefined;
-	function copyItemSingleDoubleClick(isDouble: boolean, data: any) {
+	function copyItemSingleDoubleClick(format: "yaml" | "json", data: any) {
 		data.enabledWritable = undefined;
-		setTimeout(() => {
-			if (!doubleTriggered) {
-				writeToClipboard(JSON.stringify(data, undefined, 2), ` JSON`);
-			} else if (isDouble) {
-				writeToClipboard(dump(data, yamlDumpOptions), ' YAML');
-				doubleTriggered = false;
-			}
-		}, 550);
+		if (timeout) {
+			clearTimeout(timeout);
+			timeout = undefined;
+		}
+		timeout = setTimeout(() => {
+			copyYamlOrJson(format, data)
+		}, 510);
+		// setTimeout(() => {
+		// 	if (!doubleTriggered) {
+		// 		writeToClipboard(JSON.stringify(data, undefined, 2), ` JSON`);
+		// 	} else if (isDouble) {
+		// 		writeToClipboard(dump(data, yamlDumpOptions), ' YAML');
+		// 		doubleTriggered = false;
+		// 	}
+		// }, 550);
 	}
 
 	let doubleTriggered = false;
@@ -100,6 +107,10 @@
 			i.enabledWritable = undefined;
 			return i;
 		});
+		copyYamlOrJson(format, data)
+	}
+
+	function copyYamlOrJson(format: 'yaml' | 'json', data: any) {
 		if (format == 'yaml') {
 			writeToClipboard(dump(data, yamlDumpOptions), ' YAML');
 		}
@@ -845,11 +856,11 @@
 									title={'copy (single click for JSON, double click for YAML) ' +
 										JSON.stringify(item, undefined, 2)}
 									on:click={() => {
-										copyItemSingleDoubleClick(false, item);
+										copyItemSingleDoubleClick("json", item);
 									}}
 									on:dblclick={() => {
 										doubleTriggered = true;
-										copyItemSingleDoubleClick(true, item);
+										copyItemSingleDoubleClick("yaml", item);
 									}}
 								>
 									<div
