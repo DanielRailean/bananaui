@@ -22,7 +22,7 @@
 	let useNewSearch = preferences?.useNewSearch;
 	const dispatch = createEventDispatcher();
 
-	export let dataRaw: ITooggleableEntityMaybe[];
+	export let dataRaw: Writable<ITooggleableEntityMaybe[]>;
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
 	export let pathPrefix: string | undefined = '';
@@ -35,7 +35,7 @@
 			displayedFields = displayedFields;
 		}
 	}
-
+	let isMounted = false;
 	let searchText = '';
 	interface FilteredEntity extends ITooggleableEntityMaybe {
 		enabledWritable: Writable<boolean>;
@@ -49,7 +49,7 @@
 	let debounce: number = DateTime.now().toUnixInteger();
 
 	let intervalsIterable: number[] = [];
-	let intervals = (dataRaw?.length ?? 0) / paginationSizeUi;
+	let intervals = ($dataRaw?.length ?? 0) / paginationSizeUi;
 
 	function calculatePagination() {
 		intervalsIterable = [];
@@ -122,15 +122,17 @@
 	let sortAscending = writable(entity?.sortAscending ?? false);
 
 	// this is to handle initial store event
-	function updateEventOnTrigger(v?: string) {
-		console.log(`page update triggered : ${v}`)
-		if (v) {
-			updateEvent("trigger update");
-		}
+	function updateEventOnTrigger(v: any[]) {
+		console.log(`page update triggered by data change items no: ${v.length}`);
+		updateEvent('trigger update');
 	}
 
-	function updateEvent(caller ="") {
-		console.log(`update called by '${caller}'`)
+	function updateEvent(caller = '') {
+		console.log(`update called by '${caller}'`);
+		if (!isMounted) {
+			console.log('not mounted yet, skipping update');
+			return;
+		}
 		const params = new URLSearchParams(window.location.search);
 		if (searchText.length == 0) {
 			searchText = params.get('search') ?? '';
@@ -172,10 +174,11 @@
 		});
 	}
 
-	triggerPageUpdate.subscribe(updateEventOnTrigger);
+	dataRaw.subscribe(updateEventOnTrigger);
 
 	onMount(() => {
-		updateEvent("on mount");
+		isMounted = true;
+		updateEvent('on mount');
 	});
 
 	async function disable(id: string, newEnabledValue: boolean) {
@@ -377,7 +380,7 @@
 		return groups;
 	}
 	function doSearch(input: string, arr: any[]) {
-		if (!dataRaw) {
+		if (!$dataRaw) {
 			return;
 		}
 		const orAndOr = getLogicalGroups(input);
@@ -409,8 +412,8 @@
 		if (searchText.length == 0) {
 			// we don't always sort on update event,
 			// because it could be searched, so we must sort when we know we're no longer searching
-			sort(dataRaw, `search ${type}`);
-			filteredData = dataRaw.map((i: any): FilteredEntity => {
+			sort(get(dataRaw), `search ${type}`);
+			filteredData = $dataRaw.map((i: any): FilteredEntity => {
 				if (i.enabled != undefined) {
 					i.enabledWritable = writable(i.enabled);
 				}
@@ -418,10 +421,10 @@
 			});
 		}
 		if (get(useNewSearch)) {
-			filteredData = doSearch(searchText, dataRaw) ?? [];
+			filteredData = doSearch(searchText, $dataRaw) ?? [];
 		} else {
 			const booleanAndSearch = searchText.split(/\s*&&\s*/);
-			filteredData = dataRaw.filter((item: any) => {
+			filteredData = $dataRaw.filter((item: any) => {
 				for (let condition of booleanAndSearch) {
 					const len = condition.split('.len == ');
 					if (len && len.length > 1 && Number.isInteger(+len[1]) && Array.isArray(item[len[0]])) {
@@ -546,7 +549,7 @@
 			<input
 				class="bg-transparent text-xl rounded-lg border-none outline-none focus:[box-shadow:none] ml-[-8px] w-full"
 				type="text"
-				disabled={!(dataRaw && dataRaw.length > 0)}
+				disabled={!($dataRaw && $dataRaw.length > 0)}
 				bind:value={searchText}
 				on:emptied={() => {
 					console.log('is empty');
@@ -576,11 +579,11 @@
 				bind:value={sortByField}
 				on:change={() => {
 					updateSearchQueryParams({ sortBy: sortByField });
-					updateEvent("select sort by");
+					updateEvent('select sort by');
 				}}
 				class="dark:bg-stone-700 shadow shadow-slate-600 h-6 p-0 max-w-36 pl-2 border-none rounded focus:border-none focus:[box-shadow:none]"
 			>
-				{#each Object.keys(dataRaw[0] ?? {}) as key}
+				{#each Object.keys($dataRaw[0] ?? {}) as key}
 					<option value={key} selected={key == sortByField}>{key}</option>
 				{/each}
 			</select>
@@ -594,7 +597,7 @@
 				on:change={async () => {
 					sortAscending.set(!$sortAscending);
 					updateSearchQueryParams({ sortAscending: JSON.stringify(get(sortAscending)) });
-					updateEvent("toggle sort direction");
+					updateEvent('toggle sort direction');
 				}}
 			/>
 		</div>
@@ -797,8 +800,8 @@
 				<tr>
 					<th><p class="pl-4">No.</p></th>
 					<th><p class="pl-4">Actions</p></th>
-					{#each displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
-						{#if Object.keys(dataRaw[0] ?? {}).includes(field)}
+					{#each displayedFields ?? Object.keys($dataRaw[0] ?? {}) as field}
+						{#if Object.keys($dataRaw[0] ?? {}).includes(field)}
 							<th scope="col" class="pl-4"> {field} </th>
 						{/if}
 					{/each}
@@ -853,7 +856,7 @@
 							</div>
 						</td>
 
-						{#each displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
+						{#each displayedFields ?? Object.keys($dataRaw[0] ?? {}) as field}
 							{#if Object.keys(item).includes(field)}
 								<td class="p-2">
 									<div class="flex flex-row items-center justify-between">

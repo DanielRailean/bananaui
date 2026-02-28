@@ -16,9 +16,9 @@
 	import { addToast, errorToast, infoToast } from '$lib/toastStore';
 	import { Button } from 'flowbite-svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
-	import { writable, get } from 'svelte/store';
+	import { writable, get, type Writable } from 'svelte/store';
 
-	let data = writable([]);
+	let data: Writable<any[]> = writable([]);
 	let entity: string;
 	let kongEntity: IKongEntity | undefined;
 	let isMounted = false;
@@ -31,9 +31,6 @@
 		load('page changed');
 	});
 
-	data.subscribe(v => {
-		console.log(v)
-	})
 	onMount(() => {
 		isMounted = true;
 		load('on mount');
@@ -75,7 +72,6 @@
 				}
 				if (res.ok) {
 					data.set(get(data).concat(res.data.data));
-					triggerPageUpdate.set('bulk+' + entity + DateTime.now().toMillis());
 				}
 				await delay(paginationAwaitBetweenPages);
 			}
@@ -90,7 +86,6 @@
 					};
 					cacheMap[`/dataplanes/${dp.id}`] = res;
 				}
-				triggerPageUpdate.set(entity + DateTime.now().toMillis());
 			}
 			if (isRefresh) {
 				infoToast('refresh finished!');
@@ -135,10 +130,10 @@
 		</div>
 	</div>
 	<ArrayWrap
-		dataRaw={$data}
+		dataRaw={data}
 		type={entity}
 		entity={kongEntity}
-		on:refresh={async () => await load('arraywrap requested refresh', true)}
+		on:refresh={async () => await load('array wrap requested refresh', true)}
 	></ArrayWrap>
 {:else}
 	<div class="flex flex-row items-center p-5 h-full w-full">
