@@ -16,24 +16,32 @@
 	import { addToast, errorToast, infoToast } from '$lib/toastStore';
 	import { Button } from 'flowbite-svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
+	import { writable, get } from 'svelte/store';
 
-	let data: any | undefined;
+	let data = writable([]);
 	let entity: string;
 	let kongEntity: IKongEntity | undefined;
 	let isMounted = false;
 	let pathPrefix: string = '';
 
 	page.subscribe((val) => {
-		load();
+		if (!isMounted) {
+			return;
+		}
+		load('page changed');
 	});
 
+	data.subscribe(v => {
+		console.log(v)
+	})
 	onMount(() => {
 		isMounted = true;
-		load();
+		load('on mount');
 	});
 	let loadStart: DateTime | undefined;
 
-	async function load(isRefresh = false) {
+	async function load(caller = '', isRefresh = false) {
+		console.log(`load called by '${caller}'`);
 		if (!isMounted) {
 			return;
 		}
@@ -42,12 +50,7 @@
 		const oldEntity = entity;
 		entity = params.get('type') ?? 'none';
 		pathPrefix = params.get('prefix') ?? '';
-		let willTriggerUpdate = false;
 
-		if (oldEntity != entity) {
-			data = undefined;
-			willTriggerUpdate = true;
-		}
 		try {
 			kongEntity = kongEntities.find((i) => i.name == entity);
 			if (!kongEntity) {
@@ -60,7 +63,8 @@
 				errorToast(`failed to fetch the ${entity}. ${res.err} (${res.code})`);
 				return;
 			}
-			data = res.data.data;
+			data.set(res.data.data);
+			triggerPageUpdate.set('init.load+' + entity + DateTime.now().toMillis());
 			var loopStarted = loadStart;
 			await delay(paginationAwaitBetweenPages);
 
@@ -70,16 +74,15 @@
 					break;
 				}
 				if (res.ok) {
-					data = data.concat(res.data.data);
-					if (willTriggerUpdate) {
-					}
+					data.set(get(data).concat(res.data.data));
+					triggerPageUpdate.set('bulk+' + entity + DateTime.now().toMillis());
 				}
 				await delay(paginationAwaitBetweenPages);
 			}
 			// dataplanes don't have a page of their own.
 			// populating the cache to fake as if the request went through
-			if (kongEntity.apiPath === 'clustering/data-planes') {
-				for (const dp of data) {
+			if (kongEntity && kongEntity.apiPath === 'clustering/data-planes') {
+				for (const dp of $data) {
 					const res: ResWrapped<any, any> = {
 						code: 200,
 						ok: true,
@@ -87,8 +90,8 @@
 					};
 					cacheMap[`/dataplanes/${dp.id}`] = res;
 				}
+				triggerPageUpdate.set(entity + DateTime.now().toMillis());
 			}
-			triggerPageUpdate.set(entity + DateTime.now().toMillis());
 			if (isRefresh) {
 				infoToast('refresh finished!');
 			}
@@ -103,13 +106,13 @@
 	<title>{capitalizeFirstLetter(entity)} {entity ? '|' : ''} {staticConfig.name}</title>
 </svelte:head>
 
-{#if data}
+{#if $data}
 	<div class="flex flex-col m-4 mb-3 font-light text-2xl">
 		<div class="flex flex-row mb-2 h-10">
 			<Button
 				class=" flex flex-row mr-2  items-center bg-green-500 dark:bg-green-700"
 				on:click={() => {
-					load(true);
+					load('user clicked', true);
 					infoToast('refresh started!');
 				}}
 			>
@@ -132,10 +135,10 @@
 		</div>
 	</div>
 	<ArrayWrap
-		dataRaw={data}
+		dataRaw={$data}
 		type={entity}
 		entity={kongEntity}
-		on:refresh={async () => await load(true)}
+		on:refresh={async () => await load('arraywrap requested refresh', true)}
 	></ArrayWrap>
 {:else}
 	<div class="flex flex-row items-center p-5 h-full w-full">

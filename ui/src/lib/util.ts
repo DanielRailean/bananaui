@@ -9,8 +9,9 @@ export const delay = (delayInms: number) => {
 
 export const writeToClipboard = (
 	text: string,
+	extraNotifyText = "",
 	onSuccess: (value: void) => void = () => {
-		confirmToast('copied');
+		confirmToast(`copied${extraNotifyText}`);
 	}
 ) => {
 	navigator.clipboard.writeText(text).then(onSuccess, () => {

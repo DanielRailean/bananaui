@@ -4,13 +4,8 @@
 	import { goto } from '$app/navigation';
 	import { onDestroy, onMount } from 'svelte';
 	import { DateTime } from 'luxon';
-	import {
-		ArrowUpRightFromSquareOutline,
-		CaretDownOutline,
-		FileCopyOutline,
-		TrashBinOutline
-	} from 'flowbite-svelte-icons';
-	import { dateFields, kongEntities } from '$lib/config';
+	import { CaretDownOutline, FileCopyOutline, TrashBinOutline } from 'flowbite-svelte-icons';
+	import { dateFields, kongEntities, yamlDumpOptions } from '$lib/config';
 	import { apiService, clearCache } from '$lib/requests';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { createEventDispatcher } from 'svelte';
@@ -21,6 +16,7 @@
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
 	import { preferences, triggerPageUpdate } from '$lib/stores';
 	import { Button } from 'flowbite-svelte';
+	import { dump } from 'js-yaml';
 
 	let loadParentName = preferences?.loadParentInfo;
 	let useNewSearch = preferences?.useNewSearch;
@@ -69,6 +65,36 @@
 		intervalsIterable = intervalsIterable.slice(0, intervals);
 	}
 
+	let doubleTriggered = false;
+	function handleCopyWithDebounce(format: 'yaml' | 'json', isDouble: boolean) {
+		setTimeout(() => {
+			if (!doubleTriggered) {
+				handleCopy(format);
+			} else if (isDouble) {
+				handleCopy(format);
+				doubleTriggered = false;
+			}
+		}, 550);
+	}
+	function handleCopy(format: 'yaml' | 'json') {
+		const conf = confirm(
+			`confirm ${format.toUpperCase()} copy of ${filteredData.length} entities?`
+		);
+		if (!conf) {
+			return;
+		}
+		const data = filteredData.map((i) => {
+			i.enabledWritable = undefined;
+			return i;
+		});
+		if (format == 'yaml') {
+			writeToClipboard(dump(data, yamlDumpOptions), ' YAML');
+		}
+		if (format == 'json') {
+			copy(data);
+		}
+	}
+
 	calculatePagination();
 
 	function copy(data: any) {
@@ -90,12 +116,21 @@
 				result = JSON.stringify(data[0], undefined, 2);
 			}
 		}
-		writeToClipboard(result);
+		writeToClipboard(result, ' JSON');
 	}
 	let sortByField = entity?.sortBy ?? 'updated_at';
 	let sortAscending = writable(entity?.sortAscending ?? false);
 
-	function updateEvent() {
+	// this is to handle initial store event
+	function updateEventOnTrigger(v?: string) {
+		console.log(`page update triggered : ${v}`)
+		if (v) {
+			updateEvent("trigger update");
+		}
+	}
+
+	function updateEvent(caller ="") {
+		console.log(`update called by '${caller}'`)
 		const params = new URLSearchParams(window.location.search);
 		if (searchText.length == 0) {
 			searchText = params.get('search') ?? '';
@@ -103,16 +138,18 @@
 		sortByField = params.get('sortBy') ?? sortByField;
 		sortAscending.set(params.get('sortAscending') === 'true');
 
-		// filteredData = dataRaw;
 		debounce = DateTime.now().toUnixInteger();
 		search();
+		if (get(preferences.sortSearchedItemsDuringPaginationProcess)) {
+			sort(filteredData, `update event ${type}`);
+		}
 		resetPagination();
 		calculatePagination();
-		sort(filteredData);
 		updateDisplayedFields();
 	}
 
-	function sort(arr: any[]) {
+	function sort(arr: any[], caller = '') {
+		console.log(`sort called by '${caller}'`);
 		arr.sort((a, b) => {
 			let fieldA = a[sortByField];
 			let fieldB = b[sortByField];
@@ -135,10 +172,10 @@
 		});
 	}
 
-	triggerPageUpdate.subscribe(updateEvent);
+	triggerPageUpdate.subscribe(updateEventOnTrigger);
 
 	onMount(() => {
-		updateEvent();
+		updateEvent("on mount");
 	});
 
 	async function disable(id: string, newEnabledValue: boolean) {
@@ -370,6 +407,9 @@
 	// getLogicalGroups('hello && test, no || test.len == 2 && no, yes.len != 2');
 	function search() {
 		if (searchText.length == 0) {
+			// we don't always sort on update event,
+			// because it could be searched, so we must sort when we know we're no longer searching
+			sort(dataRaw, `search ${type}`);
 			filteredData = dataRaw.map((i: any): FilteredEntity => {
 				if (i.enabled != undefined) {
 					i.enabledWritable = writable(i.enabled);
@@ -421,7 +461,6 @@
 				return true;
 			});
 		}
-		sort(filteredData);
 		resetPagination();
 		calculatePagination();
 	}
@@ -509,7 +548,11 @@
 				type="text"
 				disabled={!(dataRaw && dataRaw.length > 0)}
 				bind:value={searchText}
+				on:emptied={() => {
+					console.log('is empty');
+				}}
 				on:input={() => {
+					console.log(searchText);
 					updateSearchParamWithDebounce();
 					search();
 				}}
@@ -533,7 +576,7 @@
 				bind:value={sortByField}
 				on:change={() => {
 					updateSearchQueryParams({ sortBy: sortByField });
-					updateEvent();
+					updateEvent("select sort by");
 				}}
 				class="dark:bg-stone-700 shadow shadow-slate-600 h-6 p-0 max-w-36 pl-2 border-none rounded focus:border-none focus:[box-shadow:none]"
 			>
@@ -551,80 +594,83 @@
 				on:change={async () => {
 					sortAscending.set(!$sortAscending);
 					updateSearchQueryParams({ sortAscending: JSON.stringify(get(sortAscending)) });
-					updateEvent();
+					updateEvent("toggle sort direction");
 				}}
 			/>
 		</div>
 		<div class="flex flex-row mt-4">
 			<button
-				title="copies all entities as JSON"
+				title="copies all entities as JSON (sorted).&#13;Double click for YAML, single click for JSON"
 				on:click={() => {
-					const conf = confirm(`confirm copy of ${filteredData.length} entities?`);
-					if (!conf) {
-						return;
-					}
-					copy(
-						filteredData.map((i) => {
-							i.enabledWritable = undefined;
-							return i;
-						})
-					);
+					handleCopyWithDebounce('json', false);
+				}}
+				on:dblclick={() => {
+					doubleTriggered = true;
+					handleCopyWithDebounce('yaml', true);
 				}}
 				class="flex flex-row items-center dark:bg-stone-700 bg-stone-100 rounded p-1 pr-2 m-1"
 			>
 				<FileCopyOutline class="m-1" />
 				COPY ALL
 			</button>
-			<button
-				title="deletes currently filtered entites"
-				class="flex flex-row items-center dark:bg-rose-900 bg-stone-100 rounded p-1 pr-2 m-1"
-				on:click={async () => {
-					const confirmEach = confirm(`Do you want to confirm each entity's deletion separately?`);
-					const conf = confirm(
-						`this will delete all entities currently visible: ${filteredData.length} in total`
-					);
-					if (!conf) {
-						return;
-					}
-					const conf2 = confirm(
-						`think twice, this is the last chance to cancel!\n(refresh the page to stop the process)`
-					);
-					if (!conf2) {
-						return;
-					}
-					for (const entity of filteredData) {
-						if (confirmEach) {
-							const confirmEntity = confirm(
-								`Confirm deletion of:\n ${JSON.stringify(
-									{ name: entity.name, tags: entity.tags, id: entity.id },
-									undefined,
-									2
-								)}`
-							);
-							if (!confirmEntity) {
-								continue;
+			{#if get(preferences.showDeleteAllButton)}
+				<button
+					title="deletes currently filtered entites"
+					class="flex flex-row items-center dark:bg-rose-900 bg-stone-100 rounded p-1 pr-2 m-1"
+					on:click={async () => {
+						const conf = confirm(
+							`this will delete all entities currently visible: ${filteredData.length} in total`
+						);
+						if (!conf) {
+							return;
+						}
+						const confirmEach = confirm(
+							`delete without confirmation on each entity (Cancel)\nor confirm each entity's deletion individually (OK) ?`
+						);
+						const conf2 = confirm(
+							`think twice, this is the last chance to cancel!\n(refresh the page to stop the process)`
+						);
+						if (!conf2) {
+							return;
+						}
+						let anyDeleted = false;
+						for (const entity of filteredData) {
+							if (confirmEach) {
+								const confirmEntity = confirm(
+									`Confirm deletion of:\n ${JSON.stringify(
+										{ name: entity.name, tags: entity.tags, id: entity.id },
+										undefined,
+										2
+									)}`
+								);
+								if (!confirmEntity) {
+									continue;
+								}
+							}
+							const res = await (await apiService()).deleteRecord(type, entity.id);
+							if (res.ok) {
+								anyDeleted = true;
+								infoToast(
+									`deleted ${entity.name ?? ''}(${entity.id}) ${
+										filteredData.length - filteredData.indexOf(entity)
+									} remaining`
+								);
+							} else {
+								errorToast(`failed deletion of ${entity.name ?? entity.id}`);
+								errorToast(res.err ?? 'unknown error occured');
+								break;
 							}
 						}
-						const res = await (await apiService()).deleteRecord(type, entity.id);
-						if (res.ok) {
-							infoToast(
-								`deleted ${entity.name ?? ''}(${entity.id}) ${
-									filteredData.length - filteredData.indexOf(entity)
-								} remaining`
-							);
-						} else {
-							errorToast(`failed deletion of ${entity.name ?? entity.id}`);
-							errorToast(res.err ?? 'unknown error occured');
-							break;
+						if (anyDeleted) {
+							infoToast('deletion successfully finished! the page will be refreshed soon.');
+							dispatch('refresh');
 						}
-					}
-					infoToast('deletion successfully finished! the page will be refreshed soon.');
-					dispatch('refresh');
-				}}
-			>
-				<TrashBinOutline class="m-1" />
-				DELETE ALL
-			</button>
+					}}
+				>
+					<TrashBinOutline class="m-1" />
+					DELETE ALL
+				</button>
+			{/if}
 			<Button
 				color="alternative"
 				class="h-10 m-1"
@@ -814,10 +860,18 @@
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 										<p
-											class="mr-2 cursor-pointer select-none overflow-hidden max-h-40 {field.includes("name") ? "text-[16px] font-extralight": ""}"
+											class="mr-2 cursor-pointer select-none overflow-hidden max-h-40 {field.includes(
+												'name'
+											)
+												? 'text-[16px] font-extralight'
+												: ''}"
 											title={field == 'name'
 												? `open ${item.name ?? ''} (${item.id})`
-												: `double-click to copy '${field}'\n${JSON.stringify(item[field], undefined, 2)} `}
+												: `double-click to copy '${field}'\n${JSON.stringify(
+														item[field],
+														undefined,
+														2
+													)} `}
 											on:dblclick={() => {
 												if (field == 'name') {
 													goto(`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`);

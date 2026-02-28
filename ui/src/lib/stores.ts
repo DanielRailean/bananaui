@@ -5,17 +5,12 @@ import { DateTime } from 'luxon';
 export const isDark = writable(0);
 export const userToken: Writable<{ token: string, expires: number } | undefined> = writable(undefined);
 export const config: Writable<IConfigWrap | undefined | null> = writable(undefined);
-export const triggerPageUpdate: Writable<string> = writable(
-	DateTime.now().toUnixInteger().toString()
-);
+export const triggerPageUpdate: Writable<string> = writable();
 
 export function setPreferences(prefs: any) {
 	preferences = prefs
 }
 export let preferences: { [key: string]: Writable<any> } = {}
-// export function getPreferences(): { [key: string]: Writable<any> }  {
-// 	return
-// }
 
 export function savePreferences()
 {

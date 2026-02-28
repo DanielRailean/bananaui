@@ -1,13 +1,22 @@
 import { get } from 'svelte/store';
 import { preferences } from './stores';
 import type { IKongEntity } from './types';
+import type { DumpOptions } from 'js-yaml';
 
 export const staticConfig = {
 	autoLoginDelayMs: 100,
 	name: 'Banana UI'
 };
 
-export const paginationAwaitBetweenPages = 0;
+export const yamlDumpOptions: DumpOptions = {
+		noArrayIndent: true,
+		noRefs: true,
+		noCompatMode: true,
+		quotingType: '"',
+		lineWidth: 9999
+	};
+
+export const paginationAwaitBetweenPages = 100;
 
 export const dateFields = ['created_at', 'updated_at', 'last_seen'];
 export const fieldOrder = [
