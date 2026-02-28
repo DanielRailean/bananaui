@@ -17,6 +17,7 @@
 	import { preferences } from '$lib/stores';
 	import { Button } from 'flowbite-svelte';
 	import { dump } from 'js-yaml';
+	import { page } from '$app/stores';
 
 	let loadParentName = preferences?.loadParentInfo;
 	let useNewSearch = preferences?.useNewSearch;
@@ -136,8 +137,8 @@
 
 	// this is to handle initial store event
 	function updateEventOnTrigger(v: any[]) {
-		console.log(`page update triggered by data change items no: ${v.length}`);
-		updateEvent('trigger update');
+		console.log(`page update requested by data change items no: ${v.length}`);
+		updateEvent('data change');
 	}
 
 	function updateEvent(caller = '') {
@@ -162,6 +163,11 @@
 		calculatePagination();
 		updateDisplayedFields();
 	}
+
+	// TODO maybe a config param for this
+	// page.subscribe(v=> {
+	// 	searchText = ""
+	// })
 
 	function sort(arr: any[], caller = '') {
 		console.log(`sort called by '${caller}'`);
