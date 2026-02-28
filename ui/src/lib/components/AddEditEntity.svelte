@@ -317,7 +317,7 @@
 
 <div class="dark:border-stone-700">
 	<div class="editor dark:bg-[#1E2021] w-full min-h-[30vh] line-numbers">
-		<pre class="language-json"><code bind:this={editorSyntax}></code></pre>
+		<pre class="language-json dark:bg-zinc-900"><code class="dark:bg-zinc-900" bind:this={editorSyntax}></code></pre>
 		<textarea
 			bind:this={editorWindow}
 			spellcheck="false"
@@ -412,10 +412,5 @@
 	pre {
 		padding: 10px;
 		padding-left: 75px;
-	}
-
-	code,
-	pre {
-		@apply dark:bg-zinc-900 bg-stone-800;
 	}
 </style>

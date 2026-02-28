@@ -16,8 +16,6 @@ export const yamlDumpOptions: DumpOptions = {
 		lineWidth: 9999
 	};
 
-export const paginationAwaitBetweenPages = 100;
-
 export const dateFields = ['created_at', 'updated_at', 'last_seen'];
 export const fieldOrder = [
 	// common

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { paginationAwaitBetweenPages } from '$lib/config';
 	import type { IKongEntity } from '$lib/types';
 	import { CirclePlusOutline, RefreshOutline } from 'flowbite-svelte-icons';
 	import { goto } from '$app/navigation';
@@ -16,6 +15,7 @@
 	import { Button } from 'flowbite-svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
 	import { writable, get, type Writable } from 'svelte/store';
+	import { preferences } from '$lib/stores';
 
 	let data: Writable<any[]> = writable([]);
 	let entity: string;
@@ -61,7 +61,7 @@
 			}
 			data.set(res.data.data);
 			var loopStarted = loadStart;
-			await delay(paginationAwaitBetweenPages);
+			await delay(get(preferences.paginationRequestsDelayMs));
 
 			while (res.data.next) {
 				res = await (await apiService()).request<any>(res.data.next ?? '', undefined, undefined);
@@ -71,7 +71,7 @@
 				if (res.ok) {
 					data.set(get(data).concat(res.data.data));
 				}
-				await delay(paginationAwaitBetweenPages);
+				await delay(get(preferences.paginationRequestsDelayMs));
 			}
 			// dataplanes don't have a page of their own.
 			// populating the cache to fake as if the request went through

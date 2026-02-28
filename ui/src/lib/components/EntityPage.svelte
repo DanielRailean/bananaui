@@ -32,7 +32,7 @@
 	import { base } from '$app/paths';
 	import Spinner from './Spinner.svelte';
 	import { preferences } from '$lib/stores';
-	import { get } from 'svelte/store';
+	import { get, writable, type Writable } from 'svelte/store';
 	import { icons } from '$lib/icons';
 	import Link from './Link.svelte';
 	import { dump } from 'js-yaml';
@@ -51,7 +51,7 @@
 	let currentEntity: IKongEntity | undefined;
 
 	interface IEntities extends IKongEntity {
-		data?: any[];
+		data?: Writable<any[]>;
 		entitySubPath: string;
 	}
 	let subEntities: IEntities[];
@@ -131,7 +131,7 @@
 					errorToast(`failed to load ${ent.name}`);
 					continue;
 				}
-				ent.data = res2.data?.data as any[];
+				ent.data = writable(res2.data?.data as any[]);
 				subEntities = subEntities;
 			}
 		}
@@ -332,7 +332,7 @@
 				? 'grid'
 				: 'hidden'}"
 		>
-			<pre class="language-json {highlightDisabled ? 'hidden' : ''}"><code bind:this={editorSyntax}
+			<pre class="language-json dark:bg-zinc-900 {highlightDisabled ? 'hidden' : ''}"><code class="dark:bg-zinc-900" bind:this={editorSyntax}
 				></code></pre>
 			<textarea
 				bind:this={editorWindow}
@@ -442,7 +442,7 @@
 							</Button>
 						</div>
 					</div>
-					{#if subEntity.data && subEntity.data.length > 0}
+					{#if subEntity.data && get(subEntity.data).length > 0}
 						<ArrayWrap
 							dataRaw={subEntity.data}
 							type={subEntity.name}
@@ -517,8 +517,4 @@
 		resize: none;
 	}
 
-	code,
-	pre {
-		@apply dark:bg-zinc-900 bg-stone-800;
-	}
 </style>

@@ -9,7 +9,7 @@
 	import { onMount } from 'svelte';
 
 	const defaultPref: { [key: string]: any } = {
-		version: 5.1,
+		version: 5.3,
 		loadParentInfo: false,
 		paginationSizeUi: 20,
 		paginationSizeApi: 1000,
@@ -17,7 +17,8 @@
 		useNewSearch: false,
 		useEphemeralGetRequestsCache: true,
 		sortSearchedItemsDuringPaginationProcess: false,
-		showDeleteAllButton: false
+		showDeleteAllButton: false,
+		paginationRequestsDelayMs: 0
 	};
 
 	const localCacheKey = 'preferences';
