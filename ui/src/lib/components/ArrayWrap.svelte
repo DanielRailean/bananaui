@@ -65,6 +65,19 @@
 		intervalsIterable = intervalsIterable.slice(0, intervals);
 	}
 
+	let timeout: number | undefined = undefined;
+	function copyItemSingleDoubleClick(isDouble: boolean, data: any) {
+		data.enabledWritable = undefined;
+		setTimeout(() => {
+			if (!doubleTriggered) {
+				writeToClipboard(JSON.stringify(data, undefined, 2), ` JSON`);
+			} else if (isDouble) {
+				writeToClipboard(dump(data, yamlDumpOptions), ' YAML');
+				doubleTriggered = false;
+			}
+		}, 550);
+	}
+
 	let doubleTriggered = false;
 	function handleCopyWithDebounce(format: 'yaml' | 'json', isDouble: boolean) {
 		setTimeout(() => {
@@ -721,7 +734,9 @@
 					? 'grid'
 					: 'hidden'}"
 			>
-				<pre class="language-json dark:bg-zinc-900"><code class="dark:bg-zinc-900" bind:this={editorSyntax}></code></pre>
+				<pre class="language-json dark:bg-zinc-900"><code
+						class="dark:bg-zinc-900"
+						bind:this={editorSyntax}></code></pre>
 				<textarea
 					bind:this={editorWindow}
 					spellcheck="false"
@@ -827,9 +842,14 @@
 							<div class=" space-x-1 flex flex-row">
 								<button
 									class="h-8"
-									title={JSON.stringify(item, undefined, 2)}
+									title={'copy (single click for JSON, double click for YAML) ' +
+										JSON.stringify(item, undefined, 2)}
 									on:click={() => {
-										copy(item);
+										copyItemSingleDoubleClick(false, item);
+									}}
+									on:dblclick={() => {
+										doubleTriggered = true;
+										copyItemSingleDoubleClick(true, item);
 									}}
 								>
 									<div
@@ -1101,5 +1121,4 @@
 		padding: 10px;
 		padding-left: 75px;
 	}
-
 </style>
