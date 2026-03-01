@@ -534,7 +534,7 @@
 		clearCache(type);
 		dispatch('refresh');
 	}
-	let bulkUpdateOpened = true;
+	let bulkUpdateOpened = false;
 
 	onDestroy(() => {
 		updateSearchParamWithDebounce.cancel();
@@ -553,10 +553,10 @@
 	items-center
 	justify-center
 	flex
-					dark:bg-stone-800
+					dark:dark:bg-stone-800
 					disabled:dark:bg-zinc-800
-					disabled:dark:text-white 
-					shadow 
+					disabled:dark:text-white
+					shadow
 					disabled:shadow-stone-400
 					disabled:dark:shadow-stone-900
 					cursor-pointer
@@ -564,16 +564,16 @@
 </script>
 
 <div class="w-full text-sm text-left rtl:text-right text-stone-800 font-light dark:text-stone-300">
-	<div class="p-3 pt-4 pb-2 bg-stone-800">
+	<div class="p-3 pl-4 pb-2 dark:bg-stone-800">
 		<h1 class="text-xl ml-1 dark:text-zinc-300">
 			{filteredData ? filteredData.length : 'Loading'}
 			{capitalizeFirstLetter(type)}
 		</h1>
 	</div>
 
-	<div class="w-full p-3 py-2 bg-stone-800">
+	<div class="w-full p-3 py-2 dark:bg-stone-800">
 		<input
-			class="bg-transparent border-none outline-none focus:[box-shadow:none] ml-[-8px] w-full bg-stone-800 disabled:cursor-not-allowed"
+			class="bg-transparent border-none outline-none focus:[box-shadow:none] ml-[-8px] w-full dark:bg-stone-800 disabled:cursor-not-allowed"
 			type="text"
 			disabled={!($dataRaw && $dataRaw.length > 0)}
 			bind:value={searchText}
@@ -590,14 +590,12 @@
 		/>
 	</div>
 	{#if filteredData.length > 0}
-		<div
-			class="flex flex-row w-full h-12 justify-between items-center bg-stone-800 shadow shadow-stone-400 dark:shadow-stone-900"
-		>
-			<div class="flex flex-row items-center space-x-2 ml-[1px] pl-3 dark:bg-stone-800">
+		<div class="flex flex-row w-full h-12 justify-between items-center dark:bg-stone-800">
+			<div class="flex flex-row items-center space-x-2 ml-[1px] pl-3 dark:dark:bg-stone-800">
 				<!-- <p class="text-lg">Sort by</p> -->
 				<select
 					title="chose the field used to sort the items"
-					class="dark:bg-stone-800 p-0 h-9
+					class="dark:dark:bg-stone-800 p-0 h-9
 					max-w-40
 					text-sm
 				 pl-2 border-none rounded focus:border-none
@@ -636,7 +634,7 @@
 						filteredData = filteredData;
 						infoToast('sorted!');
 					}}
-					class="flex flex-row items-center dark:bg-stone-800 shadow shadow-stone-400 dark:shadow-stone-900 rounded p-1 pr-2 m-1"
+					class="flex flex-row items-center dark:dark:bg-stone-800 shadow shadow-stone-400 dark:shadow-stone-900 rounded p-1 pr-2 m-1"
 				>
 					<OrderedListOutline class="m-1" />
 					Sort
@@ -651,7 +649,7 @@
 					on:dblclick={() => {
 						debouncedCopyAllConfirm.flush('yaml');
 					}}
-					class="flex flex-row items-center dark:bg-stone-800 rounded p-1 pr-2 m-1 shadow shadow-stone-400 dark:shadow-stone-900"
+					class="flex flex-row items-center dark:dark:bg-stone-800 rounded p-1 pr-2 m-1 shadow shadow-stone-400 dark:shadow-stone-900"
 				>
 					<FileCopyOutline class="m-1" />
 					Copy all
@@ -736,7 +734,7 @@
 					Bulk update</button
 				>
 				<div
-					class="flex flex-row items-center bg-stone-800 shadow shadow-stone-900 h-9 px-2 rounded"
+					class="flex flex-row items-center dark:bg-stone-800 shadow shadow-stone-400 dark:shadow-stone-900 h-9 px-2 rounded"
 				>
 					<Toggle
 						isChecked={loadParentName}
@@ -785,53 +783,53 @@
 			{/if}
 		</div>
 		{#if bulkUpdateOpened}
-			<div class="pt-2 bg-stone-800">
-				<div class=" bg-stone-800">
-				<button
-					color="alternative"
-					class="flex flex-row p-1 px-3 ml-3 shadow shadow-stone-400 dark:shadow-stone-900 h-9 items-center rounded"
-					title="bulk-update"
-					on:click={async () => {
-						let ok = confirm(
-							`confirm bulk update of ${filteredData.length} items ?\n${JSON.stringify(
-								filteredData.map((i) => i.name ?? i.id ?? 'no name/id')
-							)}`
-						);
-						if (ok) {
-							await applyBulkUpdate();
-						} else {
-							infoToast('aborted bulk-update');
-						}
-					}}>apply</button
+			<div class="pt-2 dark:bg-stone-800">
+				<div
+					class="editor dark:bg-[#1E2021] w-full line-numbers {bulkUpdateOpened
+						? 'grid'
+						: 'hidden'}"
 				>
-			</div>
-			<div
-				class="editor my-4 dark:bg-[#1E2021] w-full line-numbers {bulkUpdateOpened
-					? 'grid'
-					: 'hidden'}"
-			>
-				<pre class="language-json dark:bg-zinc-900"><code
-						class="dark:bg-zinc-900"
-						bind:this={editorSyntax}></code></pre>
-				<textarea
-					bind:this={editorWindow}
-					spellcheck="false"
-					wrap="hard"
-					autocorrect="off"
-					autocapitalize="off"
-					translate="no"
-					class="relative"
-					bind:value={json}
-					on:input={() => {
-						triggerHighlight();
-					}}
-				></textarea>
-			</div>
+					<pre class="language-json dark:bg-zinc-900"><code
+							class="dark:bg-zinc-900"
+							bind:this={editorSyntax}></code></pre>
+					<textarea
+						bind:this={editorWindow}
+						spellcheck="false"
+						wrap="hard"
+						autocorrect="off"
+						autocapitalize="off"
+						translate="no"
+						class="relative"
+						bind:value={json}
+						on:input={() => {
+							triggerHighlight();
+						}}
+					></textarea>
+				</div>
+				<div class=" dark:bg-stone-800 py-3">
+					<button
+						color="alternative"
+						class="flex flex-row p-1 px-3 ml-3 shadow shadow-stone-400 dark:shadow-stone-900 h-9 items-center rounded"
+						title="apply bulk update"
+						on:click={async () => {
+							let ok = confirm(
+								`confirm bulk update of ${filteredData.length} items ?\n${JSON.stringify(
+									filteredData.map((i) => i.name ?? i.id ?? 'no name/id')
+								)}`
+							);
+							if (ok) {
+								await applyBulkUpdate();
+							} else {
+								infoToast('aborted bulk update');
+							}
+						}}>apply</button
+					>
+				</div>
 			</div>
 		{/if}
 		<table class="w-full mb-2">
 			<thead
-				class="text-stone-800 text-sm dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300 h-10"
+				class="text-stone-800 text-sm dark:dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300 h-10"
 			>
 				<tr>
 					<th><p class="pl-4">No.</p></th>
@@ -1018,7 +1016,7 @@
 												>
 													{#each item[field] as row, index}
 														<p
-															class="text-xs cursor-pointer select-none p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50 {field ==
+															class="text-xs cursor-pointer select-none p-1 border dark:border-stone-600 m-1 hover:dark:dark:bg-stone-800 hover:bg-slate-50 {field ==
 															'methods'
 																? `http-method method-${item[field][index].toLowerCase()}`
 																: ''}"
