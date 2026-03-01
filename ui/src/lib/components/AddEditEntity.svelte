@@ -10,8 +10,9 @@
 	import { addToast, errorToast, infoToast } from '$lib/toastStore';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 	import { base } from '$app/paths';
-	import { kongEntities } from '$lib/config';
 	import { delay } from '$lib/util';
+	import { get } from 'svelte/store';
+	import { preferences } from '$lib/stores';
 
 	let entity: IKongEntity | undefined;
 
@@ -53,7 +54,7 @@
 		let type = query.get('type');
 		pathPrefix = query.get('prefix') ?? '';
 		if (type) {
-			entity = kongEntities.find((i) => i.name == type);
+			entity = get(preferences.kongEntities).find((i) => i.name == type);
 		}
 		if (!entity) {
 			errorToast(`entity named ${type} not found!`);
@@ -317,7 +318,7 @@
 
 <div class="dark:border-stone-700">
 	<div class="editor dark:bg-[#1E2021] w-full min-h-[30vh] line-numbers">
-		<pre class="language-json"><code bind:this={editorSyntax}></code></pre>
+		<pre class="language-json dark:bg-zinc-900"><code class="dark:bg-zinc-900" bind:this={editorSyntax}></code></pre>
 		<textarea
 			bind:this={editorWindow}
 			spellcheck="false"
@@ -412,10 +413,5 @@
 	pre {
 		padding: 10px;
 		padding-left: 75px;
-	}
-
-	code,
-	pre {
-		@apply dark:bg-zinc-900 bg-stone-800;
 	}
 </style>

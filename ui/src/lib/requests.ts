@@ -72,6 +72,7 @@ async function requestWithResponseBodyCached<ResType, ErrType = void>(
 		const res = await requestWithResponseBody(url, method, body, headers)
 		if (res.ok) {
 			cacheMap[cacheKey ?? url] = res
+			return res as ResWrapped<ResType, ErrType>
 		}
 	}
 	return requestWithResponseBody(url, method, body, headers)

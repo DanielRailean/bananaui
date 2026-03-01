@@ -8,9 +8,9 @@ COPY . .
 
 RUN npm install -g pnpm@latest-10
 
-ARG build_prefix
+ARG SVELTE_BUILD_PREFIX
 
-ENV SVELTE_BUILD_PREFIX=$build_prefix
+ENV SVELTE_BUILD_PREFIX=$SVELTE_BUILD_PREFIX
 
 # clean install all dependencies
 RUN pnpm install

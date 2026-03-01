@@ -8,7 +8,6 @@
 	import { goto } from '$app/navigation';
 	import { page, navigating, updated } from '$app/stores';
 	import { delay, getPluginPriorityMap, getPlugins, writeToClipboard } from '$lib/util';
-	import * as yaml from 'js-yaml';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import {
 		CaretDownOutline,
@@ -22,14 +21,21 @@
 		PaletteOutline,
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
-	import { fieldOrder, kongEntities, sortObjectFieldsByOrder, staticConfig } from '$lib/config';
+	import {
+		fieldOrder,
+		sortObjectFieldsByOrder,
+		staticConfig,
+		yamlDumpOptions
+	} from '$lib/config';
 	import type { IKongEntity, IKongPlugin } from '$lib/types';
 	import { base } from '$app/paths';
 	import Spinner from './Spinner.svelte';
 	import { preferences } from '$lib/stores';
-	import { get } from 'svelte/store';
+	import { get, writable, type Writable } from 'svelte/store';
 	import { icons } from '$lib/icons';
 	import Link from './Link.svelte';
+	import { dump } from 'js-yaml';
+	import { DateTime } from 'luxon';
 
 	let stateJson = '';
 	let json = '';
@@ -44,7 +50,7 @@
 	let currentEntity: IKongEntity | undefined;
 
 	interface IEntities extends IKongEntity {
-		data?: any[];
+		data?: Writable<any[]>;
 		entitySubPath: string;
 	}
 	let subEntities: IEntities[];
@@ -54,21 +60,13 @@
 
 	let isMounted = false;
 
-	const yamlOptions: yaml.DumpOptions = {
-		noArrayIndent: true,
-		noRefs: true,
-		noCompatMode: true,
-		quotingType: '"',
-		lineWidth: 9999
-	};
-
 	let info: any;
 
 	onMount(async () => {
 		isMounted = true;
 		info = await getPluginPriorityMap();
 		await load();
-		triggerHighlight();
+		triggerHighlight('on mount');
 	});
 
 	function flipIsEdited() {
@@ -81,6 +79,10 @@
 			url.searchParams.delete('isEdited');
 		}
 		history.pushState(null, '', url);
+		json = stateJson;
+		if (isEdited) {
+			triggerHighlight('flip edit');
+		}
 	}
 
 	async function load() {
@@ -110,10 +112,10 @@
 			json = JSON.stringify(data, undefined, 2);
 			stateJson = json;
 
-			currentEntity = kongEntities.find((ent) => ent.name == entityType);
+			currentEntity = get(preferences.kongEntities).find((ent) => ent.name == entityType);
 			subEntities = [];
 			for (const entity of currentEntity?.subEntities ?? []) {
-				const found = kongEntities.find((ent) => ent.name == entity);
+				const found = get(preferences.kongEntities).find((ent) => ent.name == entity);
 				if (!found) {
 					continue;
 				}
@@ -128,11 +130,11 @@
 					errorToast(`failed to load ${ent.name}`);
 					continue;
 				}
-				ent.data = res2.data?.data as any[];
+				ent.data = writable(res2.data?.data as any[]);
 				subEntities = subEntities;
 			}
 		}
-		triggerHighlight();
+		// triggerHighlight();
 
 		const plugins = await getPlugins(`/${entityType}/${id}`);
 		relevantPlugins = plugins;
@@ -177,7 +179,7 @@
 			return;
 		}
 		json = JSON.stringify(parsed, undefined, 2);
-		triggerHighlight();
+		triggerHighlight('format');
 		confirmToast(`json is valid`);
 	}
 	async function save() {
@@ -212,7 +214,7 @@
 	let editorSyntax: HTMLElement;
 
 	const max = 5;
-	async function triggerHighlight(selfCalled = 0) {
+	async function triggerHighlight(caller = '', selfCalled = 0) {
 		if (selfCalled > max) {
 			errorToast('highlight not triggered!');
 			return;
@@ -222,13 +224,13 @@
 
 		if (!editorSyntax) {
 			// needed as sometimes the function is called before the editor is added to the DOM
-			await delay(5);
-			await triggerHighlight(selfCalled + 1);
+			await delay(20);
+			await triggerHighlight(caller, selfCalled + 1);
 			return;
 		}
 		editorSyntax.textContent = json;
 		(globalThis as any).Prism.highlightElement(editorSyntax);
-		console.log(`Triggered on try ${selfCalled}`);
+		console.log(`prim highlight ok. try ${selfCalled} by '${caller}' at ${DateTime.now().toISO()}`);
 	}
 	let showPluginOrder = preferences.showPluginOrder;
 
@@ -248,7 +250,6 @@
 				class="h-10 m-1 focus:shadow-none"
 				on:click={() => {
 					flipIsEdited();
-					triggerHighlight();
 				}}
 			>
 				<FilePenOutline class="m-2" />edit
@@ -283,7 +284,7 @@
 					class="h-10 m-1"
 					title={stateJson}
 					on:click={() => {
-						writeToClipboard(yaml.dump(JSON.parse(stateJson), yamlOptions));
+						writeToClipboard(dump(JSON.parse(stateJson), yamlDumpOptions));
 					}}
 				>
 					<FileCopyAltOutline class="m-2" />
@@ -295,7 +296,7 @@
 					on:click={() => {
 						setTextareaHeight();
 						highlightDisabled = !highlightDisabled;
-						triggerHighlight();
+						// triggerHighlight();
 					}}
 					color="blue"
 					title="might be needed for json with long strings"
@@ -330,7 +331,7 @@
 				? 'grid'
 				: 'hidden'}"
 		>
-			<pre class="language-json {highlightDisabled ? 'hidden' : ''}"><code bind:this={editorSyntax}
+			<pre class="language-json dark:bg-zinc-900 {highlightDisabled ? 'hidden' : ''}"><code class="dark:bg-zinc-900" bind:this={editorSyntax}
 				></code></pre>
 			<textarea
 				bind:this={editorWindow}
@@ -339,15 +340,16 @@
 				autocorrect="off"
 				autocapitalize="off"
 				translate="no"
-				class="relative {highlightDisabled ? "opacity-100": "opacity-10"}"
+				class="relative"
 				bind:value={json}
 				on:input={() => {
 					setTextareaHeight();
-					triggerHighlight();
+					triggerHighlight('on input to textarea');
 				}}
 			></textarea>
 		</div>
-		{#if !isEdited}
+		<div class="{isEdited? "hidden": ""}">
+
 			<TreeWrapper
 				{data}
 				rounded={false}
@@ -439,7 +441,7 @@
 							</Button>
 						</div>
 					</div>
-					{#if subEntity.data && subEntity.data.length > 0}
+					{#if subEntity.data && get(subEntity.data).length > 0}
 						<ArrayWrap
 							dataRaw={subEntity.data}
 							type={subEntity.name}
@@ -450,7 +452,7 @@
 					{/if}
 				{/each}
 			{/if}
-		{/if}
+		</div>
 	{:else}
 		<div class="flex flex-row items-center m-4">
 			<Spinner
@@ -480,7 +482,7 @@
 		overflow: hidden;
 		resize: none;
 		width: 100%;
-		@apply text-purple-400;
+		color: rgba(255, 255, 255, 0.1);
 	}
 
 	textarea,
@@ -514,8 +516,4 @@
 		resize: none;
 	}
 
-	code,
-	pre {
-		@apply dark:bg-zinc-900 bg-stone-800;
-	}
 </style>

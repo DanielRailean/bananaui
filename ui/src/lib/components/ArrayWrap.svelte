@@ -1,16 +1,11 @@
 <script lang="ts">
 	import Link from './Link.svelte';
-	import { capitalizeFirstLetter, delay, writeToClipboard } from '$lib/util';
+	import { capitalizeFirstLetter, debouncedCall, delay, writeToClipboard } from '$lib/util';
 	import { goto } from '$app/navigation';
 	import { onDestroy, onMount } from 'svelte';
 	import { DateTime } from 'luxon';
-	import {
-		ArrowUpRightFromSquareOutline,
-		CaretDownOutline,
-		FileCopyOutline,
-		TrashBinOutline
-	} from 'flowbite-svelte-icons';
-	import { dateFields, kongEntities } from '$lib/config';
+	import { CaretDownOutline, FileCopyOutline, TrashBinOutline } from 'flowbite-svelte-icons';
+	import { dateFields, yamlDumpOptions } from '$lib/config';
 	import { apiService, clearCache } from '$lib/requests';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { createEventDispatcher } from 'svelte';
@@ -19,14 +14,16 @@
 	import Toggle from './Toggle.svelte';
 	import { get, writable, type Writable } from 'svelte/store';
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
-	import { preferences, triggerPageUpdate } from '$lib/stores';
+	import { preferences } from '$lib/stores';
 	import { Button } from 'flowbite-svelte';
+	import { dump } from 'js-yaml';
+	import { page } from '$app/stores';
 
 	let loadParentName = preferences?.loadParentInfo;
 	let useNewSearch = preferences?.useNewSearch;
 	const dispatch = createEventDispatcher();
 
-	export let dataRaw: ITooggleableEntityMaybe[];
+	export let dataRaw: Writable<ITooggleableEntityMaybe[]>;
 	export let type: string;
 	export let entity: IKongEntity | undefined = undefined;
 	export let pathPrefix: string | undefined = '';
@@ -39,7 +36,7 @@
 			displayedFields = displayedFields;
 		}
 	}
-
+	let isMounted = false;
 	let searchText = '';
 	interface FilteredEntity extends ITooggleableEntityMaybe {
 		enabledWritable: Writable<boolean>;
@@ -53,7 +50,7 @@
 	let debounce: number = DateTime.now().toUnixInteger();
 
 	let intervalsIterable: number[] = [];
-	let intervals = (dataRaw?.length ?? 0) / paginationSizeUi;
+	let intervals = ($dataRaw?.length ?? 0) / paginationSizeUi;
 
 	function calculatePagination() {
 		intervalsIterable = [];
@@ -68,6 +65,49 @@
 		}
 		intervalsIterable = intervalsIterable.slice(0, intervals);
 	}
+
+	function copyYamlOrJson(format: 'yaml' | 'json', data: any) {
+		if (Array.isArray(data)) {
+			data.forEach((el) => (el.enabledWritable = undefined));
+		}
+		if (Object.keys(data).length > 0 && typeof data == 'object') {
+			data.enabledWritable = undefined;
+		}
+		if (format == 'yaml') {
+			writeToClipboard(dump(data, yamlDumpOptions), ' YAML');
+		}
+		if (format == 'json') {
+			copy(data);
+		}
+	}
+
+	let debouncedCopy = debouncedCall(copyYamlOrJson, 510);
+	let debouncedCopyAllConfirm = debouncedCall((format: 'yaml' | 'json') => {
+		const conf = confirm(
+			`confirm ${format.toUpperCase()} copy of ${filteredData.length} entities?`
+		);
+		if (!conf) {
+			return;
+		}
+		const data = filteredData.map((i) => {
+			i.enabledWritable = undefined;
+			return i;
+		});
+		copyYamlOrJson(format, data);
+	}, 510);
+
+	let updateSearchParamWithDebounce = debouncedCall((map: { [key: string]: string }) => {
+		const url = new URL(window.location.toString());
+		for (const [key, val] of Object.entries(map)) {
+			if (val.length > 0) {
+				url.searchParams.set(key, val);
+			} else {
+				url.searchParams.delete(key);
+			}
+		}
+
+		history.pushState(null, '', url);
+	}, 550);
 
 	calculatePagination();
 
@@ -90,12 +130,23 @@
 				result = JSON.stringify(data[0], undefined, 2);
 			}
 		}
-		writeToClipboard(result);
+		writeToClipboard(result, ' JSON');
 	}
 	let sortByField = entity?.sortBy ?? 'updated_at';
 	let sortAscending = writable(entity?.sortAscending ?? false);
 
-	function updateEvent() {
+	// this is to handle initial store event
+	function updateEventOnTrigger(v: any[]) {
+		console.log(`page update requested by data change items no: ${v.length}`);
+		updateEvent('data change');
+	}
+
+	function updateEvent(caller = '') {
+		console.log(`update called by '${caller}'`);
+		if (!isMounted) {
+			console.log('not mounted yet, skipping update');
+			return;
+		}
 		const params = new URLSearchParams(window.location.search);
 		if (searchText.length == 0) {
 			searchText = params.get('search') ?? '';
@@ -103,16 +154,23 @@
 		sortByField = params.get('sortBy') ?? sortByField;
 		sortAscending.set(params.get('sortAscending') === 'true');
 
-		// filteredData = dataRaw;
 		debounce = DateTime.now().toUnixInteger();
 		search();
+		if (get(preferences.sortSearchedItemsDuringPaginationProcess)) {
+			sort(filteredData, `update event ${type}`);
+		}
 		resetPagination();
 		calculatePagination();
-		sort(filteredData);
 		updateDisplayedFields();
 	}
 
-	function sort(arr: any[]) {
+	// TODO maybe a config param for this
+	// page.subscribe(v=> {
+	// 	searchText = ""
+	// })
+
+	function sort(arr: any[], caller = '') {
+		console.log(`sort called by '${caller}'`);
 		arr.sort((a, b) => {
 			let fieldA = a[sortByField];
 			let fieldB = b[sortByField];
@@ -135,10 +193,11 @@
 		});
 	}
 
-	triggerPageUpdate.subscribe(updateEvent);
+	dataRaw.subscribe(updateEventOnTrigger);
 
 	onMount(() => {
-		updateEvent();
+		isMounted = true;
+		updateEvent('on mount');
 	});
 
 	async function disable(id: string, newEnabledValue: boolean) {
@@ -208,32 +267,6 @@
 			return true;
 		}
 		return false;
-	}
-
-	let searchDebounce: number | undefined = undefined;
-	// time after which the search will be written to the url query if unmodified
-	let debounceTimeoutMs = 550;
-	function updateSearchParamWithDebounce() {
-		if (searchDebounce) {
-			clearTimeout(searchDebounce);
-			searchDebounce = undefined;
-		}
-		searchDebounce = setTimeout(updateSearchQueryParams, debounceTimeoutMs, { search: searchText });
-	}
-	onDestroy(() => {
-		clearTimeout(searchDebounce);
-	});
-	function updateSearchQueryParams(map: { [key: string]: string }) {
-		const url = new URL(window.location.toString());
-		for (const [key, val] of Object.entries(map)) {
-			if (val.length > 0) {
-				url.searchParams.set(key, val);
-			} else {
-				url.searchParams.delete(key);
-			}
-		}
-
-		history.pushState(null, '', url);
 	}
 	// {
 	// [and inside here]
@@ -340,7 +373,7 @@
 		return groups;
 	}
 	function doSearch(input: string, arr: any[]) {
-		if (!dataRaw) {
+		if (!$dataRaw) {
 			return;
 		}
 		const orAndOr = getLogicalGroups(input);
@@ -370,7 +403,10 @@
 	// getLogicalGroups('hello && test, no || test.len == 2 && no, yes.len != 2');
 	function search() {
 		if (searchText.length == 0) {
-			filteredData = dataRaw.map((i: any): FilteredEntity => {
+			// we don't always sort on update event,
+			// because it could be searched, so we must sort when we know we're no longer searching
+			sort(get(dataRaw), `search ${type}`);
+			filteredData = $dataRaw.map((i: any): FilteredEntity => {
 				if (i.enabled != undefined) {
 					i.enabledWritable = writable(i.enabled);
 				}
@@ -378,10 +414,10 @@
 			});
 		}
 		if (get(useNewSearch)) {
-			filteredData = doSearch(searchText, dataRaw) ?? [];
+			filteredData = doSearch(searchText, $dataRaw) ?? [];
 		} else {
 			const booleanAndSearch = searchText.split(/\s*&&\s*/);
-			filteredData = dataRaw.filter((item: any) => {
+			filteredData = $dataRaw.filter((item: any) => {
 				for (let condition of booleanAndSearch) {
 					const len = condition.split('.len == ');
 					if (len && len.length > 1 && Number.isInteger(+len[1]) && Array.isArray(item[len[0]])) {
@@ -421,7 +457,6 @@
 				return true;
 			});
 		}
-		sort(filteredData);
 		resetPagination();
 		calculatePagination();
 	}
@@ -495,6 +530,12 @@
 		dispatch('refresh');
 	}
 	let bulkUpdateOpened = false;
+
+	onDestroy(() => {
+		updateSearchParamWithDebounce.cancel();
+		debouncedCopy.cancel();
+		debouncedCopyAllConfirm.cancel();
+	});
 </script>
 
 <div class="w-full text-sm text-left rtl:text-right text-stone-800 font-light dark:text-stone-300">
@@ -507,10 +548,14 @@
 			<input
 				class="bg-transparent text-xl rounded-lg border-none outline-none focus:[box-shadow:none] ml-[-8px] w-full"
 				type="text"
-				disabled={!(dataRaw && dataRaw.length > 0)}
+				disabled={!($dataRaw && $dataRaw.length > 0)}
 				bind:value={searchText}
+				on:emptied={() => {
+					console.log('is empty');
+				}}
 				on:input={() => {
-					updateSearchParamWithDebounce();
+					console.log(searchText);
+					updateSearchParamWithDebounce({ search: searchText });
 					search();
 				}}
 				title="Searches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
@@ -532,12 +577,12 @@
 			<select
 				bind:value={sortByField}
 				on:change={() => {
-					updateSearchQueryParams({ sortBy: sortByField });
-					updateEvent();
+					updateSearchParamWithDebounce({ sortBy: sortByField });
+					updateEvent('select sort by');
 				}}
 				class="dark:bg-stone-700 shadow shadow-slate-600 h-6 p-0 max-w-36 pl-2 border-none rounded focus:border-none focus:[box-shadow:none]"
 			>
-				{#each Object.keys(dataRaw[0] ?? {}) as key}
+				{#each Object.keys($dataRaw[0] ?? {}) as key}
 					<option value={key} selected={key == sortByField}>{key}</option>
 				{/each}
 			</select>
@@ -550,81 +595,83 @@
 				title={'Controls the sort direction, either ascending or descending'}
 				on:change={async () => {
 					sortAscending.set(!$sortAscending);
-					updateSearchQueryParams({ sortAscending: JSON.stringify(get(sortAscending)) });
-					updateEvent();
+					updateSearchParamWithDebounce({ sortAscending: JSON.stringify(get(sortAscending)) });
+					updateEvent('toggle sort direction');
 				}}
 			/>
 		</div>
 		<div class="flex flex-row mt-4">
 			<button
-				title="copies all entities as JSON"
+				title="copies all entities as JSON (sorted).&#13;Double click for YAML, single click for JSON"
 				on:click={() => {
-					const conf = confirm(`confirm copy of ${filteredData.length} entities?`);
-					if (!conf) {
-						return;
-					}
-					copy(
-						filteredData.map((i) => {
-							i.enabledWritable = undefined;
-							return i;
-						})
-					);
+					debouncedCopyAllConfirm('json');
+				}}
+				on:dblclick={() => {
+					debouncedCopyAllConfirm.flush('yaml');
 				}}
 				class="flex flex-row items-center dark:bg-stone-700 bg-stone-100 rounded p-1 pr-2 m-1"
 			>
 				<FileCopyOutline class="m-1" />
 				COPY ALL
 			</button>
-			<button
-				title="deletes currently filtered entites"
-				class="flex flex-row items-center dark:bg-rose-900 bg-stone-100 rounded p-1 pr-2 m-1"
-				on:click={async () => {
-					const confirmEach = confirm(`Do you want to confirm each entity's deletion separately?`);
-					const conf = confirm(
-						`this will delete all entities currently visible: ${filteredData.length} in total`
-					);
-					if (!conf) {
-						return;
-					}
-					const conf2 = confirm(
-						`think twice, this is the last chance to cancel!\n(refresh the page to stop the process)`
-					);
-					if (!conf2) {
-						return;
-					}
-					for (const entity of filteredData) {
-						if (confirmEach) {
-							const confirmEntity = confirm(
-								`Confirm deletion of:\n ${JSON.stringify(
-									{ name: entity.name, tags: entity.tags, id: entity.id },
-									undefined,
-									2
-								)}`
-							);
-							if (!confirmEntity) {
-								continue;
+			{#if get(preferences.showDeleteAllButton)}
+				<button
+					title="deletes currently filtered entites"
+					class="flex flex-row items-center dark:bg-rose-900 bg-stone-100 rounded p-1 pr-2 m-1"
+					on:click={async () => {
+						const conf = confirm(
+							`this will delete all entities currently visible: ${filteredData.length} in total`
+						);
+						if (!conf) {
+							return;
+						}
+						const confirmEach = confirm(
+							`delete without confirmation on each entity (Cancel)\nor confirm each entity's deletion individually (OK) ?`
+						);
+						const conf2 = confirm(
+							`think twice, this is the last chance to cancel!\n(refresh the page to stop the process)`
+						);
+						if (!conf2) {
+							return;
+						}
+						let anyDeleted = false;
+						for (const entity of filteredData) {
+							if (confirmEach) {
+								const confirmEntity = confirm(
+									`Confirm deletion of:\n ${JSON.stringify(
+										{ name: entity.name, tags: entity.tags, id: entity.id },
+										undefined,
+										2
+									)}`
+								);
+								if (!confirmEntity) {
+									continue;
+								}
+							}
+							const res = await (await apiService()).deleteRecord(type, entity.id);
+							if (res.ok) {
+								anyDeleted = true;
+								infoToast(
+									`deleted ${entity.name ?? ''}(${entity.id}) ${
+										filteredData.length - filteredData.indexOf(entity)
+									} remaining`
+								);
+							} else {
+								errorToast(`failed deletion of ${entity.name ?? entity.id}`);
+								errorToast(res.err ?? 'unknown error occured');
+								break;
 							}
 						}
-						const res = await (await apiService()).deleteRecord(type, entity.id);
-						if (res.ok) {
-							infoToast(
-								`deleted ${entity.name ?? ''}(${entity.id}) ${
-									filteredData.length - filteredData.indexOf(entity)
-								} remaining`
-							);
-						} else {
-							errorToast(`failed deletion of ${entity.name ?? entity.id}`);
-							errorToast(res.err ?? 'unknown error occured');
-							break;
+						if (anyDeleted) {
+							infoToast('deletion successfully finished! the page will be refreshed soon.');
+							dispatch('refresh');
 						}
-					}
-					infoToast('deletion successfully finished! the page will be refreshed soon.');
-					dispatch('refresh');
-				}}
-			>
-				<TrashBinOutline class="m-1" />
-				DELETE ALL
-			</button>
+					}}
+				>
+					<TrashBinOutline class="m-1" />
+					DELETE ALL
+				</button>
+			{/if}
 			<Button
 				color="alternative"
 				class="h-10 m-1"
@@ -672,7 +719,9 @@
 					? 'grid'
 					: 'hidden'}"
 			>
-				<pre class="language-json"><code bind:this={editorSyntax}></code></pre>
+				<pre class="language-json dark:bg-zinc-900"><code
+						class="dark:bg-zinc-900"
+						bind:this={editorSyntax}></code></pre>
 				<textarea
 					bind:this={editorWindow}
 					spellcheck="false"
@@ -751,8 +800,8 @@
 				<tr>
 					<th><p class="pl-4">No.</p></th>
 					<th><p class="pl-4">Actions</p></th>
-					{#each displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
-						{#if Object.keys(dataRaw[0] ?? {}).includes(field)}
+					{#each displayedFields ?? Object.keys($dataRaw[0] ?? {}) as field}
+						{#if Object.keys($dataRaw[0] ?? {}).includes(field)}
 							<th scope="col" class="pl-4"> {field} </th>
 						{/if}
 					{/each}
@@ -778,9 +827,13 @@
 							<div class=" space-x-1 flex flex-row">
 								<button
 									class="h-8"
-									title={JSON.stringify(item, undefined, 2)}
+									title={'copy (single click for JSON, double click for YAML) ' +
+										JSON.stringify(item, undefined, 2)}
 									on:click={() => {
-										copy(item);
+										debouncedCopy('json', item);
+									}}
+									on:dblclick={() => {
+										debouncedCopy.flush('yaml', item);
 									}}
 								>
 									<div
@@ -807,22 +860,32 @@
 							</div>
 						</td>
 
-						{#each displayedFields ?? Object.keys(dataRaw[0] ?? {}) as field}
+						{#each displayedFields ?? Object.keys($dataRaw[0] ?? {}) as field}
 							{#if Object.keys(item).includes(field)}
 								<td class="p-2">
 									<div class="flex flex-row items-center justify-between">
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 										<p
-											class="mr-2 cursor-pointer select-none overflow-hidden max-h-40 {field.includes("name") ? "text-[16px] font-extralight": ""}"
+											class="mr-2 cursor-pointer select-none overflow-hidden max-h-40 {field.includes(
+												'name'
+											)
+												? 'text-[16px] font-extralight'
+												: ''}"
 											title={field == 'name'
 												? `open ${item.name ?? ''} (${item.id})`
-												: `double-click to copy '${field}'\n${JSON.stringify(item[field], undefined, 2)} `}
-											on:dblclick={() => {
+												: `double-click to copy '${field}'\n${JSON.stringify(
+														item[field],
+														undefined,
+														2
+													)} `}
+											on:click={() => {
 												if (field == 'name') {
 													goto(`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`);
 													return;
 												}
+											}}
+											on:dblclick={() => {
 												copy(item[field]);
 											}}
 										>
@@ -830,7 +893,7 @@
 												{item[field]}
 											{:else if typeof item[field] == 'boolean'}
 												{#if field === 'enabled'}
-													<div on:click|stopPropagation>
+													<div on:click|stopPropagation role="button" tabindex="0">
 														<label
 															class="inline-flex items-center cursor-pointer"
 															title="enable or disable"
@@ -868,7 +931,7 @@
 												{:else}
 													{item[field]}
 												{/if}
-											{:else if item[field] && Object.keys(item[field]).includes('id') && kongEntities.find((i) => i.apiPath == `${field}s`)}
+											{:else if item[field] && Object.keys(item[field]).includes('id') && get(preferences.kongEntities).find((i) => i.apiPath == `${field}s`)}
 												<!-- svelte-ignore a11y-no-static-element-interactions -->
 												<div
 													class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded"
@@ -1043,10 +1106,5 @@
 	pre {
 		padding: 10px;
 		padding-left: 75px;
-	}
-
-	code,
-	pre {
-		@apply dark:bg-zinc-900 bg-stone-800;
 	}
 </style>

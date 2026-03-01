@@ -94,7 +94,7 @@
 	{/if}
 	<div class="flex flex-row items-center">
 		<div class="cursor-pointer {div_class}" title="toggle dark mode" on:click={handleClick}>
-			<img src={logo} alt="bananaui logo" class="w-14 h-14 m-4 {$isDark ? 'invert' : ''}" />
+			<img src={logo} alt="bananaui logo" class="w-14 h-14 m-4  hover:rotate-3 hover:scale-[110%] {$isDark ? 'invert' : ''}" />
 		</div>
 		<h1 class="text-3xl font-bold">{staticConfig.name}</h1>
 	</div>

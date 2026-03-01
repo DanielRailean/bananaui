@@ -30,10 +30,9 @@
 		}
 	];
 	import { onMount } from 'svelte';
-	import { kongEntities } from '$lib/config';
 	import { capitalizeFirstLetter } from '$lib/util';
 	import { base } from '$app/paths';
-	import { config, userToken } from '$lib/stores';
+	import { config, preferences, userToken } from '$lib/stores';
 	import { get } from 'svelte/store';
 	import { icons } from '$lib/icons';
 
@@ -60,7 +59,7 @@
 
 	onMount(() => {
 		mounted = true;
-		const entities = kongEntities
+		const entities = get(preferences.kongEntities)
 			.filter((i) => {
 				if (i.showInMenu === undefined) {
 					return true;
