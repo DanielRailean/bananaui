@@ -19,6 +19,10 @@ body {
 	display: block;
 }
 
+input, select, button {
+	@apply focus:ring-0;
+}
+
 .fancy-scroll {
 	@apply [&::-webkit-scrollbar]:w-1
 	[&::-webkit-scrollbar-track]:bg-gray-100
@@ -28,7 +32,7 @@ body {
 }
 
 .http-method{
-	@apply text-white px-2 py-1 text-sm;
+	@apply text-white px-2 py-1 text-xs;
 }
 
 .method-get {

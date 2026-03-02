@@ -4,7 +4,12 @@
 	import { goto } from '$app/navigation';
 	import { onDestroy, onMount } from 'svelte';
 	import { DateTime } from 'luxon';
-	import { CaretDownOutline, FileCopyOutline, TrashBinOutline } from 'flowbite-svelte-icons';
+	import {
+		CaretDownOutline,
+		FileCopyOutline,
+		OrderedListOutline,
+		TrashBinOutline
+	} from 'flowbite-svelte-icons';
 	import { dateFields, yamlDumpOptions } from '$lib/config';
 	import { apiService, clearCache } from '$lib/requests';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
@@ -488,7 +493,7 @@
 
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
-	let json = '';
+	let json = JSON.stringify({ patch_key: 'patch_val' }, undefined, 2);
 
 	const max = 5;
 	async function triggerHighlight(selfCalled = 0) {
@@ -536,273 +541,304 @@
 		debouncedCopy.cancel();
 		debouncedCopyAllConfirm.cancel();
 	});
+
+	function setTextareaHeight() {
+		if (!editorWindow) {
+			return;
+		}
+		editorWindow.style.height = editorWindow.scrollHeight + 3 + 'px';
+	}
+
+	const paginationClasses = `p-2
+	items-center
+	justify-center
+	flex
+					dark:dark:bg-stone-800
+					disabled:dark:bg-zinc-800
+					disabled:dark:text-white
+					shadow
+					disabled:shadow-stone-400
+					disabled:dark:shadow-stone-900
+					cursor-pointer
+					disabled:cursor-not-allowed`;
 </script>
 
 <div class="w-full text-sm text-left rtl:text-right text-stone-800 font-light dark:text-stone-300">
-	<div class="pl-4 pb-3">
-		<h1 class="text-xl mb-3 ml-1 dark:text-zinc-300">
+	<div class="p-3 pl-4 pb-2 dark:bg-stone-800">
+		<h1 class="text-xl ml-1 dark:text-zinc-300">
 			{filteredData ? filteredData.length : 'Loading'}
 			{capitalizeFirstLetter(type)}
 		</h1>
-		<div class="w-full mb-2">
-			<input
-				class="bg-transparent text-xl rounded-lg border-none outline-none focus:[box-shadow:none] ml-[-8px] w-full"
-				type="text"
-				disabled={!($dataRaw && $dataRaw.length > 0)}
-				bind:value={searchText}
-				on:emptied={() => {
-					console.log('is empty');
-				}}
-				on:input={() => {
-					console.log(searchText);
-					updateSearchParamWithDebounce({ search: searchText });
-					search();
-				}}
-				title="Searches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
-				placeholder="search (hover for more info)"
-			/>
-		</div>
-		<div class="flex flex-row my-4 pl-1">
-			<p class="text-lg mr-3">Load parent entity name</p>
-			<Toggle
-				isChecked={loadParentName}
-				title={'Loads parent entity name if enabled'}
-				on:change={async () => {
-					loadParentName.set(!get(loadParentName));
-				}}
-			/>
-		</div>
-		<div class="flex flex-row items-center space-x-2 pl-1">
-			<p class="text-lg">Sort by:</p>
-			<select
-				bind:value={sortByField}
-				on:change={() => {
-					updateSearchParamWithDebounce({ sortBy: sortByField });
-					updateEvent('select sort by');
-				}}
-				class="dark:bg-stone-700 shadow shadow-slate-600 h-6 p-0 max-w-36 pl-2 border-none rounded focus:border-none focus:[box-shadow:none]"
-			>
-				{#each Object.keys($dataRaw[0] ?? {}) as key}
-					<option value={key} selected={key == sortByField}>{key}</option>
-				{/each}
-			</select>
-		</div>
-		<div class="m-1 mt-4">
-			<Toggle
-				isChecked={sortAscending}
-				labelLeft="Z->A"
-				labelRight="A->Z"
-				title={'Controls the sort direction, either ascending or descending'}
-				on:change={async () => {
-					sortAscending.set(!$sortAscending);
-					updateSearchParamWithDebounce({ sortAscending: JSON.stringify(get(sortAscending)) });
-					updateEvent('toggle sort direction');
-				}}
-			/>
-		</div>
-		<div class="flex flex-row mt-4">
-			<button
-				title="copies all entities as JSON (sorted).&#13;Double click for YAML, single click for JSON"
-				on:click={() => {
-					debouncedCopyAllConfirm('json');
-				}}
-				on:dblclick={() => {
-					debouncedCopyAllConfirm.flush('yaml');
-				}}
-				class="flex flex-row items-center dark:bg-stone-700 bg-stone-100 rounded p-1 pr-2 m-1"
-			>
-				<FileCopyOutline class="m-1" />
-				COPY ALL
-			</button>
-			{#if get(preferences.showDeleteAllButton)}
+	</div>
+
+	<div class="w-full p-3 py-2 dark:bg-stone-800">
+		<input
+			class="bg-transparent border-none outline-none focus:[box-shadow:none] ml-[-8px] w-full dark:bg-stone-800 disabled:cursor-not-allowed"
+			type="text"
+			disabled={!($dataRaw && $dataRaw.length > 0)}
+			bind:value={searchText}
+			on:emptied={() => {
+				console.log('is empty');
+			}}
+			on:input={() => {
+				console.log(searchText);
+				updateSearchParamWithDebounce({ search: searchText });
+				search();
+			}}
+			title="Searches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
+			placeholder="search (hover for more info)"
+		/>
+	</div>
+	{#if filteredData.length > 0}
+		<div class="flex flex-row w-full h-12 justify-between items-center dark:bg-stone-800">
+			<div class="flex flex-row items-center space-x-2 ml-[1px] pl-3 dark:dark:bg-stone-800">
+				<!-- <p class="text-lg">Sort by</p> -->
+				<select
+					title="chose the field used to sort the items"
+					class="dark:dark:bg-stone-800 p-0 h-9
+					max-w-40
+					text-sm
+				 pl-2 border-none rounded focus:border-none
+				shadow shadow-stone-400 dark:shadow-stone-900 cursor-pointer"
+					bind:value={sortByField}
+					on:change={() => {
+						updateSearchParamWithDebounce({ sortBy: sortByField });
+						updateEvent('select sort by');
+					}}
+				>
+					{#each Object.keys($dataRaw[0] ?? {}) as key}
+						<option value={key} selected={key == sortByField}
+							>{capitalizeFirstLetter(key).replaceAll('_', ' ')}</option
+						>
+					{/each}
+				</select>
+				<div
+					class="h-9 flex items-center shadow shadow-stone-400 dark:shadow-stone-900 px-2 rounded"
+				>
+					<Toggle
+						isChecked={sortAscending}
+						labelLeft="Z->A"
+						labelRight="A->Z"
+						title={'Controls the sort direction, either ascending or descending'}
+						on:change={async () => {
+							sortAscending.set(!$sortAscending);
+							updateSearchParamWithDebounce({ sortAscending: JSON.stringify(get(sortAscending)) });
+							updateEvent('toggle sort direction');
+						}}
+					/>
+				</div>
 				<button
-					title="deletes currently filtered entites"
-					class="flex flex-row items-center dark:bg-rose-900 bg-stone-100 rounded p-1 pr-2 m-1"
-					on:click={async () => {
-						const conf = confirm(
-							`this will delete all entities currently visible: ${filteredData.length} in total`
-						);
-						if (!conf) {
-							return;
-						}
-						const confirmEach = confirm(
-							`delete without confirmation on each entity (Cancel)\nor confirm each entity's deletion individually (OK) ?`
-						);
-						const conf2 = confirm(
-							`think twice, this is the last chance to cancel!\n(refresh the page to stop the process)`
-						);
-						if (!conf2) {
-							return;
-						}
-						let anyDeleted = false;
-						for (const entity of filteredData) {
-							if (confirmEach) {
-								const confirmEntity = confirm(
-									`Confirm deletion of:\n ${JSON.stringify(
-										{ name: entity.name, tags: entity.tags, id: entity.id },
-										undefined,
-										2
-									)}`
-								);
-								if (!confirmEntity) {
-									continue;
+					title="sort entities now"
+					on:click={() => {
+						sort(filteredData, `user requested sort`);
+						filteredData = filteredData;
+						infoToast('sorted!');
+					}}
+					class="flex flex-row items-center dark:dark:bg-stone-800 shadow shadow-stone-400 dark:shadow-stone-900 rounded p-1 pr-2 m-1"
+				>
+					<OrderedListOutline class="m-1" />
+					Sort
+				</button>
+				<!-- </div> -->
+				<!-- <div class="flex flex-row items-center"> -->
+				<button
+					title="copies all entities as JSON (sorted).&#13;Double click for YAML, single click for JSON"
+					on:click={() => {
+						debouncedCopyAllConfirm('json');
+					}}
+					on:dblclick={() => {
+						debouncedCopyAllConfirm.flush('yaml');
+					}}
+					class="flex flex-row items-center dark:dark:bg-stone-800 rounded p-1 pr-2 m-1 shadow shadow-stone-400 dark:shadow-stone-900"
+				>
+					<FileCopyOutline class="m-1" />
+					Copy all
+				</button>
+				{#if get(preferences.showDeleteAllButton)}
+					<button
+						title="deletes currently filtered entites"
+						class="flex flex-row items-center dark:bg-rose-900 bg-stone-100 rounded p-1 pr-2 m-1 h-9 shadow shadow-stone-400 dark:shadow-stone-900"
+						on:click={async () => {
+							const conf = confirm(
+								`this will delete all entities currently visible: ${filteredData.length} in total`
+							);
+							if (!conf) {
+								return;
+							}
+							const confirmEach = confirm(
+								`delete without confirmation on each entity (Cancel)\nor confirm each entity's deletion individually (OK) ?`
+							);
+							const conf2 = confirm(
+								`think twice, this is the last chance to cancel!\n(refresh the page to stop the process)`
+							);
+							if (!conf2) {
+								return;
+							}
+							let anyDeleted = false;
+							for (const entity of filteredData) {
+								if (confirmEach) {
+									const confirmEntity = confirm(
+										`Confirm deletion of:\n ${JSON.stringify(
+											{ name: entity.name, tags: entity.tags, id: entity.id },
+											undefined,
+											2
+										)}`
+									);
+									if (!confirmEntity) {
+										continue;
+									}
+								}
+								const res = await (await apiService()).deleteRecord(type, entity.id);
+								if (res.ok) {
+									anyDeleted = true;
+									infoToast(
+										`deleted ${entity.name ?? ''}(${entity.id}) ${
+											filteredData.length - filteredData.indexOf(entity)
+										} remaining`
+									);
+								} else {
+									errorToast(`failed deletion of ${entity.name ?? entity.id}`);
+									errorToast(res.err ?? 'unknown error occured');
+									break;
 								}
 							}
-							const res = await (await apiService()).deleteRecord(type, entity.id);
-							if (res.ok) {
-								anyDeleted = true;
-								infoToast(
-									`deleted ${entity.name ?? ''}(${entity.id}) ${
-										filteredData.length - filteredData.indexOf(entity)
-									} remaining`
-								);
-							} else {
-								errorToast(`failed deletion of ${entity.name ?? entity.id}`);
-								errorToast(res.err ?? 'unknown error occured');
-								break;
+							if (anyDeleted) {
+								infoToast('deletion successfully finished! the page will be refreshed soon.');
+								dispatch('refresh');
 							}
-						}
-						if (anyDeleted) {
-							infoToast('deletion successfully finished! the page will be refreshed soon.');
-							dispatch('refresh');
-						}
-					}}
-				>
-					<TrashBinOutline class="m-1" />
-					DELETE ALL
-				</button>
-			{/if}
-			<Button
-				color="alternative"
-				class="h-10 m-1"
-				title="bulk-update"
-				on:click={() => {
-					if (json.length == 0) {
-						json = JSON.stringify(
-							filteredData[0].config ? { config: filteredData[0].config ?? {} } : {},
-							undefined,
-							2
-						);
-					}
-					bulkUpdateOpened = !bulkUpdateOpened;
-					if (bulkUpdateOpened) {
-						triggerHighlight();
-					}
-				}}
-			>
-				<CaretDownOutline class="" />
-				bulk-update</Button
-			>
-		</div>
-		{#if bulkUpdateOpened}
-			<div>
-				<Button
-					color="alternative"
-					class="h-10 m-1"
-					title="bulk-update"
-					on:click={async () => {
-						let ok = confirm(
-							`confirm bulk update of ${filteredData.length} items ?\n${JSON.stringify(
-								filteredData.map((i) => i.name ?? i.id ?? 'no name/id')
-							)}`
-						);
-						if (ok) {
-							await applyBulkUpdate();
-						} else {
-							infoToast('aborted bulk-update');
-						}
-					}}>apply</Button
-				>
-			</div>
-			<div
-				class="editor dark:bg-[#1E2021] w-full min-h-[80vh] line-numbers {bulkUpdateOpened
-					? 'grid'
-					: 'hidden'}"
-			>
-				<pre class="language-json dark:bg-zinc-900"><code
-						class="dark:bg-zinc-900"
-						bind:this={editorSyntax}></code></pre>
-				<textarea
-					bind:this={editorWindow}
-					spellcheck="false"
-					wrap="hard"
-					autocorrect="off"
-					autocapitalize="off"
-					translate="no"
-					class="relative"
-					bind:value={json}
-					on:input={() => {
-						triggerHighlight();
-					}}
-				></textarea>
-			</div>
-			<!-- content here -->
-		{/if}
-	</div>
-	{#if filteredData.length > paginationSizeUi}
-		<div class="info py-4 flex flex-row items-center space-x-4 pl-6">
-			<button
-				disabled={pageNumber == intervalsIterable[0]}
-				class="p-2
-			bg-stone-300
-					dark:bg-stone-700
-					disabled:bg-stone-200
-					disabled:dark:text-white disabled:dark:bg-stone-800
-			"
-				on:click={scrollPrevious}
-			>
-				<ChevronLeftOutline class="size-4" />
-			</button>
-
-			{#each intervalsIterable as interval}
-				{#if isVisiblePage(interval, pageNumber)}
-					<button
-						class="p-2
-					w-10 h-10 rounded-lg
-					bg-stone-300
-					dark:bg-stone-700
-					disabled:bg-stone-200
-					disabled:dark:text-white disabled:dark:bg-stone-800
-					disabled:shadow disabled:shadow-slate-600
-					"
-						on:click={() => {
-							loadPage(interval);
 						}}
-						disabled={pageNumber == interval}
 					>
-						<p>{interval}</p>
+						<TrashBinOutline class="m-1" />
+						DELETE ALL
 					</button>
 				{/if}
-				{#if isVisiblePage(interval, pageNumber) && !isVisiblePage(interval + 1, pageNumber) && !(interval == intervalsIterable.at(-1))}
-					<p>...</p>
-				{/if}
-				<!-- content here -->
-			{/each}
-			<button
-				disabled={pageNumber == intervalsIterable.at(-1)}
-				class="
-			p-2
-			bg-stone-300
-					dark:bg-stone-700
-					disabled:bg-stone-200
-					disabled:dark:text-white disabled:dark:bg-stone-800
-			"
-				on:click={scrollNext}><ChevronRightOutline class="size-4" /></button
-			>
-			<p class="text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
+				<button
+					class="flex flex-row p-1 m-1 shadow shadow-stone-400 dark:shadow-stone-900 h-9 items-center rounded"
+					title="will update the entire list of entities with a given PATCH body. Sends a PATCH HTTP request"
+					on:click={() => {
+						if (json.length == 0) {
+							json = JSON.stringify(
+								filteredData[0].config ? { config: filteredData[0].config ?? {} } : {},
+								undefined,
+								2
+							);
+						}
+						bulkUpdateOpened = !bulkUpdateOpened;
+						if (bulkUpdateOpened) {
+							setTextareaHeight();
+							triggerHighlight();
+						}
+					}}
+				>
+					<CaretDownOutline class="" />
+					Bulk update</button
+				>
+				<div
+					class="flex flex-row items-center dark:bg-stone-800 shadow shadow-stone-400 dark:shadow-stone-900 h-9 px-2 rounded"
+				>
+					<Toggle
+						isChecked={loadParentName}
+						title={'Loads parent entity name if enabled'}
+						on:change={async () => {
+							loadParentName.set(!get(loadParentName));
+						}}
+					/>
+					<p class="ml-2">Load FK</p>
+				</div>
+			</div>
+			{#if filteredData.length > paginationSizeUi}
+				<div class="info py-4 flex flex-row items-center space-x-2 pl-6 mr-5">
+					<button
+						disabled={pageNumber == intervalsIterable[0]}
+						class={`${paginationClasses} rounded h-7 w-7`}
+						on:click={scrollPrevious}
+					>
+						<ChevronLeftOutline class="size-4" />
+					</button>
+
+					{#each intervalsIterable as interval}
+						{#if isVisiblePage(interval, pageNumber)}
+							<button
+								class={`${paginationClasses} h-8 w-8 rounded items-center flex justify-center`}
+								on:click={() => {
+									loadPage(interval);
+								}}
+								disabled={pageNumber == interval}
+							>
+								<p>{interval}</p>
+							</button>
+						{/if}
+						{#if isVisiblePage(interval, pageNumber) && !isVisiblePage(interval + 1, pageNumber) && !(interval == intervalsIterable.at(-1))}
+							<p>...</p>
+						{/if}
+						<!-- content here -->
+					{/each}
+					<button
+						disabled={pageNumber == intervalsIterable.at(-1)}
+						class={`${paginationClasses} rounded h-7 w-7`}
+						on:click={scrollNext}><ChevronRightOutline class="size-4" /></button
+					>
+					<!-- <p class="text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p> -->
+				</div>
+			{/if}
 		</div>
-	{/if}
-	{#if filteredData.length > 0}
+		{#if bulkUpdateOpened}
+			<div class="pt-2 dark:bg-stone-800">
+				<div
+					class="editor dark:bg-[#1E2021] w-full line-numbers {bulkUpdateOpened
+						? 'grid'
+						: 'hidden'}"
+				>
+					<pre class="language-json dark:bg-zinc-900"><code
+							class="dark:bg-zinc-900"
+							bind:this={editorSyntax}></code></pre>
+					<textarea
+						bind:this={editorWindow}
+						spellcheck="false"
+						wrap="hard"
+						autocorrect="off"
+						autocapitalize="off"
+						translate="no"
+						class="relative"
+						bind:value={json}
+						on:input={() => {
+							triggerHighlight();
+						}}
+					></textarea>
+				</div>
+				<div class=" dark:bg-stone-800 py-3">
+					<button
+						color="alternative"
+						class="flex flex-row p-1 px-3 ml-3 shadow shadow-stone-400 dark:shadow-stone-900 h-9 items-center rounded"
+						title="apply bulk update"
+						on:click={async () => {
+							let ok = confirm(
+								`confirm bulk update of ${filteredData.length} items ?\n${JSON.stringify(
+									filteredData.map((i) => i.name ?? i.id ?? 'no name/id')
+								)}`
+							);
+							if (ok) {
+								await applyBulkUpdate();
+							} else {
+								infoToast('aborted bulk update');
+							}
+						}}>apply</button
+					>
+				</div>
+			</div>
+		{/if}
 		<table class="w-full mb-2">
 			<thead
-				class="text-stone-800 text-sm dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300 h-10"
+				class="text-stone-800 text-sm dark:dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300 h-10"
 			>
 				<tr>
 					<th><p class="pl-4">No.</p></th>
 					<th><p class="pl-4">Actions</p></th>
 					{#each displayedFields ?? Object.keys($dataRaw[0] ?? {}) as field}
 						{#if Object.keys($dataRaw[0] ?? {}).includes(field)}
-							<th scope="col" class="pl-4"> {field} </th>
+							<th scope="col" class="pl-4">
+								{capitalizeFirstLetter(field).replaceAll('_', ' ')}
+							</th>
 						{/if}
 					{/each}
 				</tr>
@@ -810,7 +846,7 @@
 			<tbody>
 				{#each filteredData.slice(arrayStart, arrayEnd) as item, index}
 					<tr
-						class="dark:hover:bg-stone-900 hover:bg-blue-300 border dark:border-stone-800 rounded"
+						class="dark:hover:bg-stone-900 hover:bg-indigo-100 border dark:border-stone-800 rounded"
 						on:auxclick={() => {
 							window.open(
 								`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`,
@@ -980,7 +1016,7 @@
 												>
 													{#each item[field] as row, index}
 														<p
-															class="text-xs cursor-pointer select-none p-1 border dark:border-stone-600 m-1 hover:dark:bg-stone-800 hover:bg-slate-50 {field ==
+															class="text-xs cursor-pointer select-none p-1 border dark:border-stone-600 m-1 hover:dark:dark:bg-stone-800 hover:bg-slate-50 {field ==
 															'methods'
 																? `http-method method-${item[field][index].toLowerCase()}`
 																: ''}"
@@ -1005,59 +1041,6 @@
 				{/each}
 			</tbody>
 		</table>
-	{/if}
-	{#if filteredData.length > paginationSizeUi}
-		<div class="info py-4 flex flex-row items-center space-x-4 pl-6">
-			<button
-				disabled={pageNumber == intervalsIterable[0]}
-				class="p-2
-			bg-stone-300
-					dark:bg-stone-700
-					disabled:bg-stone-200
-					disabled:dark:text-white disabled:dark:bg-stone-800
-			"
-				on:click={scrollPrevious}
-			>
-				<ChevronLeftOutline class="size-4" />
-			</button>
-
-			{#each intervalsIterable as interval}
-				{#if isVisiblePage(interval, pageNumber)}
-					<button
-						class="p-2
-					w-10 h-10 rounded-lg
-					bg-stone-300
-					dark:bg-stone-700
-					disabled:bg-stone-200
-					disabled:dark:text-white disabled:dark:bg-stone-800
-					disabled:shadow disabled:shadow-slate-600
-					"
-						on:click={() => {
-							loadPage(interval);
-						}}
-						disabled={pageNumber == interval}
-					>
-						<p>{interval}</p>
-					</button>
-				{/if}
-				{#if isVisiblePage(interval, pageNumber) && !isVisiblePage(interval + 1, pageNumber) && !(interval == intervalsIterable.at(-1))}
-					<p>...</p>
-				{/if}
-				<!-- content here -->
-			{/each}
-			<button
-				disabled={pageNumber == intervalsIterable.at(-1)}
-				class="
-			p-2
-			bg-stone-300
-					dark:bg-stone-700
-					disabled:bg-stone-200
-					disabled:dark:text-white disabled:dark:bg-stone-800
-			"
-				on:click={scrollNext}><ChevronRightOutline class="size-4" /></button
-			>
-			<p class="text-center text-md">showing {arrayStart + 1} to {arrayEnd}</p>
-		</div>
 	{/if}
 </div>
 

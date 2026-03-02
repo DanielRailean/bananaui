@@ -29,6 +29,6 @@
 	</label>
 	{#if labelRight}
 		<!-- content here -->
-		<span class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300 mr-2">{labelRight}</span>
+		<span class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{labelRight}</span>
 	{/if}
 </div>
