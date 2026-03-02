@@ -21,12 +21,7 @@
 		PaletteOutline,
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
-	import {
-		fieldOrder,
-		sortObjectFieldsByOrder,
-		staticConfig,
-		yamlDumpOptions
-	} from '$lib/config';
+	import { fieldOrder, sortObjectFieldsByOrder, staticConfig, yamlDumpOptions } from '$lib/config';
 	import type { IKongEntity, IKongPlugin } from '$lib/types';
 	import { base } from '$app/paths';
 	import Spinner from './Spinner.svelte';
@@ -331,8 +326,9 @@
 				? 'grid'
 				: 'hidden'}"
 		>
-			<pre class="language-json dark:bg-zinc-900 {highlightDisabled ? 'hidden' : ''}"><code class="dark:bg-zinc-900" bind:this={editorSyntax}
-				></code></pre>
+			<pre class="language-json dark:bg-zinc-900 {highlightDisabled ? 'hidden' : ''}"><code
+					class="dark:bg-zinc-900"
+					bind:this={editorSyntax}></code></pre>
 			<textarea
 				bind:this={editorWindow}
 				spellcheck="false"
@@ -348,8 +344,7 @@
 				}}
 			></textarea>
 		</div>
-		<div class="{isEdited? "hidden": ""}">
-
+		<div class={isEdited ? 'hidden' : ''}>
 			<TreeWrapper
 				{data}
 				rounded={false}
@@ -515,5 +510,4 @@
 		word-wrap: break-word;
 		resize: none;
 	}
-
 </style>
