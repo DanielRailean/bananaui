@@ -32,7 +32,7 @@
 			class="m-2"
 			disabled={$userToken?.expires == -1}
 			on:click={() => {
-				writeToClipboard($userToken?.token ?? '', () => {
+				writeToClipboard($userToken?.token ?? '', '', () => {
 					confirmToast(
 						`copied! expires at ${DateTime.fromMillis(info.payload.exp * 1000).toFormat('T')}`
 					);
