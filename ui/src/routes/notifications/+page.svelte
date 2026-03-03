@@ -5,7 +5,7 @@
 
 	let localToasts:any[] = []
 	onMount(() => {
-		localToasts = toastList.map(item=>{
+		localToasts = toastList.reverse().map(item=>{
 			return { message: item.message, type: item.type, timestamp: item.timestamp }
 		})
 	});
