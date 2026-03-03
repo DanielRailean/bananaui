@@ -21,6 +21,10 @@
 	];
 	let itemsEnd: HeaderItem[] = [
 		{
+			name: 'notifications',
+			appPath: '/notifications'
+		},
+		{
 			name: 'settings',
 			appPath: '/settings'
 		},

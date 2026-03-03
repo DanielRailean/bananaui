@@ -1,8 +1,18 @@
 import { writable, type Writable } from 'svelte/store';
-import type { IConfig, IConfigWrap, IToast } from './types';
+import type { IToast } from './types';
 import { DateTime } from 'luxon';
 
 export const toasts: Writable<any[]> = writable([]);
+
+const storageKey = 'toast_list'
+export let toastList: any[] = JSON.parse(localStorage.getItem(storageKey) ?? "[]")
+function pushAndSaveToasts(toast: any)
+{
+	toast.timestamp = DateTime.now().toISO()
+	toastList.push(toast)
+	toastList = toastList.slice(-100)
+	localStorage.setItem(storageKey, JSON.stringify(toastList));
+}
 
 export const addToast = (toast: IToast) => {
 	// Create a unique ID so we can easily find/remove it
@@ -18,6 +28,7 @@ export const addToast = (toast: IToast) => {
 	} as any;
 
 	const finalToast = { ...defaults, ...toast };
+	pushAndSaveToasts(finalToast)
 	// Push the toast to the top of the list of toasts
 	toasts.update((all: any) => [finalToast, ...all]);
 
