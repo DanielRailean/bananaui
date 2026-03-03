@@ -119,28 +119,42 @@
 		format(false);
 		try {
 			let res: ResWrapped<IEntityBase, IResCreateError> | undefined;
-
-			if (postPath) {
-				res = await (
-					await apiService()
-				).request<IEntityBase, IResCreateError>(postPath, 'POST', JSON.parse(json));
-			} else {
-				res = await (await apiService()).createRecord(entity?.name ?? '', JSON.parse(json));
+			let data = JSON.parse(json);
+			let isArray = Array.isArray(data);
+			if (!isArray) {
+				data = [data];
 			}
-			if (!res.ok) {
-				addToast({
-					message: (`API error (${res.code}): ` +
-						((res.errTyped as any)?.message ?? res.err)) as string,
-					timeout: 15000
-				});
-				return;
+			for (const element of data) {
+				if (postPath) {
+					res = await (
+						await apiService()
+					).request<IEntityBase, IResCreateError>(postPath, 'POST', element);
+				} else {
+					res = await (await apiService()).createRecord(entity?.name ?? '', element);
+				}
+				if (!res.ok) {
+					addToast({
+						message: (`API error (${res.code}): ` +
+							((res.errTyped as any)?.message ?? res.err)) as string,
+						timeout: 15000
+					});
+					return;
+				}
+				if (res.data?.id) {
+					clearCache(entity?.name);
+					if (!isArray) {
+						goto(`${base}/entity?type=${entity?.name}&id=${res.data.id}&prefix=${pathPrefix}`);
+					} else {
+						infoToast(`created ${entity?.name} (${element.name ?? res.data.id})`)
+					}
+				} else {
+					addToast({ message: 'failed to read the new entity' });
+					return;
+				}
 			}
-			if (res.data?.id) {
-				clearCache(entity?.name);
-				goto(`${base}/entity?type=${entity?.name}&id=${res.data.id}&prefix=${pathPrefix}`);
-			} else {
-				addToast({ message: 'failed to read the new entity' });
-				return;
+			if(isArray)
+			{
+				goto(`${base}/entities?type=${entity?.name}`);
 			}
 		} catch (error: any) {
 			const err = error.response.data as any as Error;
@@ -163,7 +177,7 @@
 				const value = entries[1];
 				pluginSchema[key] = value;
 			}
-			if(loadDefaultConfig){
+			if (loadDefaultConfig) {
 				const config = getDefaultFields(configSchema.config.fields, false);
 				addField('config', config);
 			}
@@ -181,7 +195,7 @@
 				result[key] = value.default;
 				continue;
 			}
-			if (["map", "array"].includes(value.type)) {
+			if (['map', 'array'].includes(value.type)) {
 				result[key] = getDefault(value);
 				continue;
 			}
@@ -318,7 +332,9 @@
 
 <div class="dark:border-stone-700">
 	<div class="editor dark:bg-[#1E2021] w-full min-h-[30vh] line-numbers">
-		<pre class="language-json dark:bg-zinc-900"><code class="dark:bg-zinc-900" bind:this={editorSyntax}></code></pre>
+		<pre class="language-json dark:bg-zinc-900"><code
+				class="dark:bg-zinc-900"
+				bind:this={editorSyntax}></code></pre>
 		<textarea
 			bind:this={editorWindow}
 			spellcheck="false"
