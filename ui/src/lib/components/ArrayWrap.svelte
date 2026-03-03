@@ -30,7 +30,7 @@
 
 	export let dataRaw: Writable<ITooggleableEntityMaybe[]>;
 	export let type: string;
-	export let entity: IKongEntity;
+	export let entity: IKongEntity | undefined;
 	export let pathPrefix: string | undefined = '';
 	let displayedFields: string[] = [];
 
@@ -156,7 +156,7 @@
 		if (searchText.length == 0) {
 			searchText = params.get('search') ?? '';
 		}
-		sortByField = params.get('sortBy') ?? entity.sortBy ?? sortByField;
+		sortByField = params.get('sortBy') ?? entity?.sortBy ?? sortByField;
 		sortAscending.set(params.get('sortAscending') === 'true');
 
 		debounce = DateTime.now().toUnixInteger();
