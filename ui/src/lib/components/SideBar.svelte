@@ -17,13 +17,13 @@
 		{
 			name: 'profile',
 			appPath: '/profile'
-		}
-	];
-	let itemsEnd: HeaderItem[] = [
+		},
 		{
 			name: 'notifications',
 			appPath: '/notifications'
 		},
+	];
+	let itemsEnd: HeaderItem[] = [
 		{
 			name: 'settings',
 			appPath: '/settings'
@@ -31,7 +31,7 @@
 		{
 			name: 'preferences',
 			appPath: '/preferences'
-		}
+		},
 	];
 	import { onMount } from 'svelte';
 	import { capitalizeFirstLetter } from '$lib/util';
