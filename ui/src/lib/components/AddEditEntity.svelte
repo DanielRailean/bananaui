@@ -94,11 +94,16 @@
 		}
 		json = JSON.stringify(entity.defaultAddValue ?? dummyObject, undefined, 2);
 		triggerHighlight();
+		addToast({ timeout: 5000, message: 'for bulk updates use an array of entities', type: 'info' });
 
-		selectedPluginName = pluginSelect[Math.round(Math.random() * pluginSelect.length)].value;
-		infoToast(`loaded schema for ${selectedPluginName} (selected randomly)`);
-		pluginSelected(true);
+		if (pluginSelect) {
+			selectedPluginName = pluginSelect[Math.round(Math.random() * pluginSelect.length)].value;
+			infoToast(`loaded schema for ${selectedPluginName} (selected randomly)`);
+			pluginSelected(true);
+		}
 	});
+
+	let isArray = false;
 
 	function format(confirmOk = true) {
 		let parsed: any | undefined;
@@ -145,15 +150,14 @@
 					if (!isArray) {
 						goto(`${base}/entity?type=${entity?.name}&id=${res.data.id}&prefix=${pathPrefix}`);
 					} else {
-						infoToast(`created ${entity?.name} (${element.name ?? res.data.id})`)
+						infoToast(`created ${entity?.name} (${element.name ?? res.data.id})`);
 					}
 				} else {
 					addToast({ message: 'failed to read the new entity' });
 					return;
 				}
 			}
-			if(isArray)
-			{
+			if (isArray) {
 				goto(`${base}/entities?type=${entity?.name}`);
 			}
 		} catch (error: any) {
@@ -233,6 +237,20 @@
 		console.log(`Triggered on try ${selfCalled}`);
 	}
 
+	function checkIfArray() {
+		if (!entity) {
+			return;
+		}
+		try {
+			const body = JSON.parse(json);
+			if (body) {
+				isArray = Array.isArray(body);
+			}
+		} catch (error) {
+			isArray = false;
+		}
+	}
+
 	function checkIfPlugin() {
 		if (!entity || entity.name != 'plugins') {
 			return;
@@ -289,7 +307,7 @@
 		<div class="flex flex-row flex-wrap">
 			<Button class="h-10 m-1" on:click={async () => await save()} color="green">
 				<FloppyDiskAltOutline class="m-2" />
-				save {entity?.name.substr(0, entity.name.length - 1)}
+				save {isArray ? entity?.name : entity?.name.substr(0, entity.name.length - 1)}
 			</Button>
 			<Button class="h-10 m-1" on:click={() => format(true)} color="blue">
 				<PaletteOutline class="m-2" />
@@ -347,6 +365,7 @@
 			on:input={() => {
 				triggerHighlight();
 				checkIfPlugin();
+				checkIfArray();
 			}}
 		></textarea>
 	</div>
