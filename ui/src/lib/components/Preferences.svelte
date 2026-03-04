@@ -103,7 +103,7 @@
 	];
 
 	const defaultPref: { [key: string]: any } = {
-		version: 5.4,
+		version: 5.5,
 		loadParentInfo: false,
 		paginationSizeUi: 20,
 		paginationSizeApi: 1000,
@@ -113,6 +113,7 @@
 		sortSearchedItemsDuringPaginationProcess: false,
 		showDeleteAllButton: false,
 		paginationRequestsDelayMs: 0,
+		enumerateEntities: false,
 		kongEntities: kongEntities
 	};
 

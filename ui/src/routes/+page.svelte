@@ -11,8 +11,11 @@
 	onMount(async () => {
 		try {
 			const res = await (await apiService()).getInfo();
-			
 			let infoRaw = res.data;
+			if(!infoRaw)
+			{
+				return
+			}
 			const sortedPlugins = Object.entries(infoRaw?.plugins.available_on_server ?? {}).sort((a,b)=>b[1].priority - a[1].priority)
 			const plugins = Object.fromEntries(sortedPlugins)
 			infoRaw!.plugins.available_on_server = plugins

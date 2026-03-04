@@ -10,9 +10,11 @@ export function setPreferences(prefs: any) {
 	preferences = prefs
 }
 export let preferences: {
+	enumerateEntities: Writable<boolean>
 	kongEntities: Writable<IKongEntity[]>
 } & { [key: string]: Writable<any> } = {
-	kongEntities: writable([])
+	kongEntities: writable([]),
+	enumerateEntities: writable(false)
 }
 
 export function savePreferences() {

@@ -98,31 +98,31 @@
 </svelte:head>
 
 {#if entity}
-	<div class="flex flex-col m-4 mb-3 font-light text-2xl">
-		<div class="flex flex-row mb-2 h-10">
-			<Button
-				class=" flex flex-row mr-2  items-center bg-green-500 dark:bg-green-700"
+	<div class="flex flex-col m-3 p-1 mb-5 font-light justify-center">
+		<div class="flex flex-row h-11">
+			<button
+				class="flex select-none flex-row hover:shadow-lg px-2 m-1 dark:bg-green-600 bg-green-400 shadow shadow-stone-400 text-white dark:shadow-stone-900 items-center rounded"
 				on:click={() => {
 					load('user clicked', true);
 					infoToast('refresh started!');
 				}}
 			>
-				<RefreshOutline class="mr-2"></RefreshOutline>
-				Refresh
-			</Button>
-			<Button
-				class="flex flex-row mr-2 bg-blue-500 dark:bg-blue-600"
+				<RefreshOutline class="mr-1"></RefreshOutline>
+				Refresh list
+			</button>
+			<button
+				class="flex select-none flex-row hover:shadow-lg px-2 m-1 dark:bg-indigo-600 bg-indigo-500 shadow shadow-stone-400 text-white dark:shadow-stone-900 items-center rounded"
 				on:click={() => {
 					goto(`${base}/add?type=${entity}`);
 				}}
 			>
 				<a href="{base}/add?type={entity}">
 					<div class="flex flex-row items-center space-x-1">
-						<CirclePlusOutline class="mr-2" />
+						<CirclePlusOutline class="mr-1" />
 						Add
 					</div>
 				</a>
-			</Button>
+			</button>
 		</div>
 	</div>
 	<ArrayWrap

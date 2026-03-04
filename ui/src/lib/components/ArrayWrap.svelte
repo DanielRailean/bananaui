@@ -30,7 +30,7 @@
 
 	export let dataRaw: Writable<ITooggleableEntityMaybe[]>;
 	export let type: string;
-	export let entity: IKongEntity | undefined = undefined;
+	export let entity: IKongEntity | undefined;
 	export let pathPrefix: string | undefined = '';
 	let displayedFields: string[] = [];
 
@@ -156,7 +156,7 @@
 		if (searchText.length == 0) {
 			searchText = params.get('search') ?? '';
 		}
-		sortByField = params.get('sortBy') ?? sortByField;
+		sortByField = params.get('sortBy') ?? entity?.sortBy ?? sortByField;
 		sortAscending.set(params.get('sortAscending') === 'true');
 
 		debounce = DateTime.now().toUnixInteger();
@@ -590,9 +590,8 @@
 		/>
 	</div>
 	{#if filteredData.length > 0}
-		<div class="flex flex-row w-full h-12 justify-between items-center dark:bg-stone-800">
+		<div class="flex flex-row w-full h-12 pb-2 justify-between items-center dark:bg-stone-800">
 			<div class="flex flex-row items-center space-x-2 ml-[1px] pl-3 dark:dark:bg-stone-800">
-				<!-- <p class="text-lg">Sort by</p> -->
 				<select
 					title="chose the field used to sort the items"
 					class="dark:dark:bg-stone-800 p-0 h-9
@@ -602,7 +601,7 @@
 				shadow shadow-stone-400 dark:shadow-stone-900 cursor-pointer"
 					bind:value={sortByField}
 					on:change={() => {
-						updateSearchParamWithDebounce({ sortBy: sortByField });
+						updateSearchParamWithDebounce.flush({ sortBy: sortByField });
 						updateEvent('select sort by');
 					}}
 				>
@@ -620,9 +619,11 @@
 						labelLeft="Z->A"
 						labelRight="A->Z"
 						title={'Controls the sort direction, either ascending or descending'}
-						on:change={async () => {
+						on:change={() => {
 							sortAscending.set(!$sortAscending);
-							updateSearchParamWithDebounce({ sortAscending: JSON.stringify(get(sortAscending)) });
+							updateSearchParamWithDebounce.flush({
+								sortAscending: JSON.stringify(get(sortAscending))
+							});
 							updateEvent('toggle sort direction');
 						}}
 					/>
@@ -639,8 +640,6 @@
 					<OrderedListOutline class="m-1" />
 					Sort
 				</button>
-				<!-- </div> -->
-				<!-- <div class="flex flex-row items-center"> -->
 				<button
 					title="copies all entities as JSON (sorted).&#13;Double click for YAML, single click for JSON"
 					on:click={() => {
@@ -657,7 +656,7 @@
 				{#if get(preferences.showDeleteAllButton)}
 					<button
 						title="deletes currently filtered entites"
-						class="flex flex-row items-center dark:bg-rose-900 bg-stone-100 rounded p-1 pr-2 m-1 h-9 shadow shadow-stone-400 dark:shadow-stone-900"
+						class="flex flex-row items-center dark:bg-rose-900 rounded p-1 pr-2 m-1 h-9 shadow shadow-stone-400 dark:shadow-stone-900"
 						on:click={async () => {
 							const conf = confirm(
 								`this will delete all entities currently visible: ${filteredData.length} in total`
@@ -742,8 +741,8 @@
 						on:change={async () => {
 							loadParentName.set(!get(loadParentName));
 						}}
+						labelRight="Load parent"
 					/>
-					<p class="ml-2">Load FK</p>
 				</div>
 			</div>
 			{#if filteredData.length > paginationSizeUi}
@@ -832,11 +831,13 @@
 				class="text-stone-800 text-sm dark:dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300 h-10"
 			>
 				<tr>
-					<th><p class="pl-4">No.</p></th>
-					<th><p class="pl-4">Actions</p></th>
+					{#if get(preferences.enumerateEntities)}
+						<th><p class="p-4">No.</p></th>
+					{/if}
+					<th><p class="p-4">Actions</p></th>
 					{#each displayedFields ?? Object.keys($dataRaw[0] ?? {}) as field}
 						{#if Object.keys($dataRaw[0] ?? {}).includes(field)}
-							<th scope="col" class="pl-4">
+							<th scope="col" class="p-2">
 								{capitalizeFirstLetter(field).replaceAll('_', ' ')}
 							</th>
 						{/if}
@@ -854,11 +855,13 @@
 							);
 						}}
 					>
-						<td class="">
-							<p class="text-center font-light pl-3">
-								{index + 1 + arrayStart}.
-							</p></td
-						>
+						{#if get(preferences.enumerateEntities)}
+							<td class="">
+								<p class="text-center font-light pl-3">
+									{index + 1 + arrayStart}.
+								</p></td
+							>
+						{/if}
 						<td class="p-2">
 							<div class=" space-x-1 flex flex-row">
 								<button
@@ -1045,6 +1048,11 @@
 </div>
 
 <style lang="postcss">
+	button,
+	p {
+		@apply text-nowrap;
+	}
+
 	.editor {
 		grid-template-columns: 1fr;
 		grid-template-rows: 1fr;
