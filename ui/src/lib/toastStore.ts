@@ -14,6 +14,11 @@ function pushAndSaveToasts(toast: any)
 	localStorage.setItem(storageKey, JSON.stringify(toastList));
 }
 
+export function clearToasts(){
+	toastList = []
+	localStorage.setItem(storageKey, JSON.stringify(toastList));
+}
+
 export const addToast = (toast: IToast) => {
 	// Create a unique ID so we can easily find/remove it
 	// if it is dismissible/has a timeout.

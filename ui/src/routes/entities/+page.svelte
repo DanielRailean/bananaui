@@ -101,7 +101,7 @@
 	<div class="flex flex-col m-3 p-1 mb-5 font-light justify-center">
 		<div class="flex flex-row h-11">
 			<button
-				class="flex select-none flex-row hover:shadow-lg px-2 m-1 dark:bg-emerald-600 bg-emerald-400 shadow shadow-stone-400 text-white dark:shadow-stone-900 items-center rounded"
+				class="flex select-none flex-row hover:shadow-lg px-2 m-1 dark:bg-emerald-700 bg-emerald-400 shadow shadow-stone-400 text-white dark:shadow-stone-900 items-center rounded"
 				on:click={() => {
 					load('user clicked', true);
 					infoToast('refresh started!');
@@ -111,7 +111,7 @@
 				Refresh list
 			</button>
 			<button
-				class="flex select-none flex-row hover:shadow-lg px-2 m-1 dark:bg-indigo-600 bg-indigo-500 shadow shadow-stone-400 text-white dark:shadow-stone-900 items-center rounded"
+				class="flex select-none flex-row hover:shadow-lg px-2 m-1 dark:bg-indigo-700 bg-indigo-500 shadow shadow-stone-400 text-white dark:shadow-stone-900 items-center rounded"
 				on:click={() => {
 					goto(`${base}/add?type=${entity}`);
 				}}

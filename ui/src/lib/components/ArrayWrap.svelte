@@ -938,33 +938,14 @@
 											{:else if typeof item[field] == 'boolean'}
 												{#if field === 'enabled'}
 													<div on:click|stopPropagation role="button" tabindex="0">
-														<label
-															class="inline-flex items-center cursor-pointer"
-															title="enable or disable"
-														>
-															<input
-																type="checkbox"
-																bind:checked={item.enabled}
-																on:change|stopPropagation|preventDefault={async () => {
-																	let ok = confirm('confirm action');
-																	if (ok) {
-																		item.enabled = !item.enabled;
-																		const res = await disable(item['id'], !item.enabled);
-																		if (res.ok) {
-																			console.log(res);
-																			item.enabled = res.data?.enabled;
-																		} else {
-																			errorToast(`Failed to disable. (${res.code}) ${res.err}`);
-																		}
-																	}
-																}}
-																class="sr-only peer"
-															/>
-															<div
-																class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:dark:bg-stone-900 after:dark:border-none after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-800"
-															></div>
-															<!-- <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Toggle me</span> -->
-														</label>
+														<Toggle
+															isChecked={writable(item[field])}
+															title={`click to ${item[field] ? 'disable' : 'enable'} ${item.name ?? item.id}`}
+															on:change={async () => {
+																await disable(item.id, !item.enabled);
+															}}
+															>
+														</Toggle>
 													</div>
 												{:else}
 													{item[field]}
@@ -979,7 +960,7 @@
 												<!-- svelte-ignore a11y-no-static-element-interactions -->
 												<div
 													class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded"
-													title="go to {field}"
+													title="go to {idToInfo[item[field].id] ?? field} ({item[field].id})"
 												>
 													<a
 														class="w-full"
