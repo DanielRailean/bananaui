@@ -585,8 +585,8 @@
 				updateSearchParamWithDebounce({ search: searchText });
 				search();
 			}}
-			title="Searches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
-			placeholder="search (hover for more info)"
+			title="Filters based on the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator. Logical 'NOT' using '!' &#013;Ex: 'host && !/path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
+			placeholder="filter (hover for more info)"
 		/>
 	</div>
 	{#if filteredData.length > 0}
@@ -807,8 +807,12 @@
 				</div>
 				<div class=" dark:bg-stone-800 py-3">
 					<button
-						color="alternative"
-						class="flex flex-row p-1 px-3 ml-3 shadow shadow-stone-400 dark:shadow-stone-900 h-9 items-center rounded"
+						class="flex flex-row p-1 px-3 ml-3 shadow 
+						shadow-stone-400 dark:shadow-stone-900 
+						h-9 items-center rounded
+						text-white
+						dark:bg-emerald-600 bg-emerald-400
+						"
 						title="apply bulk update"
 						on:click={async () => {
 							let ok = confirm(
@@ -993,7 +997,7 @@
 													>
 														<div>
 															<p
-																class="dark:text-blue-500 text-blue-700 px-1 truncate max-w-[360px]"
+																class="dark:text-blue-500 text-blue-700 px-1 truncate"
 															>
 																{#if $loadParentName}
 																	{#await getInfo(field, item[field].id, item.name ?? item.id) then value}

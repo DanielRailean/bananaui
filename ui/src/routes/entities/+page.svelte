@@ -101,7 +101,7 @@
 	<div class="flex flex-col m-3 p-1 mb-5 font-light justify-center">
 		<div class="flex flex-row h-11">
 			<button
-				class="flex select-none flex-row hover:shadow-lg px-2 m-1 dark:bg-green-600 bg-green-400 shadow shadow-stone-400 text-white dark:shadow-stone-900 items-center rounded"
+				class="flex select-none flex-row hover:shadow-lg px-2 m-1 dark:bg-emerald-600 bg-emerald-400 shadow shadow-stone-400 text-white dark:shadow-stone-900 items-center rounded"
 				on:click={() => {
 					load('user clicked', true);
 					infoToast('refresh started!');
