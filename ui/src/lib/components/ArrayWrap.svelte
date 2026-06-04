@@ -23,6 +23,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { dump } from 'js-yaml';
 	import { page } from '$app/stores';
+	import ArrayDisplay from './ArrayDisplay.svelte';
 
 	let loadParentName = preferences?.loadParentInfo;
 	let useNewSearch = preferences?.useNewSearch;
@@ -1015,27 +1016,9 @@
 											{:else if Object.is(item[field], null)}
 												-
 											{:else if Array.isArray(item[field])}
-												<div
-													class="flex flex-row flex-wrap justify-start max-w-[650px] {field ==
-													'methods'
-														? `max-w-[200px]`
-														: 'max-w-[650px]'}"
-												>
-													{#each item[field] as row, index}
-														<p
-															class="text-xs cursor-pointer select-none p-1 border dark:border-stone-600 m-1 hover:dark:dark:bg-stone-800 hover:bg-slate-50 {field ==
-															'methods'
-																? `http-method method-${item[field][index].toLowerCase()}`
-																: ''}"
-															title="double-click to copy '{item[field][index]}'"
-															on:dblclick={() => {
-																copy(item[field][index]);
-															}}
-														>
-															{row}
-														</p>
-													{/each}
-												</div>
+												<ArrayDisplay {item} {field} on:copy={(e) => {
+													copy(e.detail.value);
+												}}/>
 											{:else}
 												{JSON.stringify(item[field], undefined, 2)}
 											{/if}
