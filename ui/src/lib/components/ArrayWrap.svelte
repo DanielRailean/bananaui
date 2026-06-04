@@ -23,6 +23,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { dump } from 'js-yaml';
 	import { page } from '$app/stores';
+	import ArrayDisplay from './ArrayDisplay.svelte';
 
 	let loadParentName = preferences?.loadParentInfo;
 	let useNewSearch = preferences?.useNewSearch;
@@ -585,8 +586,8 @@
 				updateSearchParamWithDebounce({ search: searchText });
 				search();
 			}}
-			title="Searches the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator.&#013;Ex: 'host && /path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
-			placeholder="search (hover for more info)"
+			title="Filters based on the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator. Logical 'NOT' using '!' &#013;Ex: 'host && !/path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
+			placeholder="filter (hover for more info)"
 		/>
 	</div>
 	{#if filteredData.length > 0}
@@ -807,8 +808,12 @@
 				</div>
 				<div class=" dark:bg-stone-800 py-3">
 					<button
-						color="alternative"
-						class="flex flex-row p-1 px-3 ml-3 shadow shadow-stone-400 dark:shadow-stone-900 h-9 items-center rounded"
+						class="flex flex-row p-1 px-3 ml-3 shadow 
+						shadow-stone-400 dark:shadow-stone-900 
+						h-9 items-center rounded
+						text-white
+						dark:bg-emerald-600 bg-emerald-400
+						"
 						title="apply bulk update"
 						on:click={async () => {
 							let ok = confirm(
@@ -933,33 +938,14 @@
 											{:else if typeof item[field] == 'boolean'}
 												{#if field === 'enabled'}
 													<div on:click|stopPropagation role="button" tabindex="0">
-														<label
-															class="inline-flex items-center cursor-pointer"
-															title="enable or disable"
-														>
-															<input
-																type="checkbox"
-																bind:checked={item.enabled}
-																on:change|stopPropagation|preventDefault={async () => {
-																	let ok = confirm('confirm action');
-																	if (ok) {
-																		item.enabled = !item.enabled;
-																		const res = await disable(item['id'], !item.enabled);
-																		if (res.ok) {
-																			console.log(res);
-																			item.enabled = res.data?.enabled;
-																		} else {
-																			errorToast(`Failed to disable. (${res.code}) ${res.err}`);
-																		}
-																	}
-																}}
-																class="sr-only peer"
-															/>
-															<div
-																class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:dark:bg-stone-900 after:dark:border-none after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-800"
-															></div>
-															<!-- <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Toggle me</span> -->
-														</label>
+														<Toggle
+															isChecked={writable(item[field])}
+															title={`click to ${item[field] ? 'disable' : 'enable'} ${item.name ?? item.id}`}
+															on:change={async () => {
+																await disable(item.id, !item.enabled);
+															}}
+															>
+														</Toggle>
 													</div>
 												{:else}
 													{item[field]}
@@ -974,7 +960,7 @@
 												<!-- svelte-ignore a11y-no-static-element-interactions -->
 												<div
 													class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded"
-													title="go to {field}"
+													title="go to {idToInfo[item[field].id] ?? field} ({item[field].id})"
 												>
 													<a
 														class="w-full"
@@ -993,7 +979,7 @@
 													>
 														<div>
 															<p
-																class="dark:text-blue-500 text-blue-700 px-1 truncate max-w-[360px]"
+																class="dark:text-blue-500 text-blue-700 px-1 truncate"
 															>
 																{#if $loadParentName}
 																	{#await getInfo(field, item[field].id, item.name ?? item.id) then value}
@@ -1011,27 +997,9 @@
 											{:else if Object.is(item[field], null)}
 												-
 											{:else if Array.isArray(item[field])}
-												<div
-													class="flex flex-row flex-wrap justify-start max-w-[650px] {field ==
-													'methods'
-														? `max-w-[200px]`
-														: 'max-w-[650px]'}"
-												>
-													{#each item[field] as row, index}
-														<p
-															class="text-xs cursor-pointer select-none p-1 border dark:border-stone-600 m-1 hover:dark:dark:bg-stone-800 hover:bg-slate-50 {field ==
-															'methods'
-																? `http-method method-${item[field][index].toLowerCase()}`
-																: ''}"
-															title="double-click to copy '{item[field][index]}'"
-															on:dblclick={() => {
-																copy(item[field][index]);
-															}}
-														>
-															{row}
-														</p>
-													{/each}
-												</div>
+												<ArrayDisplay {item} {field} on:copy={(e) => {
+													copy(e.detail.value);
+												}}/>
 											{:else}
 												{JSON.stringify(item[field], undefined, 2)}
 											{/if}

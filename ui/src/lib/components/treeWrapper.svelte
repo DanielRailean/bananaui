@@ -11,6 +11,7 @@
 	import { confirmToast, infoToast } from '$lib/toastStore';
 	import { apiService } from '$lib/requests';
 	import { preferences } from '$lib/stores';
+	import ArrayDisplay from './ArrayDisplay.svelte';
 	export let data: any;
 	export let expandLevel = 0;
 	export let allowCopy = true;
@@ -29,31 +30,37 @@
 		}
 	}
 
-	export let keyClickHandler: ((key: string) => void) | undefined = undefined
-	export let keyTitle = (key:string) => {return `copy ${key}`}
+	export let keyClickHandler: ((key: string) => void) | undefined = undefined;
+	export let keyTitle = (key: string) => {
+		return `copy ${key}`;
+	};
 </script>
 
 <div class="tree">
 	{#if data}
 		<div
-			class="relative overflow-x-hidden {rounded ? 'rounded-xl' : ''} border-b dark:border-stone-800"
+			class="relative overflow-x-hidden {rounded
+				? 'rounded-xl'
+				: ''} border-b dark:border-stone-800"
 		>
 			<table class="w-full text-sm text-left rtl:text-right text-gray-800 dark:text-zinc-300">
 				<tbody>
-					{#each Object.keys(data).filter(key=> data[key] !=null) as key}
-						<tr class="bg-white border-t dark:bg-[#1E2021] dark:border-gray-700 dark:hover:bg-stone-900 hover:bg-blue-300">
+					{#each Object.keys(data).filter((key) => data[key] != null) as key}
+						<tr
+							class="bg-white border-t dark:bg-[#1E2021] dark:border-gray-700 dark:hover:bg-stone-900 hover:bg-blue-300"
+						>
 							<th
-								on:click={async ()=> {
-									if(keyClickHandler)
-									{
-										await keyClickHandler(key)
+								on:click={async () => {
+									if (keyClickHandler) {
+										await keyClickHandler(key);
 									}
 								}}
 								scope="row"
-								class="px-6 py-4 font-medium text-stone-900 whitespace-nowrap dark:text-zinc-300 {allowKeyCopy || keyClickHandler != undefined
+								class="px-6 py-4 font-medium text-stone-900 whitespace-nowrap dark:text-zinc-300 {allowKeyCopy ||
+								keyClickHandler != undefined
 									? 'cursor-pointer'
 									: ''}"
-								title={keyTitle(key) ?? ""}
+								title={keyTitle(key) ?? ''}
 								on:dblclick={() => {
 									if (!allowKeyCopy) return;
 									writeToClipboard(key);
@@ -62,7 +69,9 @@
 								{key}
 							</th>
 							<td
-								class="px-6 py-4 flex flex-row select-none items-center {allowCopy ? 'cursor-pointer' : ''}"
+								class="px-6 py-4 flex flex-row select-none items-center {allowCopy
+									? 'cursor-pointer'
+									: ''}"
 								title="double-click to copy"
 								on:dblclick={() => {
 									if (!allowCopy) return;
@@ -84,12 +93,19 @@
 											<p class="dark:text-blue-500 text-blue-700">{data[key].id}</p>
 										</div>
 									</a>
-									<!-- </a> -->
 									<button
 										on:click={() => {
 											console.log(data[key]);
 										}}
 									></button>
+								{:else if Array.isArray(data[key])}
+									<ArrayDisplay
+										item={data}
+										field={key}
+										on:copy={(e) => {
+											writeToClipboard(e.detail.value);
+										}}
+									/>
 								{:else if typeof data[key] == 'object' && data[key] != null && expandFields.includes(key)}
 									<div class="cursor-pointer">
 										<JSONTree value={data[key]} defaultExpandedLevel={100}></JSONTree>
