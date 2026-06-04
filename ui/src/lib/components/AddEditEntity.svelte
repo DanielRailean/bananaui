@@ -13,6 +13,7 @@
 	import { delay } from '$lib/util';
 	import { get } from 'svelte/store';
 	import { preferences } from '$lib/stores';
+	import { page } from '$app/stores';
 
 	let entity: IKongEntity | undefined;
 
@@ -52,6 +53,7 @@
 		let query = new URLSearchParams(window.location.search);
 		let path = query.get('apiPostPath');
 		let type = query.get('type');
+		let pluginName = query.get('pluginName');
 		pathPrefix = query.get('prefix') ?? '';
 		if (type) {
 			entity = get(preferences.kongEntities).find((i) => i.name == type);
@@ -97,8 +99,11 @@
 		addToast({ timeout: 5000, message: 'for bulk updates use an array of entities', type: 'info' });
 
 		if (pluginSelect) {
-			selectedPluginName = pluginSelect[Math.round(Math.random() * pluginSelect.length)].value;
-			infoToast(`loaded schema for ${selectedPluginName} (selected randomly)`);
+			selectedPluginName =
+				pluginName ?? pluginSelect[Math.round(Math.random() * pluginSelect.length)].value;
+			infoToast(
+				`loaded schema for ${selectedPluginName} ${pluginName ? '' : '(randomly selected)'}`
+			);
 			pluginSelected(true);
 		}
 	});
@@ -167,6 +172,9 @@
 	}
 	async function pluginSelected(loadDefaultConfig: boolean) {
 		addField('name', selectedPluginName);
+		let query = new URLSearchParams($page.url.searchParams.toString());
+		query.set('pluginName', selectedPluginName);
+		goto(`?${query.toString()}`);
 		const res = await (await apiService()).pluginConfig(selectedPluginName);
 		if (res.ok && res.data) {
 			let configSchema = res.data.fields.find((i) => Object.entries(i)[0][0] == 'config');
