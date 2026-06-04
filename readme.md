@@ -1,39 +1,89 @@
-# Banana UI
+# BananaUI — Kong Gateway Admin UI
 
-## Live on GitHub Pages ->  [danielrailean.github.io/bananaui](https://danielrailean.github.io/bananaui/)
+> **BananaUI** is a fast, open-source management UI for [Kong API Gateway](https://konghq.com/). It focuses on developer productivity and serves as a modern alternative to Kong Manager.
 
-User interface (management UI) for Kong API gateway, with a focus on developer productivity and a great developer experience, alternative for Kong manager.
+## Live Demo
 
-![UI example.](./docs/resources/ui.png)
+[danielrailean.github.io/bananaui](https://danielrailean.github.io/bananaui/)
+
+![BananaUI screenshot showing entity management interface](./docs/resources/ui.png)
+
+## What is BananaUI?
+
+BananaUI is a web-based dashboard for managing Kong Gateway entities (services, routes, plugins, consumers, upstreams, etc.). It connects to the Kong Admin API and provides full CRUD operations, advanced filtering, and a responsive UI built with SvelteKit.
+
+BananaUI can run as a **static site** (client-side only) or as a **Docker container** with server-side configuration.
 
 ## Features
 
-- Supports CRUD operation for all Kong entities
-- Caching of API requests (useful with thousands of entities)
-- Advanced filtering for entities:
-  - Boolean `'AND'` supported (ex: name == "some" && id == "my-id")
-  - Field length based filtering (ex. for routes entity: paths.len == 2)
-- Local user preferences:
-  - API pagination size (how much is fetched in each API call)
-  - UI pagination size (how much is displayed on a single page)
-  - Visible fields for each entity
-- Handles the Admin API pagination properly and will fetch all the entities
-- Works both dynamically (check docker image) and statically -> all code is on the client side (needs a link to the Kong admin API and whitelisting for CSRF in the API itself)
-- Dark mode (click on the banana icon next to the name)
-- Ease of navigation among linked Kong entities
-- Easy to CREATE/UPDATE entities -> access to the raw JSON body
-- Loads entity schema on CREATE, loads config schema for plugins
-- Copy buttons for all objects and object fields
-- All links have anchor tags, which makes it easy to open in new tabs
-- Supports SSO login with an ID token.
-- Local settings stored in browser's `LocalStorage`, when deploying the docker image, a default config can be provided in the env var, check `ui/Readme.md`
-- Built using `Svelte.kit` so easy to contribute to and extend.
-- Blazingly fast (thanks to Svelte) -> 99/100 lighthouse score
-- All entity fields can be searched from the same search window
+### Entity Management
 
-## Features to be added
+- **Full CRUD** for all Kong entities (services, routes, plugins, consumers, upstreams, targets, certificates, etc.)
+- **Plugin execution order** — visualize plugin priority and execution flow across your Kong configuration
+- **Bulk create** — import an array of entities in one operation
+- **Bulk update** — apply a JSON patch to all visible/filtered entities at once
+- **Bulk delete** — remove all visible entities (safety-gated behind a preference toggle)
+- **Inline enable/disable toggle** — flip entity state directly from the list view
+- **Schema-aware create/edit** — loads entity schemas and plugin config schemas automatically
+- **Syntax-highlighted JSON editor** with Prism.js
+- **Sub-entity navigation** — automatically loads related entities (routes/plugins under services, targets under upstreams)
+- **Data plane clustering info** — view sync status, versions, and config hashes across cluster nodes
 
-- 'middleware' on different events, such as
-  - trim part of the route on copy
-  - append parts to the route on copy
-- more OIDC flows -> auth user with secret in the backend (in case of dynamic deployment)
+### Search & Filtering
+
+- **Unified search** across all entity fields from a single search bar
+- **Advanced filtering** with boolean `AND` (e.g. `name == "foo" && id == "bar"`) and field-length filters (e.g. `paths.len == 2`)
+- **Column sorting** with sort state persisted in URL params
+
+### Export & Copy
+
+- **Copy as JSON or YAML** — export individual entities or entire lists
+- **Copy buttons** on all objects and fields (single-click JSON, double-click YAML)
+
+### Performance
+
+- **Request caching** — handles thousands of entities efficiently
+- **Proper Admin API pagination** — fetches all entities automatically with configurable delay between requests
+- **99/100 Lighthouse score** — built with `SvelteKit` for blazing-fast rendering
+
+### Customization
+
+- **Fully configurable preferences** per user:
+  - API and UI pagination sizes
+  - Visible fields per entity
+  - Plugin order display
+  - Entity enumeration (row numbers)
+  - Custom entity definitions (names, fields, sort order, logos, sub-entities, default values)
+  - Custom HTTP headers for API requests
+- **Dark mode** (toggle via banana icon)
+- **Local settings** stored in `LocalStorage`; Docker deployments accept default config via env var (see [`ui/README.md`](./ui/README.md))
+
+### Authentication & User Info
+
+- **SSO / OIDC login** with ID token support
+- **Profile page** — view decoded JWT payload, username, email, and personal API token with expiration
+- **Notification history** — persistent log of errors, info, and success messages
+
+### Developer Experience
+
+- **Static or dynamic deployment** — works client-side with a Kong Admin API link, or via Docker image
+- **Linked entity navigation** — jump between related Kong objects via anchor tags (easy to open in new tabs)
+- **Tree view** for nested objects with expandable fields and double-click-to-copy
+- **SvelteKit-based** — easy to extend and contribute to
+- **Customizable entity definitions** — add new Kong entities without changing source code
+
+## Deployment
+
+| Method | Description |
+|--------|-------------|
+| **Static (GitHub Pages)** | Client-side only. Point BananaUI at your Kong Admin API URL. Requires CORS whitelisting on the Admin API. [Live demo](https://danielrailean.github.io/bananaui/) |
+| **Docker** | Server-rendered. Configure via environment variables. See [`ui/README.md`](./ui/README.md). |
+
+## Roadmap
+
+- Event middleware (trim/append route parts on copy)
+- Additional OIDC flows (backend secret-based auth for dynamic deployments)
+
+## Keywords
+
+Kong UI, Kong Gateway dashboard, Kong Admin API GUI, Kong manager alternative, BananaUI, open-source Kong management interface, SvelteKit Kong admin panel
