@@ -13,7 +13,6 @@ User interface (management UI) for Kong API gateway, with a focus on developer p
 - Advanced filtering for entities:
   - Boolean `'AND'` supported (ex: name == "some" && id == "my-id")
   - Field length based filtering (ex. for routes entity: paths.len == 2)
-  hover the 'filter' window for more info
 - Local user preferences:
   - API pagination size (how much is fetched in each API call)
   - UI pagination size (how much is displayed on a single page)
