@@ -103,12 +103,13 @@
 	];
 
 	const defaultPref: { [key: string]: any } = {
-		version: 5.5,
+		version: 5.6,
 		loadParentInfo: false,
 		paginationSizeUi: 20,
 		paginationSizeApi: 1000,
 		showPluginOrder: false,
 		useNewSearch: false,
+		useFuzzySearch: false,
 		useEphemeralGetRequestsCache: true,
 		sortSearchedItemsDuringPaginationProcess: false,
 		showDeleteAllButton: false,

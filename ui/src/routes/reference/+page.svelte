@@ -1,14 +1,11 @@
-<script lang="ts">
-	import { base } from '$app/paths';
-</script>
-
 <div class="p-6 max-w-4xl mx-auto dark:text-stone-300 text-stone-800 font-light">
 	<h1 class="text-3xl mb-6 dark:text-zinc-300">Reference</h1>
 
 	<section class="mb-8">
 		<h2 class="text-2xl mb-4 dark:text-zinc-300">Search Syntax</h2>
 		<p class="mb-4">
-			The entity list filter matches against the full JSON representation of each entity (case-insensitive).
+			The entity list filter matches against the full JSON representation of each entity.
+			All text matching is case-insensitive.
 			It supports text matching, negation, logical operators, and array length assertions.
 		</p>
 
@@ -95,5 +92,13 @@
 				<p class="mt-1 text-stone-500">Three groups separated by commas. Entity matches if it satisfies any one group.</p>
 			</div>
 		</div>
+
+		<h3 class="text-xl mb-2 mt-6 dark:text-zinc-400">Fuzzy Search</h3>
+		<p class="mb-4 text-sm">
+			When the <strong>Fuzzy search</strong> toggle is enabled, the filter uses typo-tolerant matching
+			instead of exact substring matching. The DSL operators (<code>&&</code>, <code>,</code>,
+			<code>||</code>, <code>!</code>, <code>.len</code>) still work the same way — only the
+			text matching step becomes fuzzy.
+		</p>
 	</section>
 </div>

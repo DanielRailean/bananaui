@@ -27,6 +27,7 @@
 	import { doSearch } from '$lib/search';
 
 	let loadParentName = preferences?.loadParentInfo;
+	let useFuzzySearch = preferences?.useFuzzySearch;
 	const dispatch = createEventDispatcher();
 
 	export let dataRaw: Writable<ITooggleableEntityMaybe[]>;
@@ -291,7 +292,7 @@
 				return i as FilteredEntity;
 			});
 		} else {
-			filteredData = doSearch(searchText, $dataRaw);
+			filteredData = doSearch(searchText, $dataRaw, get(useFuzzySearch));
 		}
 		resetPagination();
 		calculatePagination();
@@ -352,11 +353,7 @@
 		bulkUpdateOpened = false;
 		const updateBody = JSON.parse(json);
 		for (const element of filteredData) {
-			console.log(updateBody);
-			console.log(element);
-
 			const res = await (await apiService()).updateRecord(type, element.id, updateBody);
-			console.log(res);
 			if (!res.ok) {
 				errorToast(res.err ?? `failed to update ${element.id}`);
 			} else {
@@ -413,10 +410,8 @@
 			disabled={!($dataRaw && $dataRaw.length > 0)}
 			bind:value={searchText}
 			on:emptied={() => {
-				console.log('is empty');
 			}}
 			on:input={() => {
-				console.log(searchText);
 				updateSearchParamWithDebounce({ search: searchText });
 				debouncedSearch();
 			}}
@@ -424,6 +419,19 @@
 			placeholder="filter (hover for more info)"
 		/>
 	</div>
+	{#if searchText != '' && useFuzzySearch}
+		<div class="px-3 pb-2 dark:bg-stone-800">
+			<Toggle
+				isChecked={useFuzzySearch}
+				title={'Fuzzy search (typo-tolerant) instead of exact DSL matching'}
+				on:change={async () => {
+					useFuzzySearch.set(!get(useFuzzySearch));
+					search();
+				}}
+				labelRight="Fuzzy"
+			/>
+		</div>
+	{/if}
 	{#if filteredData.length > 0}
 		<div class="flex flex-row w-full h-12 pb-2 justify-between items-center dark:bg-stone-800">
 			<div class="flex flex-row items-center space-x-2 ml-[1px] pl-3 dark:dark:bg-stone-800">
@@ -642,8 +650,8 @@
 				</div>
 				<div class=" dark:bg-stone-800 py-3">
 					<button
-						class="flex flex-row p-1 px-3 ml-3 shadow 
-						shadow-stone-400 dark:shadow-stone-900 
+						class="flex flex-row p-1 px-3 ml-3 shadow
+						shadow-stone-400 dark:shadow-stone-900
 						h-9 items-center rounded
 						text-white
 						dark:bg-emerald-600 bg-emerald-400
@@ -774,12 +782,13 @@
 													<div on:click|stopPropagation role="button" tabindex="0">
 														<Toggle
 															isChecked={writable(item[field])}
-															title={`click to ${item[field] ? 'disable' : 'enable'} ${item.name ?? item.id}`}
+															title={`click to ${item[field] ? 'disable' : 'enable'} ${
+																item.name ?? item.id
+															}`}
 															on:change={async () => {
 																await disable(item.id, !item.enabled);
 															}}
-															>
-														</Toggle>
+														></Toggle>
 													</div>
 												{:else}
 													{item[field]}
@@ -812,9 +821,7 @@
 														}}
 													>
 														<div>
-															<p
-																class="dark:text-blue-500 text-blue-700 px-1 truncate"
-															>
+															<p class="dark:text-blue-500 text-blue-700 px-1 truncate">
 																{#if $loadParentName}
 																	{#await getInfo(field, item[field].id, item.name ?? item.id) then value}
 																		{value}
@@ -831,9 +838,13 @@
 											{:else if Object.is(item[field], null)}
 												-
 											{:else if Array.isArray(item[field])}
-												<ArrayDisplay {item} {field} on:copy={(e) => {
-													copy(e.detail.value);
-												}}/>
+												<ArrayDisplay
+													{item}
+													{field}
+													on:copy={(e) => {
+														copy(e.detail.value);
+													}}
+												/>
 											{:else}
 												{JSON.stringify(item[field], undefined, 2)}
 											{/if}
