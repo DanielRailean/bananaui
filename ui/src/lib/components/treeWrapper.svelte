@@ -3,6 +3,7 @@
 	import { dateFields } from '$lib/config';
 	import { getParentInfo, writeToClipboard } from '$lib/util';
 	import JSONTree from 'svelte-json-tree';
+	import { afterUpdate } from 'svelte';
 	import { DateTime } from 'luxon';
 	import { base } from '$app/paths';
 	import { get, writable } from 'svelte/store';
@@ -37,6 +38,15 @@
 	export let keyTitle = (key: string) => {
 		return `copy ${key}`;
 	};
+
+	let yamlContainer: HTMLElement;
+	afterUpdate(() => {
+		if (yamlContainer) {
+			yamlContainer.querySelectorAll('code.language-json').forEach((el) => {
+				(globalThis as any).Prism.highlightElement(el);
+			});
+		}
+	});
 </script>
 
 <div class="tree">
@@ -120,8 +130,8 @@
 										}}
 									/>
 								{:else if typeof data[key] == 'object' && data[key] != null && expandFields.includes(key)}
-									<div class="cursor-pointer">
-										<JSONTree value={data[key]} defaultExpandedLevel={100}></JSONTree>
+									<div class="w-full" bind:this={yamlContainer}>
+										<pre class="language-json m-0 p-4 dark:bg-[#1E2021] bg-white rounded-none" style="font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6;"><code class="language-json dark:bg-[#1E2021] bg-white">{JSON.stringify(data[key], null, 2)}</code></pre>
 									</div>
 								{:else if typeof data[key] == 'object' && data[key] != null}
 									<div class="cursor-pointer">

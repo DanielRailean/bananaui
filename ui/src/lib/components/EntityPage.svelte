@@ -2,7 +2,7 @@
 	import ArrayWrap from './ArrayWrap.svelte';
 	export let data: any = {};
 	import { Button } from 'flowbite-svelte';
-	import { onMount, tick } from 'svelte';
+	import { afterUpdate, onMount, tick } from 'svelte';
 	import TreeWrapper from './treeWrapper.svelte';
 	import { apiService, clearCache } from '$lib/requests';
 	import { goto } from '$app/navigation';
@@ -270,6 +270,15 @@
 	}
 	let showPluginOrder = preferences.showPluginOrder;
 
+	let pluginConfigContainer: HTMLElement;
+	afterUpdate(() => {
+		if (pluginConfigContainer) {
+			pluginConfigContainer.querySelectorAll('code.language-json').forEach((el) => {
+				(globalThis as any).Prism.highlightElement(el);
+			});
+		}
+	});
+
 	function setTextareaHeight() {
 		editorWindow.style.height = editorWindow.scrollHeight + 3 + 'px';
 	}
@@ -427,7 +436,7 @@
 				show plugin order</Button
 			>
 			{#if relevantPlugins && $showPluginOrder}
-				<div class="flex flex-wrap items-center p-4">
+				<div bind:this={pluginConfigContainer} class="flex flex-wrap items-center p-4">
 					{#each relevantPlugins as plugin}
 						<div class="border border-stone-600 rounded-lg dark:border-stone-600 my-2">
 							<div
@@ -460,8 +469,7 @@
 								/>
 							</div>
 							{#if openedPlugins[plugin.id]}
-								<TreeWrapper expandFields={[]} data={plugin.config}></TreeWrapper>
-								<!-- content here -->
+								<pre class="language-json m-0 p-4 w-full dark:bg-[#1E2021] bg-white rounded-none" style="font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6;"><code class="language-json dark:bg-[#1E2021] bg-white">{JSON.stringify(plugin.config, null, 2)}</code></pre>
 							{/if}
 						</div>
 						{#if relevantPlugins.indexOf(plugin) + 1 != relevantPlugins.length}
