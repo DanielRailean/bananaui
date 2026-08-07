@@ -24,9 +24,9 @@
 	import { dump } from 'js-yaml';
 	import { page } from '$app/stores';
 	import ArrayDisplay from './ArrayDisplay.svelte';
+	import { doSearch } from '$lib/search';
 
 	let loadParentName = preferences?.loadParentInfo;
-	let useNewSearch = preferences?.useNewSearch;
 	const dispatch = createEventDispatcher();
 
 	export let dataRaw: Writable<ITooggleableEntityMaybe[]>;
@@ -281,136 +281,8 @@
 	// []
 	// }
 
-	// ex: (hello && test) || (no || test && no) && yes.len != 2
-	// becomes [["hello", "test"], [["no"], ["test", "no"], [{"yes": -2}]]]
-	// loop over initial array, any object satisfying 1st level arrays are allowed
-	// if array of array encountered, any object must satisfy all conditions in the subarray
-	function itemPassesLength(obj: any, len: { [key: string]: number }): boolean {
-		if (!obj) {
-			return false;
-		}
-		for (const [key, val] of Object.entries(len)) {
-			if (!obj[key] || !Array.isArray(obj[key])) {
-				return false;
-			}
-			var arrayValue = obj[key];
-			if (val < 0) {
-				if (arrayValue.length === val * -1) {
-					return false;
-				}
-			} else {
-				if (arrayValue.length != val) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	// const objWithArr = {"hello": ["2", 2]}
-	// console.log(itemPassesLength(objWithArr, {"hello": -2}))
-	// console.log(itemPassesLength(objWithArr, {"hello": -3}))
-	// console.log(itemPassesLength(objWithArr, {"hello": 2}))
-	// console.log(itemPassesLength(objWithArr, {"hell": 2}))
-
-	function itemPassesOrValidations(obj: any, validation: any[]): boolean {
-		const json = JSON.stringify(obj).toLowerCase();
-		for (const condition of validation) {
-			if (typeof condition === 'string') {
-				const conditionStr = `${condition}`.toLowerCase();
-				if (json.includes(conditionStr)) {
-					return true;
-				}
-				continue;
-			}
-			if (Object.keys(condition).length > 0 && !Array.isArray(condition)) {
-				if (itemPassesLength(obj, condition)) {
-					return true;
-				}
-				continue;
-			}
-			if (Array.isArray(condition)) {
-				let res = itemPassesOrValidations(obj, condition);
-				if (res) {
-					return true;
-				}
-				continue;
-			}
-		}
-		return false;
-	}
-
-	// const objWithArr2 = { hello: ['2', 2], yes: 'no', nr: 3 };
-	// console.log(itemPassesValidation(objWithArr2, [{ hello: 1 }, {hello: -3}, ['noa', '31'], "helloo"]));
-
-	const lenNotEqOp = '.len != ';
-	const lenEqOp = '.len == ';
-	function getLogicalGroups(input: string) {
-		if (input.trim().length == 0) {
-			return [];
-		}
-		const inputCommaSplit = input.split(',');
-		let groups = [];
-		for (let anyConditions of inputCommaSplit) {
-			// console.log(anyConditions.trim());
-			let andGroups = [];
-			const booleanAndSearch = anyConditions.split(/\s*&&\s*/);
-			for (const andCondition of booleanAndSearch) {
-				let orGroups = [];
-				const boolOrSearch = andCondition.split(/\s*\|\|\s*/);
-				for (const orCondition of boolOrSearch) {
-					if (orCondition.includes(lenNotEqOp) || orCondition.includes(lenEqOp)) {
-						const lenNotEq: any = {};
-						let split = orCondition.split(lenNotEqOp);
-						let sign = -1;
-						if (split.length == 1) {
-							split = orCondition.split(lenEqOp);
-							sign = 1;
-						}
-						lenNotEq[split[0].trim()] = +split[1].trim() * sign;
-						orGroups.push(lenNotEq);
-						continue;
-					}
-					orGroups.push(orCondition.trim());
-				}
-				andGroups.push(orGroups);
-			}
-			groups.push(andGroups);
-		}
-		return groups;
-	}
-	function doSearch(input: string, arr: any[]) {
-		if (!$dataRaw) {
-			return;
-		}
-		const orAndOr = getLogicalGroups(input);
-		console.log(JSON.stringify(orAndOr));
-		if (orAndOr.length == 0) {
-			return arr;
-		}
-		let result: ITooggleableEntityMaybe[] = [];
-		for (const orGroup of orAndOr) {
-			let orPassed: ITooggleableEntityMaybe[] | undefined = undefined;
-			for (const orAndGroup of orGroup) {
-				let temp = arr.filter((item: any) => itemPassesOrValidations(item, orAndGroup));
-				// console.log(JSON.stringify(orGroup, undefined, 2));
-				if (!orPassed) {
-					orPassed = temp;
-				}
-				orPassed = orPassed!.filter((item) => temp.find((i) => i.id === item.id) != undefined);
-			}
-			result = [...result, ...(orPassed ?? [])];
-		}
-		return result.filter(onlyUnique);
-	}
-	function onlyUnique(value: any, index: number, array: any[]) {
-		return array.indexOf(value) === index;
-	}
-
-	// getLogicalGroups('hello && test, no || test.len == 2 && no, yes.len != 2');
 	function search() {
 		if (searchText.length == 0) {
-			// we don't always sort on update event,
-			// because it could be searched, so we must sort when we know we're no longer searching
 			sort(get(dataRaw), `search ${type}`);
 			filteredData = $dataRaw.map((i: any): FilteredEntity => {
 				if (i.enabled != undefined) {
@@ -418,50 +290,8 @@
 				}
 				return i as FilteredEntity;
 			});
-		}
-		if (get(useNewSearch)) {
-			filteredData = doSearch(searchText, $dataRaw) ?? [];
 		} else {
-			const booleanAndSearch = searchText.split(/\s*&&\s*/);
-			filteredData = $dataRaw.filter((item: any) => {
-				for (let condition of booleanAndSearch) {
-					const len = condition.split('.len == ');
-					if (len && len.length > 1 && Number.isInteger(+len[1]) && Array.isArray(item[len[0]])) {
-						const passed = item[len[0]].length === +len[1];
-						if (!passed) return false;
-						continue;
-					}
-
-					const not_len = condition.split('.len != ');
-					if (
-						not_len &&
-						not_len.length > 1 &&
-						Number.isInteger(+not_len[1]) &&
-						Array.isArray(item[not_len[0]])
-					) {
-						const passed = item[not_len[0]].length != +not_len[1];
-						if (!passed) return false;
-						continue;
-					}
-					condition = condition.trim();
-					const isNot = condition.startsWith('!');
-					let conditionPassed = false;
-					if (isNot) {
-						const truthCondition = condition.substring(1).trim();
-						if (truthCondition.length > 1) {
-							conditionPassed = !JSON.stringify(item)
-								.toLowerCase()
-								.includes(truthCondition.toLowerCase());
-						} else {
-							conditionPassed = true;
-						}
-					} else {
-						conditionPassed = JSON.stringify(item).toLowerCase().includes(condition.toLowerCase());
-					}
-					if (!conditionPassed) return false;
-				}
-				return true;
-			});
+			filteredData = doSearch(searchText, $dataRaw);
 		}
 		resetPagination();
 		calculatePagination();

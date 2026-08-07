@@ -32,6 +32,10 @@
 			name: 'preferences',
 			appPath: '/preferences'
 		},
+		{
+			name: 'reference',
+			appPath: '/reference'
+		},
 	];
 	import { onMount } from 'svelte';
 	import { capitalizeFirstLetter } from '$lib/util';
