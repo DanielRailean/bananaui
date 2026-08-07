@@ -297,6 +297,8 @@
 		calculatePagination();
 	}
 
+	let debouncedSearch = debouncedCall(search, 200);
+
 	const idToInfo: { [key: string]: string } = {};
 	async function getInfo(type: string, id: string, selfIdentifier: string): Promise<string> {
 		if (idToInfo[id] == '-1') {
@@ -371,6 +373,7 @@
 		updateSearchParamWithDebounce.cancel();
 		debouncedCopy.cancel();
 		debouncedCopyAllConfirm.cancel();
+		debouncedSearch.cancel();
 	});
 
 	function setTextareaHeight() {
@@ -414,7 +417,7 @@
 			on:input={() => {
 				console.log(searchText);
 				updateSearchParamWithDebounce({ search: searchText });
-				search();
+				debouncedSearch();
 			}}
 			title="Filter entities using search DSL. See Reference page for full syntax (&&, ||, !, .len ==, .len !=, comma groups)."
 			placeholder="filter (hover for more info)"
