@@ -16,7 +16,9 @@
 			class="text-xs cursor-pointer select-none p-1 border dark:border-stone-600 m-1 hover:dark:dark:bg-stone-800 hover:bg-slate-50 {field ==
 			'methods'
 				? `http-method method-${item[field][index].toLowerCase()}`
-				: ''}"
+				: field == 'protocols'
+					? `http-method protocol-${item[field][index].toLowerCase()}`
+					: ''}"
 			title="double-click to copy '{item[field][index]}'"
 			on:dblclick|stopPropagation|preventDefault={() => {
 				eventdispatch('copy', { value: item[field][index] });

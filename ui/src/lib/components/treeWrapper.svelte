@@ -131,7 +131,7 @@
 									/>
 								{:else if typeof data[key] == 'object' && data[key] != null && expandFields.includes(key)}
 									<div class="w-full" bind:this={yamlContainer}>
-										<pre class="language-json m-0 p-4 dark:bg-[#1E2021] bg-white rounded-none" style="font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6;"><code class="language-json dark:bg-[#1E2021] bg-white">{JSON.stringify(data[key], null, 2)}</code></pre>
+										<pre class="language-json m-0 p-4 dark:bg-[#1E2021] bg-white rounded-none"><code class="language-json dark:bg-[#1E2021] bg-white">{JSON.stringify(data[key], null, 2)}</code></pre>
 									</div>
 								{:else if typeof data[key] == 'object' && data[key] != null}
 									<div class="cursor-pointer">
@@ -185,5 +185,12 @@
 
 		--json-tree-font-size: 15px;
 		--json-tree-font-family: 'JetBrains Mono', monospace;
+	}
+
+	.tree pre[class*="language-"],
+	.tree code[class*="language-"] {
+		font-family: 'JetBrains Mono', monospace !important;
+		font-size: 14px;
+		line-height: 1.6;
 	}
 </style>
