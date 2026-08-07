@@ -416,7 +416,7 @@
 				updateSearchParamWithDebounce({ search: searchText });
 				search();
 			}}
-			title="Filters based on the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator. Logical 'NOT' using '!' &#013;Ex: 'host && !/path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
+			title="Filter entities using search DSL. See Reference page for full syntax (&&, ||, !, .len ==, .len !=, comma groups)."
 			placeholder="filter (hover for more info)"
 		/>
 	</div>

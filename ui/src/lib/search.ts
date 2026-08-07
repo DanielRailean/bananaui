@@ -133,7 +133,7 @@ export function doSearch<T extends { id: string }>(input: string, arr: T[]): T[]
 	return result;
 }
 
-// --- tests (run with: npx tsx src/lib/search.ts) ---
+// --- tests (run with: npx esno src/lib/search.ts) ---
 if (typeof process !== 'undefined' && process.argv[1]?.endsWith('search.ts')) {
 	let passed = 0;
 	let failed = 0;
@@ -166,14 +166,14 @@ if (typeof process !== 'undefined' && process.argv[1]?.endsWith('search.ts')) {
 	// OR via comma
 	assert('comma OR', doSearch('internal, web', items).map(i => i.id), ['4', '3']);
 
-	// OR via ||
-	assert('|| OR', doSearch('internal || web-prod', items).map(i => i.id), ['1', '2', '3', '4']);
+	// || is OR within an AND block — items must match at least one term in that block
+	assert('|| OR', doSearch('internal || web-prod', items).map(i => i.id), ['3', '4']);
 
 	// .len ==
 	assert('len ==', doSearch('tags.len == 1', items).map(i => i.id), ['2']);
 
 	// .len !=
-	assert('len !=', doSearch('tags.len != 0', items).map(i => i.id), ['1', '2', '4']);
+	assert('len !=', doSearch('tags.len != 2', items).map(i => i.id), ['2', '3', '4']);
 
 	// combined: comma group + && + .len
 	assert('combined', doSearch('prod && tags.len == 2, internal', items).map(i => i.id), ['1', '4']);
@@ -188,6 +188,37 @@ if (typeof process !== 'undefined' && process.argv[1]?.endsWith('search.ts')) {
 	assert('parse empty', getLogicalGroups(''), []);
 	assert('parse simple', getLogicalGroups('hello').length, 1);
 
+	// --- reference page examples ---
+	const refItems = [
+		{ id: '1', name: 'host-prod', tags: ['a', 'b'], host: 'example.com' },
+		{ id: '2', name: 'host-deprecated', tags: ['old'], host: 'legacy.com', deprecated: true },
+		{ id: '3', name: 'api-staging', tags: ['a'], host: 'stage.com' },
+		{ id: '4', name: 'api-prod', tags: ['a', 'b', 'c'], host: 'prod.com' },
+	];
+
+	// ref: host && !deprecated
+	assert('ref: AND+NOT', doSearch('host && !deprecated', refItems).map(i => i.id), ['1', '3', '4']);
+
+	// ref: host && !deprecated && tags.len == 2
+	assert('ref: AND+NOT+len', doSearch('host && !deprecated && tags.len == 2', refItems).map(i => i.id), ['1']);
+
+	// ref: prod || staging && tags.len == 1
+	assert('ref: ||+&&+len', doSearch('prod || staging && tags.len == 1', refItems).map(i => i.id), ['3']);
+
+	// ref: multi-group complex query
+	// "hello && test, no || test.len == 2 && no, yes.len != 2" — use adapted data
+	const refItems2 = [
+		{ id: 'a', name: 'hello-test', tags: ['x'], yes: [1, 2] },
+		{ id: 'b', name: 'no-thing', tags: ['x', 'y'], yes: [1] },
+		{ id: 'c', name: 'yes-thing', tags: [], yes: [1, 2, 3] },
+	];
+	// group1: hello && test → a
+	// group2: (no || tags.len == 2) && no → b matches "no" in OR, and "no" in AND
+	// group3: yes.len != 2 → c (len 3 != 2), b (len 1 != 2)
+	assert('ref: multi-group',
+		doSearch('hello && test, no || tags.len == 2 && no, yes.len != 2', refItems2).map(i => i.id),
+		['a', 'b', 'c']);
+
 	console.log(`\n${passed} passed, ${failed} failed`);
-	process.exit(failed > 0 ? 1 : 0);
+	if (failed > 0) throw new Error(`${failed} test(s) failed`);
 }
