@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Link from './Link.svelte';
-	import { capitalizeFirstLetter, debouncedCall, delay, writeToClipboard } from '$lib/util';
+	import { capitalizeFirstLetter, debouncedCall, delay, getParentInfo, parentInfoCache, writeToClipboard } from '$lib/util';
 	import { goto } from '$app/navigation';
 	import { onDestroy, onMount } from 'svelte';
 	import { DateTime } from 'luxon';
@@ -300,30 +300,7 @@
 
 	let debouncedSearch = debouncedCall(search, 200);
 
-	const idToInfo: { [key: string]: string } = {};
-	async function getInfo(type: string, id: string, selfIdentifier: string): Promise<string> {
-		if (idToInfo[id] == '-1') {
-			// the idea is to make a single call per id.
-			await delay(200);
-			return getInfo(type, id, selfIdentifier);
-		}
-		if (idToInfo[id]) {
-			return idToInfo[id];
-		} else {
-			idToInfo[id] = '-1';
-		}
-		const res = await (await apiService()).findRecord<any>(type + 's', id);
-		if (!res.ok) {
-			errorToast(`Failed to load ${type} for '${selfIdentifier}'. Res. status code: ${res.code}!`);
-			throw new Error('failed to load');
-		}
-		if (res.data.paths && res.data.paths.length > 0) {
-			idToInfo[id] = res.data.paths[0];
-			return idToInfo[id];
-		}
-		idToInfo[id] = res.data.name ?? res.data.tags ?? res.data.id;
-		return idToInfo[id];
-	}
+
 
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
@@ -828,7 +805,7 @@
 												<!-- svelte-ignore a11y-no-static-element-interactions -->
 												<div
 													class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded"
-													title="go to {idToInfo[item[field].id] ?? field} ({item[field].id})"
+													title="go to {parentInfoCache[item[field].id] ?? field} ({item[field].id})"
 												>
 													<a
 														class="w-full"
@@ -848,7 +825,7 @@
 														<div>
 															<p class="dark:text-blue-500 text-blue-700 px-1 truncate">
 																{#if $loadParentName}
-																	{#await getInfo(field, item[field].id, item.name ?? item.id) then value}
+																	{#await getParentInfo(field, item[field].id) then value}
 																		{value}
 																	{:catch}
 																		{item[field].id}

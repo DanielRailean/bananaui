@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { dateFields } from '$lib/config';
-	import { writeToClipboard } from '$lib/util';
+	import { getParentInfo, writeToClipboard } from '$lib/util';
 	import JSONTree from 'svelte-json-tree';
 	import { DateTime } from 'luxon';
 	import { base } from '$app/paths';
@@ -22,6 +22,8 @@
 
 	const dispatch = createEventDispatcher();
 
+	let loadParentName = preferences?.loadParentInfo;
+
 	async function disable(id: string, current: boolean) {
 		const res = await (await apiService()).updateRecord(type, id, { enabled: !current });
 		if (res.ok) {
@@ -29,6 +31,7 @@
 			confirmToast(`item ${current ? 'disabled' : 'enabled'}`);
 		}
 	}
+
 
 	export let keyClickHandler: ((key: string) => void) | undefined = undefined;
 	export let keyTitle = (key: string) => {
@@ -90,7 +93,17 @@
 											on:click|stopPropagation|preventDefault={() =>
 												goto(`${base}/entity?type=${key}s&id=${data[key].id}`)}
 										>
-											<p class="dark:text-blue-500 text-blue-700">{data[key].id}</p>
+											<p class="dark:text-blue-500 text-blue-700">
+												{#if $loadParentName}
+													{#await getParentInfo(key, data[key].id) then value}
+														{value}
+													{:catch}
+														{data[key].id}
+													{/await}
+												{:else}
+													{data[key].id}
+												{/if}
+											</p>
 										</div>
 									</a>
 									<button
