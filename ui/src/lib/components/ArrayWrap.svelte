@@ -408,6 +408,7 @@
 	<div class="w-full p-3 py-2 dark:bg-stone-800">
 		<input
 			class="bg-transparent border-none outline-none focus:[box-shadow:none] ml-[-8px] w-full dark:bg-stone-800 disabled:cursor-not-allowed"
+			style="font-variant-ligatures: none;"
 			type="text"
 			disabled={!($dataRaw && $dataRaw.length > 0)}
 			bind:value={searchText}
