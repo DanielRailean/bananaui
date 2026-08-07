@@ -420,7 +420,7 @@
 		/>
 	</div>
 	{#if searchText != '' && useFuzzySearch}
-		<div class="px-3 pb-2 dark:bg-stone-800">
+		<div class="px-4 pb-4 dark:bg-stone-800">
 			<Toggle
 				isChecked={useFuzzySearch}
 				title={'Fuzzy search (typo-tolerant) instead of exact DSL matching'}
@@ -428,7 +428,7 @@
 					useFuzzySearch.set(!get(useFuzzySearch));
 					search();
 				}}
-				labelRight="Fuzzy"
+				labelRight="Fuzzy text match"
 			/>
 		</div>
 	{/if}

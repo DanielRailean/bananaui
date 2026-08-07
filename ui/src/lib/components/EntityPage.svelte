@@ -2,7 +2,7 @@
 	import ArrayWrap from './ArrayWrap.svelte';
 	export let data: any = {};
 	import { Button } from 'flowbite-svelte';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import TreeWrapper from './treeWrapper.svelte';
 	import { apiService, clearCache } from '$lib/requests';
 	import { goto } from '$app/navigation';
@@ -50,6 +50,8 @@
 	}
 	let subEntities: IEntities[];
 	let relevantPlugins: IKongPlugin[] = [];
+	let entitySchema: any | undefined;
+	let pluginSchema: any | undefined;
 
 	let prevSearch = '';
 	$: if ($page.url.pathname.endsWith('/entity')) {
@@ -68,7 +70,6 @@
 		isMounted = true;
 		info = await getPluginPriorityMap();
 		await load();
-		triggerHighlight('on mount');
 	});
 
 	function flipIsEdited() {
@@ -97,7 +98,6 @@
 		entityType = searchParams.get('type') ?? 'none';
 		id = searchParams.get('id') ?? 'none';
 		let edited = searchParams.get('isEdited') ?? '';
-		isEdited = edited == 'true';
 		pathPrefix = searchParams.get('prefix') ?? '';
 		if (entityType == 'upstreams') {
 			subEntityPrefix = `/upstreams/${id}`;
@@ -136,24 +136,58 @@
 				subEntities = subEntities;
 			}
 		}
-		// triggerHighlight();
-
-		const plugins = await getPlugins(`/${entityType}/${id}`);
-		relevantPlugins = plugins;
-		if (data.service) {
-			const plugins = await getPlugins(`/services/${data.service.id}`);
-			relevantPlugins = [...plugins, ...relevantPlugins];
+		// load entity schema
+		entitySchema = undefined;
+		pluginSchema = undefined;
+		const schemaRes = await (await apiService()).schema(entityType);
+		if (schemaRes.ok && schemaRes.data) {
+			entitySchema = {};
+			for (const field of schemaRes.data.fields) {
+				const entries = Object.entries(field)[0];
+				entitySchema[entries[0]] = entries[1];
+			}
+		}
+		// load plugin schema if entity is a plugin
+		if (entityType === 'plugins' && data?.name) {
+			const pluginRes = await (await apiService()).pluginConfig(data.name);
+			if (pluginRes.ok && pluginRes.data) {
+				let configSchema = pluginRes.data.fields.find((i) => Object.entries(i)[0][0] == 'config');
+				if (configSchema) {
+					pluginSchema = {};
+					for (const param of configSchema.config.fields) {
+						const entries = Object.entries(param)[0];
+						pluginSchema[entries[0]] = entries[1];
+					}
+				}
+			}
 		}
 
-		relevantPlugins.sort((b, a) => {
-			return info[a.name] - info[b.name];
-		});
+		if (entityType !== 'plugins') {
+			const plugins = await getPlugins(`/${entityType}/${id}`);
+			relevantPlugins = plugins;
+			if (data.service) {
+				const plugins = await getPlugins(`/services/${data.service.id}`);
+				relevantPlugins = [...plugins, ...relevantPlugins];
+			}
+
+			relevantPlugins.sort((b, a) => {
+				return info[a.name] - info[b.name];
+			});
 		relevantPlugins = relevantPlugins.map((plugin) => {
 			return {
 				...plugin,
 				priority: info[plugin.name]
 			};
 		});
+		}
+
+		// trigger highlight after DOM settles
+		if (edited == 'true') {
+			setTimeout(() => {
+				isEdited = edited == 'true';
+				triggerHighlight('deferred edit on load');
+			}, 10);
+		}
 	}
 
 	let openedPlugins: any = {};
@@ -215,7 +249,7 @@
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
 
-	const max = 5;
+	const max = 10;
 	async function triggerHighlight(caller = '', selfCalled = 0) {
 		if (selfCalled > max) {
 			errorToast('highlight not triggered!');
@@ -225,8 +259,8 @@
 		json = json.replace(/\s\n$/g, '\n ');
 
 		if (!editorSyntax) {
-			// needed as sometimes the function is called before the editor is added to the DOM
-			await delay(20);
+			await tick();
+			await delay(50);
 			await triggerHighlight(caller, selfCalled + 1);
 			return;
 		}
@@ -351,6 +385,26 @@
 				}}
 			></textarea>
 		</div>
+		{#if isEdited && pluginSchema}
+			<h2 class="text-xl m-4">'config' fields:</h2>
+			<TreeWrapper
+				data={pluginSchema}
+				expandLevel={0}
+				allowCopy={false}
+				allowKeyCopy={true}
+			/>
+		{/if}
+		{#if isEdited && entitySchema}
+			<h2 class="text-xl mx-4 mb-4 mt-4">
+				{entityType.substring(0, entityType.length - 1)} schema
+			</h2>
+			<TreeWrapper
+				data={entitySchema}
+				expandLevel={0}
+				allowCopy={false}
+				allowKeyCopy={false}
+			/>
+		{/if}
 		<div class={isEdited ? 'hidden' : ''}>
 			<TreeWrapper
 				{data}
