@@ -40,7 +40,7 @@
 		if (!isMounted) {
 			return;
 		}
-		const params = new URLSearchParams(window.location.search);
+		const params = get(page).url.searchParams;
 		loadStart = DateTime.now();
 		entity = params.get('type') ?? 'none';
 		pathPrefix = params.get('prefix') ?? '';

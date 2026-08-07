@@ -51,7 +51,14 @@
 	let subEntities: IEntities[];
 	let relevantPlugins: IKongPlugin[] = [];
 
-	$: $page, load();
+	let prevSearch = '';
+	$: if ($page.url.pathname.endsWith('/entity')) {
+		const search = $page.url.search;
+		if (search !== prevSearch) {
+			prevSearch = search;
+			load();
+		}
+	}
 
 	let isMounted = false;
 
@@ -86,7 +93,7 @@
 		}
 		data = undefined;
 		isEdited = false;
-		const searchParams = new URLSearchParams(window.location.search);
+		const searchParams = get(page).url.searchParams;
 		entityType = searchParams.get('type') ?? 'none';
 		id = searchParams.get('id') ?? 'none';
 		let edited = searchParams.get('isEdited') ?? '';
