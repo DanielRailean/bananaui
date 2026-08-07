@@ -22,6 +22,10 @@
 			name: 'notifications',
 			appPath: '/notifications'
 		},
+		{
+			name: 'reference',
+			appPath: '/reference'
+		},
 	];
 	let itemsEnd: HeaderItem[] = [
 		{
@@ -31,10 +35,6 @@
 		{
 			name: 'preferences',
 			appPath: '/preferences'
-		},
-		{
-			name: 'reference',
-			appPath: '/reference'
 		},
 	];
 	import { onMount } from 'svelte';

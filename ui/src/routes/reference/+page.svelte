@@ -1,104 +1,91 @@
 <div class="p-6 max-w-4xl mx-auto dark:text-stone-300 text-stone-800 font-light">
-	<h1 class="text-3xl mb-6 dark:text-zinc-300">Reference</h1>
+	<h1 class="text-3xl mb-8 dark:text-zinc-300">Reference</h1>
 
 	<section class="mb-8">
-		<h2 class="text-2xl mb-4 dark:text-zinc-300">Search Syntax</h2>
-		<p class="mb-4">
-			The entity list filter matches against the full JSON representation of each entity.
-			All text matching is case-insensitive.
-			It supports text matching, negation, logical operators, and array length assertions.
+		<h2 class="text-2xl mb-3 dark:text-zinc-300">Search Syntax</h2>
+		<p class="mb-6 text-sm leading-relaxed">
+			The filter matches against the full JSON of each entity. All text matching is case-insensitive.
 		</p>
 
-		<h3 class="text-xl mb-2 mt-6 dark:text-zinc-400">Operators</h3>
+		<div class="mb-8 space-y-3">
+			<h3 class="text-lg mb-1 dark:text-zinc-400">Operators</h3>
+			<div class="grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-2 text-sm">
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">,</code>
+				<span class="text-stone-500 dark:text-stone-400">OR (group)</span>
+				<span>Separates independent groups — matches if ANY group passes</span>
 
-		<table class="w-full mb-4 text-sm border-collapse">
-			<thead class="dark:bg-stone-800 bg-gray-200">
-				<tr>
-					<th class="p-2 text-left">Operator</th>
-					<th class="p-2 text-left">Syntax</th>
-					<th class="p-2 text-left">Description</th>
-					<th class="p-2 text-left">Example</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr class="border-t dark:border-stone-700">
-					<td class="p-2">OR (group level)</td>
-					<td class="p-2"><code>,</code> (comma)</td>
-					<td class="p-2">Separates independent groups; entity matches if it passes ANY group</td>
-					<td class="p-2"><code>prod, staging</code></td>
-				</tr>
-				<tr class="border-t dark:border-stone-700">
-					<td class="p-2">AND</td>
-					<td class="p-2"><code>&&</code></td>
-					<td class="p-2">Within a group, all AND conditions must pass</td>
-					<td class="p-2"><code>host && /api</code></td>
-				</tr>
-				<tr class="border-t dark:border-stone-700">
-					<td class="p-2">OR (condition level)</td>
-					<td class="p-2"><code>||</code></td>
-					<td class="p-2">Within an AND block, any OR condition can match</td>
-					<td class="p-2"><code>prod || staging</code></td>
-				</tr>
-				<tr class="border-t dark:border-stone-700">
-					<td class="p-2">NOT</td>
-					<td class="p-2"><code>!</code></td>
-					<td class="p-2">Excludes entities containing the term</td>
-					<td class="p-2"><code>!deprecated</code></td>
-				</tr>
-				<tr class="border-t dark:border-stone-700">
-					<td class="p-2">Length equals</td>
-					<td class="p-2"><code>.len == N</code></td>
-					<td class="p-2">Array field has exactly N elements</td>
-					<td class="p-2"><code>tags.len == 2</code></td>
-				</tr>
-				<tr class="border-t dark:border-stone-700">
-					<td class="p-2">Length not equals</td>
-					<td class="p-2"><code>.len != N</code></td>
-					<td class="p-2">Array field does not have N elements</td>
-					<td class="p-2"><code>tags.len != 0</code></td>
-				</tr>
-			</tbody>
-		</table>
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">&&</code>
+				<span class="text-stone-500 dark:text-stone-400">AND</span>
+				<span>All conditions in a group must pass</span>
 
-		<h3 class="text-xl mb-2 mt-6 dark:text-zinc-400">Evaluation Order</h3>
-		<p class="mb-4 text-sm">
-			<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded">groupA, groupB</code> →
-			each group evaluated independently (OR). Within a group:
-			<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded">condA && condB</code> →
-			both must pass (AND). Within an AND condition:
-			<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded">x || y</code> →
-			any match satisfies (OR).
-		</p>
-		<p class="mb-4 text-sm text-stone-500">
-			Precedence (highest to lowest): <code>||</code> → <code>&&</code> → <code>,</code>
-		</p>
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">||</code>
+				<span class="text-stone-500 dark:text-stone-400">OR (condition)</span>
+				<span>Any condition within an AND block can match</span>
 
-		<h3 class="text-xl mb-2 mt-6 dark:text-zinc-400">Examples</h3>
-		<div class="space-y-4 text-sm">
-			<div>
-				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded">host && !deprecated</code>
-				<p class="mt-1 text-stone-500">Matches entities containing "host" but NOT "deprecated".</p>
-			</div>
-			<div>
-				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded">host && !deprecated && tags.len == 2</code>
-				<p class="mt-1 text-stone-500">Same as above, plus must have exactly 2 tags.</p>
-			</div>
-			<div>
-				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded">prod || staging && tags.len == 1</code>
-				<p class="mt-1 text-stone-500">Matches entities containing "prod" OR "staging", AND having exactly 1 tag.</p>
-			</div>
-			<div>
-				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded">hello && test, no || test.len == 2 && no, yes.len != 2</code>
-				<p class="mt-1 text-stone-500">Three groups separated by commas. Entity matches if it satisfies any one group.</p>
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">!</code>
+				<span class="text-stone-500 dark:text-stone-400">NOT</span>
+				<span>Excludes entities containing the term</span>
+
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">.len == N</code>
+				<span class="text-stone-500 dark:text-stone-400">Length equals</span>
+				<span>Array field has exactly N elements</span>
+
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">.len != N</code>
+				<span class="text-stone-500 dark:text-stone-400">Length not equals</span>
+				<span>Array field does not have N elements</span>
 			</div>
 		</div>
 
-		<h3 class="text-xl mb-2 mt-6 dark:text-zinc-400">Fuzzy Search</h3>
-		<p class="mb-4 text-sm">
-			When the <strong>Fuzzy search</strong> toggle is enabled, the filter uses typo-tolerant matching
-			instead of exact substring matching. The DSL operators (<code>&&</code>, <code>,</code>,
-			<code>||</code>, <code>!</code>, <code>.len</code>) still work the same way — only the
-			text matching step becomes fuzzy.
-		</p>
+		<div class="mb-8">
+			<h3 class="text-lg mb-2 dark:text-zinc-400">Evaluation Order</h3>
+			<p class="text-sm mb-3 leading-relaxed">
+				Precedence (highest → lowest):
+				<code class="dark:bg-stone-800 bg-gray-200 px-1.5 py-0.5 rounded">||</code> →
+				<code class="dark:bg-stone-800 bg-gray-200 px-1.5 py-0.5 rounded">&&</code> →
+				<code class="dark:bg-stone-800 bg-gray-200 px-1.5 py-0.5 rounded">,</code>
+			</p>
+			<div class="text-sm space-y-1 text-stone-500 dark:text-stone-400">
+				<p><code>,</code> splits into independent groups (any group can match)</p>
+				<p><code>&&</code> splits within a group (all parts must match)</p>
+				<p><code>||</code> splits within an AND part (any alternative can match)</p>
+			</div>
+		</div>
+
+		<div class="mb-8">
+			<h3 class="text-lg mb-3 dark:text-zinc-400">Examples</h3>
+			<div class="space-y-3 text-sm">
+				<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+					<code class="dark:text-zinc-200">host && !deprecated</code>
+					<p class="mt-1.5 text-stone-500">Contains "host" but not "deprecated".</p>
+				</div>
+				<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+					<code class="dark:text-zinc-200">host && !deprecated && tags.len == 2</code>
+					<p class="mt-1.5 text-stone-500">Contains "host", excludes "deprecated", and has exactly 2 tags.</p>
+				</div>
+				<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+					<code class="dark:text-zinc-200">prod || staging && tags.len == 1</code>
+					<p class="mt-1.5 text-stone-500">Contains "prod" or "staging", and has exactly 1 tag.
+						<span class="italic">(<code>||</code> binds first → <code>(prod || staging)</code> then <code>&&</code> with <code>tags.len == 1</code>)</span>
+					</p>
+				</div>
+				<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+					<code class="dark:text-zinc-200">prod, staging</code>
+					<p class="mt-1.5 text-stone-500">Two groups: matches entities containing "prod" or entities containing "staging".</p>
+				</div>
+				<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+					<code class="dark:text-zinc-200">api && tags.len == 2, internal</code>
+					<p class="mt-1.5 text-stone-500">Group 1: contains "api" with exactly 2 tags. Group 2: contains "internal". Matches either.</p>
+				</div>
+			</div>
+		</div>
+
+		<div>
+			<h3 class="text-lg mb-2 dark:text-zinc-400">Fuzzy Search</h3>
+			<p class="text-sm leading-relaxed">
+				When the <strong>Fuzzy</strong> toggle is enabled (appears when typing in the filter),
+				text matching becomes typo-tolerant — e.g. "moch" will match "mock".
+				All DSL operators still work the same way.
+			</p>
+		</div>
 	</section>
 </div>
