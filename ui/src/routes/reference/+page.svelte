@@ -102,13 +102,81 @@
 			</div>
 		</div>
 
-		<div>
+		<div class="mb-8">
 			<AnchorHeading id="fuzzy-search">Fuzzy Search</AnchorHeading>
 			<p class="text-sm leading-relaxed">
 				When the <strong>Fuzzy</strong> toggle is enabled (appears when typing in the filter),
 				text matching becomes typo-tolerant — e.g. "moch" will match "mock".
 				All DSL operators still work the same way.
 			</p>
+		</div>
+	</section>
+
+	<section class="mb-8">
+		<AnchorHeading id="copy-behavior" level="h2">Copy Behavior</AnchorHeading>
+		<p class="mb-4 text-sm leading-relaxed">
+			Copy actions use click count to distinguish format: single click copies as JSON, double click copies as YAML.
+		</p>
+		<div class="space-y-3 text-sm">
+			<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+				<code class="dark:text-zinc-200">Copy button (single click)</code>
+				<p class="mt-1.5 text-stone-500">Copies the entity as JSON.</p>
+			</div>
+			<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+				<code class="dark:text-zinc-200">Copy button (double click)</code>
+				<p class="mt-1.5 text-stone-500">Copies the entity as YAML.</p>
+			</div>
+			<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+				<code class="dark:text-zinc-200">Copy all (single / double click)</code>
+				<p class="mt-1.5 text-stone-500">Copies all currently filtered entities as JSON or YAML. Shows a confirm dialog with the count.</p>
+			</div>
+			<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+				<code class="dark:text-zinc-200">Double-click a field value</code>
+				<p class="mt-1.5 text-stone-500">In list view or tree view, double-click any value to copy it.</p>
+			</div>
+			<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+				<code class="dark:text-zinc-200">Double-click a key name</code>
+				<p class="mt-1.5 text-stone-500">In tree view, double-click a key to copy the key name.</p>
+			</div>
+			<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+				<code class="dark:text-zinc-200">Middle-click an entity row</code>
+				<p class="mt-1.5 text-stone-500">Opens the entity detail page in a new browser tab.</p>
+			</div>
+		</div>
+	</section>
+
+	<section class="mb-8">
+		<AnchorHeading id="bulk-operations" level="h2">Bulk Operations</AnchorHeading>
+
+		<div class="mb-8">
+			<AnchorHeading id="bulk-create">Bulk Create</AnchorHeading>
+			<p class="text-sm leading-relaxed">
+				On the add/create page, paste a <strong>JSON array</strong> of entities instead of a single object.
+				Each entity in the array is created individually. A toast notification is shown per item.
+			</p>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="bulk-update">Bulk Update</AnchorHeading>
+			<p class="text-sm leading-relaxed">
+				In any entity list, click <strong>"Bulk update"</strong> to open a JSON editor.
+				Write a JSON patch (e.g. <code class="dark:bg-stone-800 bg-gray-200 px-1.5 py-0.5 rounded">{'{"tags": ["production"]}'}</code>)
+				and click <strong>"apply"</strong>. The patch is applied to all <strong>currently filtered</strong> entities —
+				use the search filter first to scope which entities are updated.
+			</p>
+		</div>
+
+		<div>
+			<AnchorHeading id="bulk-delete">Bulk Delete</AnchorHeading>
+			<p class="text-sm leading-relaxed mb-2">
+				Hidden by default. Enable via Preferences → <code class="dark:bg-stone-800 bg-gray-200 px-1.5 py-0.5 rounded">showDeleteAllButton</code>.
+				Deletes all <strong>currently filtered</strong> entities with a three-stage confirmation:
+			</p>
+			<ol class="text-sm list-decimal list-inside space-y-1 text-stone-500 dark:text-stone-400">
+				<li>Confirm total count of entities to delete</li>
+				<li>Choose silent deletion or per-entity confirmation</li>
+				<li>Final "last chance" warning</li>
+			</ol>
 		</div>
 	</section>
 </div>
