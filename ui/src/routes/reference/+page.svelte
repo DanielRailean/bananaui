@@ -1,14 +1,31 @@
+<script lang="ts">
+	function copyAnchorLink(id: string) {
+		const url = new URL(window.location.href);
+		url.hash = id;
+		history.replaceState(null, '', url.toString());
+		navigator.clipboard.writeText(url.toString());
+	}
+</script>
+
 <div class="p-6 max-w-4xl mx-auto dark:text-stone-300 text-stone-800 font-light">
 	<h1 class="text-3xl mb-8 dark:text-zinc-300">Reference</h1>
 
 	<section class="mb-8">
-		<h2 class="text-2xl mb-3 dark:text-zinc-300">Search Syntax</h2>
+		<h2 id="search-syntax" class="text-2xl mb-3 dark:text-zinc-300 group">
+			<a href="#search-syntax" on:click|preventDefault={() => copyAnchorLink('search-syntax')} class="hover:underline">
+				Search Syntax<span class="opacity-0 group-hover:opacity-50 ml-2 text-sm">#</span>
+			</a>
+		</h2>
 		<p class="mb-6 text-sm leading-relaxed">
 			The filter matches against the full JSON of each entity. All text matching is case-insensitive.
 		</p>
 
 		<div class="mb-8 space-y-3">
-			<h3 class="text-lg mb-1 dark:text-zinc-400">Operators</h3>
+			<h3 id="operators" class="text-lg mb-1 dark:text-zinc-400 group">
+				<a href="#operators" on:click|preventDefault={() => copyAnchorLink('operators')} class="hover:underline">
+					Operators<span class="opacity-0 group-hover:opacity-50 ml-2 text-sm">#</span>
+				</a>
+			</h3>
 			<div class="grid grid-cols-[auto_auto_1fr] gap-x-4 gap-y-2 text-sm">
 				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">,</code>
 				<span class="text-stone-500 dark:text-stone-400">OR (group)</span>
@@ -37,7 +54,11 @@
 		</div>
 
 		<div class="mb-8">
-			<h3 class="text-lg mb-2 dark:text-zinc-400">Evaluation Order</h3>
+			<h3 id="evaluation-order" class="text-lg mb-2 dark:text-zinc-400 group">
+				<a href="#evaluation-order" on:click|preventDefault={() => copyAnchorLink('evaluation-order')} class="hover:underline">
+					Evaluation Order<span class="opacity-0 group-hover:opacity-50 ml-2 text-sm">#</span>
+				</a>
+			</h3>
 			<p class="text-sm mb-3 leading-relaxed">
 				Precedence (highest → lowest):
 				<code class="dark:bg-stone-800 bg-gray-200 px-1.5 py-0.5 rounded">||</code> →
@@ -52,7 +73,11 @@
 		</div>
 
 		<div class="mb-8">
-			<h3 class="text-lg mb-3 dark:text-zinc-400">Examples</h3>
+			<h3 id="examples" class="text-lg mb-3 dark:text-zinc-400 group">
+				<a href="#examples" on:click|preventDefault={() => copyAnchorLink('examples')} class="hover:underline">
+					Search Examples<span class="opacity-0 group-hover:opacity-50 ml-2 text-sm">#</span>
+				</a>
+			</h3>
 			<div class="space-y-3 text-sm">
 				<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
 					<code class="dark:text-zinc-200">host && !deprecated</code>
@@ -76,11 +101,34 @@
 					<code class="dark:text-zinc-200">api && tags.len == 2, internal</code>
 					<p class="mt-1.5 text-stone-500">Group 1: contains "api" with exactly 2 tags. Group 2: contains "internal". Matches either.</p>
 				</div>
+				<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+					<code class="dark:text-zinc-200">https && !sandbox && tags.len != 0</code>
+					<p class="mt-1.5 text-stone-500">Protocol is "https", excludes anything with "sandbox", and must have at least one tag.</p>
+				</div>
+				<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+					<code class="dark:text-zinc-200">alpha || beta && !disabled && tags.len == 3, test && v2</code>
+					<p class="mt-1.5 text-stone-500">
+						Group 1: contains "alpha" or "beta", not disabled, with exactly 3 tags.<br/>
+						Group 2: contains both "test" and "v2".<br/>
+						<span class="italic">Parsed as: <code>((alpha || beta) && !disabled && tags.len == 3)</code> , <code>(test && v2)</code></span>
+					</p>
+				</div>
+				<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+					<code class="dark:text-zinc-200">web || mobile && !legacy, backend && tags.len == 5</code>
+					<p class="mt-1.5 text-stone-500">
+						Group 1: contains "web" or "mobile", excludes "legacy".<br/>
+						Group 2: contains "backend" with exactly 5 tags.
+					</p>
+				</div>
 			</div>
 		</div>
 
 		<div>
-			<h3 class="text-lg mb-2 dark:text-zinc-400">Fuzzy Search</h3>
+			<h3 id="fuzzy-search" class="text-lg mb-2 dark:text-zinc-400 group">
+				<a href="#fuzzy-search" on:click|preventDefault={() => copyAnchorLink('fuzzy-search')} class="hover:underline">
+					Fuzzy Search<span class="opacity-0 group-hover:opacity-50 ml-2 text-sm">#</span>
+				</a>
+			</h3>
 			<p class="text-sm leading-relaxed">
 				When the <strong>Fuzzy</strong> toggle is enabled (appears when typing in the filter),
 				text matching becomes typo-tolerant — e.g. "moch" will match "mock".
