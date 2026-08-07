@@ -37,6 +37,10 @@
 				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">.len != N</code>
 				<span class="text-stone-500 dark:text-stone-400">Length not equals</span>
 				<span>Array field does not have N elements</span>
+
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">| limit N</code>
+				<span class="text-stone-500 dark:text-stone-400">Limit results</span>
+				<span>Returns only the first N matching entities</span>
 			</div>
 		</div>
 
@@ -98,6 +102,10 @@
 						Group 1: contains "web" or "mobile", excludes "legacy".<br/>
 						Group 2: contains "backend" with exactly 5 tags.
 					</p>
+				</div>
+				<div class="dark:bg-stone-900 bg-gray-50 rounded-lg p-3">
+					<code class="dark:text-zinc-200">prod && api | limit 10</code>
+					<p class="mt-1.5 text-stone-500">Contains "prod" and "api", returns only the first 10 matches.</p>
 				</div>
 			</div>
 		</div>
