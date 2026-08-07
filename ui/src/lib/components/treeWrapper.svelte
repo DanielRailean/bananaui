@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { dateFields } from '$lib/config';
-	import { writeToClipboard } from '$lib/util';
+	import { getParentInfo, writeToClipboard } from '$lib/util';
 	import JSONTree from 'svelte-json-tree';
+	import { afterUpdate } from 'svelte';
 	import { DateTime } from 'luxon';
 	import { base } from '$app/paths';
 	import { get, writable } from 'svelte/store';
 	import Toggle from './Toggle.svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { confirmToast, infoToast } from '$lib/toastStore';
+	import { confirm } from '$lib/confirmStore';
 	import { apiService } from '$lib/requests';
 	import { preferences } from '$lib/stores';
 	import ArrayDisplay from './ArrayDisplay.svelte';
@@ -18,9 +20,11 @@
 	export let allowKeyCopy = false;
 	export let rounded = true;
 	export let type = '';
-	export let expandFields = ['config', 'tags'];
+	export let expandFields = ['config', 'tags', 'payload'];
 
 	const dispatch = createEventDispatcher();
+
+	let loadParentName = preferences?.loadParentInfo;
 
 	async function disable(id: string, current: boolean) {
 		const res = await (await apiService()).updateRecord(type, id, { enabled: !current });
@@ -30,10 +34,20 @@
 		}
 	}
 
+
 	export let keyClickHandler: ((key: string) => void) | undefined = undefined;
 	export let keyTitle = (key: string) => {
 		return `copy ${key}`;
 	};
+
+	let yamlContainer: HTMLElement;
+	afterUpdate(() => {
+		if (yamlContainer) {
+			yamlContainer.querySelectorAll('code.language-json').forEach((el) => {
+				(globalThis as any).Prism.highlightElement(el);
+			});
+		}
+	});
 </script>
 
 <div class="tree">
@@ -90,7 +104,17 @@
 											on:click|stopPropagation|preventDefault={() =>
 												goto(`${base}/entity?type=${key}s&id=${data[key].id}`)}
 										>
-											<p class="dark:text-blue-500 text-blue-700">{data[key].id}</p>
+											<p class="dark:text-blue-500 text-blue-700">
+												{#if $loadParentName}
+													{#await getParentInfo(key, data[key].id) then value}
+														{value}
+													{:catch}
+														{data[key].id}
+													{/await}
+												{:else}
+													{data[key].id}
+												{/if}
+											</p>
 										</div>
 									</a>
 									<button
@@ -107,8 +131,8 @@
 										}}
 									/>
 								{:else if typeof data[key] == 'object' && data[key] != null && expandFields.includes(key)}
-									<div class="cursor-pointer">
-										<JSONTree value={data[key]} defaultExpandedLevel={100}></JSONTree>
+									<div class="w-full" bind:this={yamlContainer}>
+										<pre class="language-json m-0 p-4 dark:bg-[#1E2021] bg-white rounded-none"><code class="language-json dark:bg-[#1E2021] bg-white">{JSON.stringify(data[key], null, 2)}</code></pre>
 									</div>
 								{:else if typeof data[key] == 'object' && data[key] != null}
 									<div class="cursor-pointer">
@@ -120,7 +144,11 @@
 											<Toggle
 												isChecked={writable(data[key])}
 												on:change={async () => {
-													let ok = confirm('confirm action');
+													let ok = await confirm({
+														message: 'Confirm toggle?',
+														variant: 'warning',
+														confirmText: data[key] ? 'Disable' : 'Enable'
+													});
 													if (ok) {
 														await disable(data['id'], data[key]);
 													}
@@ -162,5 +190,12 @@
 
 		--json-tree-font-size: 15px;
 		--json-tree-font-family: 'JetBrains Mono', monospace;
+	}
+
+	.tree pre[class*="language-"],
+	.tree code[class*="language-"] {
+		font-family: 'JetBrains Mono', monospace !important;
+		font-size: 14px;
+		line-height: 1.6;
 	}
 </style>

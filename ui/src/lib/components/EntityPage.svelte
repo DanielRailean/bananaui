@@ -2,13 +2,14 @@
 	import ArrayWrap from './ArrayWrap.svelte';
 	export let data: any = {};
 	import { Button } from 'flowbite-svelte';
-	import { onMount } from 'svelte';
+	import { afterUpdate, onMount, tick } from 'svelte';
 	import TreeWrapper from './treeWrapper.svelte';
 	import { apiService, clearCache } from '$lib/requests';
 	import { goto } from '$app/navigation';
 	import { page, navigating, updated } from '$app/stores';
 	import { delay, getPluginPriorityMap, getPlugins, writeToClipboard } from '$lib/util';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
+	import { confirm } from '$lib/confirmStore';
 	import {
 		CaretDownOutline,
 		CirclePlusOutline,
@@ -50,8 +51,17 @@
 	}
 	let subEntities: IEntities[];
 	let relevantPlugins: IKongPlugin[] = [];
+	let entitySchema: any | undefined;
+	let pluginSchema: any | undefined;
 
-	$: $page, load();
+	let prevSearch = '';
+	$: if ($page.url.pathname.endsWith('/entity')) {
+		const search = $page.url.search;
+		if (search !== prevSearch) {
+			prevSearch = search;
+			load();
+		}
+	}
 
 	let isMounted = false;
 
@@ -61,7 +71,6 @@
 		isMounted = true;
 		info = await getPluginPriorityMap();
 		await load();
-		triggerHighlight('on mount');
 	});
 
 	function flipIsEdited() {
@@ -86,11 +95,10 @@
 		}
 		data = undefined;
 		isEdited = false;
-		const searchParams = new URLSearchParams(window.location.search);
+		const searchParams = get(page).url.searchParams;
 		entityType = searchParams.get('type') ?? 'none';
 		id = searchParams.get('id') ?? 'none';
 		let edited = searchParams.get('isEdited') ?? '';
-		isEdited = edited == 'true';
 		pathPrefix = searchParams.get('prefix') ?? '';
 		if (entityType == 'upstreams') {
 			subEntityPrefix = `/upstreams/${id}`;
@@ -129,30 +137,69 @@
 				subEntities = subEntities;
 			}
 		}
-		// triggerHighlight();
-
-		const plugins = await getPlugins(`/${entityType}/${id}`);
-		relevantPlugins = plugins;
-		if (data.service) {
-			const plugins = await getPlugins(`/services/${data.service.id}`);
-			relevantPlugins = [...plugins, ...relevantPlugins];
+		// load entity schema
+		entitySchema = undefined;
+		pluginSchema = undefined;
+		const schemaRes = await (await apiService()).schema(entityType);
+		if (schemaRes.ok && schemaRes.data) {
+			entitySchema = {};
+			for (const field of schemaRes.data.fields) {
+				const entries = Object.entries(field)[0];
+				entitySchema[entries[0]] = entries[1];
+			}
+		}
+		// load plugin schema if entity is a plugin
+		if (entityType === 'plugins' && data?.name) {
+			const pluginRes = await (await apiService()).pluginConfig(data.name);
+			if (pluginRes.ok && pluginRes.data) {
+				let configSchema = pluginRes.data.fields.find((i) => Object.entries(i)[0][0] == 'config');
+				if (configSchema) {
+					pluginSchema = {};
+					for (const param of configSchema.config.fields) {
+						const entries = Object.entries(param)[0];
+						pluginSchema[entries[0]] = entries[1];
+					}
+				}
+			}
 		}
 
-		relevantPlugins.sort((b, a) => {
-			return info[a.name] - info[b.name];
-		});
+		if (entityType !== 'plugins') {
+			const plugins = await getPlugins(`/${entityType}/${id}`);
+			relevantPlugins = plugins;
+			if (data.service) {
+				const plugins = await getPlugins(`/services/${data.service.id}`);
+				relevantPlugins = [...plugins, ...relevantPlugins];
+			}
+
+			relevantPlugins.sort((b, a) => {
+				return info[a.name] - info[b.name];
+			});
 		relevantPlugins = relevantPlugins.map((plugin) => {
 			return {
 				...plugin,
 				priority: info[plugin.name]
 			};
 		});
+		}
+
+		// trigger highlight after DOM settles
+		if (edited == 'true') {
+			setTimeout(() => {
+				isEdited = edited == 'true';
+				triggerHighlight('deferred edit on load');
+			}, 10);
+		}
 	}
 
 	let openedPlugins: any = {};
 
 	async function deleteEntity(type: string, id: string, name: string) {
-		const conf = confirm(`Please confirm deletion of '${name}'`);
+		const conf = await confirm({
+			title: 'Delete entity',
+			message: `Please confirm deletion of '${name}'`,
+			variant: 'danger',
+			confirmText: 'Delete'
+		});
 		if (!conf) {
 			return;
 		}
@@ -178,7 +225,11 @@
 		confirmToast(`json is valid`);
 	}
 	async function save() {
-		const a = confirm('confirm save?');
+		const a = await confirm({
+			message: 'Confirm save?',
+			variant: 'info',
+			confirmText: 'Save'
+		});
 		if (!a) {
 			return;
 		}
@@ -208,7 +259,7 @@
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
 
-	const max = 5;
+	const max = 10;
 	async function triggerHighlight(caller = '', selfCalled = 0) {
 		if (selfCalled > max) {
 			errorToast('highlight not triggered!');
@@ -218,8 +269,8 @@
 		json = json.replace(/\s\n$/g, '\n ');
 
 		if (!editorSyntax) {
-			// needed as sometimes the function is called before the editor is added to the DOM
-			await delay(20);
+			await tick();
+			await delay(50);
 			await triggerHighlight(caller, selfCalled + 1);
 			return;
 		}
@@ -228,6 +279,15 @@
 		console.log(`prim highlight ok. try ${selfCalled} by '${caller}' at ${DateTime.now().toISO()}`);
 	}
 	let showPluginOrder = preferences.showPluginOrder;
+
+	let pluginConfigContainer: HTMLElement;
+	afterUpdate(() => {
+		if (pluginConfigContainer) {
+			pluginConfigContainer.querySelectorAll('code.language-json').forEach((el) => {
+				(globalThis as any).Prism.highlightElement(el);
+			});
+		}
+	});
 
 	function setTextareaHeight() {
 		editorWindow.style.height = editorWindow.scrollHeight + 3 + 'px';
@@ -272,7 +332,7 @@
 					}}
 				>
 					<FileCopyOutline class="m-2" />
-					copy JSON</Button
+					JSON copy</Button
 				>
 				<Button
 					color="alternative"
@@ -283,7 +343,21 @@
 					}}
 				>
 					<FileCopyAltOutline class="m-2" />
-					copy YAML</Button
+					YAML copy</Button
+				>
+				<Button
+					color="alternative"
+					class="h-10 m-1"
+					on:click={() => {
+						const obj = JSON.parse(stateJson);
+						for (const field of get(preferences.stripFieldsOnCleanCopy)) {
+							obj[field] = undefined;
+						}
+						writeToClipboard(dump(obj, yamlDumpOptions));
+					}}
+				>
+					<FileCopyAltOutline class="m-2" />
+					YAML copy (clean)</Button
 				>
 			{:else}
 				<Button
@@ -344,6 +418,26 @@
 				}}
 			></textarea>
 		</div>
+		{#if isEdited && pluginSchema}
+			<h2 class="text-xl m-4">'config' fields:</h2>
+			<TreeWrapper
+				data={pluginSchema}
+				expandLevel={0}
+				allowCopy={false}
+				allowKeyCopy={true}
+			/>
+		{/if}
+		{#if isEdited && entitySchema}
+			<h2 class="text-xl mx-4 mb-4 mt-4">
+				{entityType.substring(0, entityType.length - 1)} schema
+			</h2>
+			<TreeWrapper
+				data={entitySchema}
+				expandLevel={0}
+				allowCopy={false}
+				allowKeyCopy={false}
+			/>
+		{/if}
 		<div class={isEdited ? 'hidden' : ''}>
 			<TreeWrapper
 				{data}
@@ -366,7 +460,7 @@
 				show plugin order</Button
 			>
 			{#if relevantPlugins && $showPluginOrder}
-				<div class="flex flex-wrap items-center p-4">
+				<div bind:this={pluginConfigContainer} class="flex flex-wrap items-center p-4">
 					{#each relevantPlugins as plugin}
 						<div class="border border-stone-600 rounded-lg dark:border-stone-600 my-2">
 							<div
@@ -399,8 +493,7 @@
 								/>
 							</div>
 							{#if openedPlugins[plugin.id]}
-								<TreeWrapper expandFields={[]} data={plugin.config}></TreeWrapper>
-								<!-- content here -->
+								<pre class="language-json m-0 p-4 w-full dark:bg-[#1E2021] bg-white rounded-none" style="font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6;"><code class="language-json dark:bg-[#1E2021] bg-white">{JSON.stringify(plugin.config, null, 2)}</code></pre>
 							{/if}
 						</div>
 						{#if relevantPlugins.indexOf(plugin) + 1 != relevantPlugins.length}

@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '$lib/components/ArrayWrap.svelte';
-	import { apiService, cacheMap, type ResWrapped } from '$lib/requests';
+	import { apiService, cacheMap, clearCache, type ResWrapped } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { capitalizeFirstLetter, delay } from '$lib/util';
@@ -40,7 +40,7 @@
 		if (!isMounted) {
 			return;
 		}
-		const params = new URLSearchParams(window.location.search);
+		const params = get(page).url.searchParams;
 		loadStart = DateTime.now();
 		entity = params.get('type') ?? 'none';
 		pathPrefix = params.get('prefix') ?? '';
@@ -49,6 +49,9 @@
 			kongEntity = get(preferences.kongEntities).find((i) => i.name == entity);
 			if (!kongEntity) {
 				return;
+			}
+			if (isRefresh) {
+				clearCache(kongEntity.apiPath);
 			}
 			let res = await (
 				await apiService()

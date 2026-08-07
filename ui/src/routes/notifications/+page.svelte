@@ -1,6 +1,7 @@
 <script lang="ts">
 	import TreeWrapper from './../../lib/components/treeWrapper.svelte';
 	import { toastList, clearToasts } from '$lib/toastStore';
+	import { confirm } from '$lib/confirmStore';
 	import { onMount } from 'svelte';
 	import { TrashBinOutline } from 'flowbite-svelte-icons';
 
@@ -19,11 +20,18 @@
 	<h1 class="pb-4 pl-2 text-xl">Notifications list</h1>
 	<button
 		title="sort entities now"
-		on:click={() => {
+		on:click={async () => {
+			const ok = await confirm({
+				title: 'Clear notifications',
+				message: `Delete all ${localToasts.length} notifications?`,
+				variant: 'danger',
+				confirmText: 'Delete all'
+			});
+			if (!ok) return;
 			clearToasts();
 			loadToasts();
 		}}
-		class="flex flex-row items-center dark:dark:bg-stone-800 shadow shadow-stone-400 dark:shadow-stone-900 rounded p-1 pr-2 m-1"
+		class="flex flex-row items-center dark:bg-rose-900 bg-rose-100 shadow shadow-stone-400 dark:shadow-stone-900 rounded p-1 pr-2 m-1"
 	>
 		<TrashBinOutline class="m-1" />
 		Delete all

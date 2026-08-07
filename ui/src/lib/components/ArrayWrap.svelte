@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Link from './Link.svelte';
-	import { capitalizeFirstLetter, debouncedCall, delay, writeToClipboard } from '$lib/util';
+	import { capitalizeFirstLetter, debouncedCall, delay, getParentInfo, parentInfoCache, writeToClipboard } from '$lib/util';
 	import { goto } from '$app/navigation';
 	import { onDestroy, onMount } from 'svelte';
 	import { DateTime } from 'luxon';
@@ -13,6 +13,7 @@
 	import { dateFields, yamlDumpOptions } from '$lib/config';
 	import { apiService, clearCache } from '$lib/requests';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
+	import { confirm } from '$lib/confirmStore';
 	import { createEventDispatcher } from 'svelte';
 	import type { IKongEntity, ITooggleableEntityMaybe } from '$lib/types';
 	import { base } from '$app/paths';
@@ -24,9 +25,10 @@
 	import { dump } from 'js-yaml';
 	import { page } from '$app/stores';
 	import ArrayDisplay from './ArrayDisplay.svelte';
+	import { doSearch } from '$lib/search';
 
 	let loadParentName = preferences?.loadParentInfo;
-	let useNewSearch = preferences?.useNewSearch;
+	let useFuzzySearch = preferences?.useFuzzySearch;
 	const dispatch = createEventDispatcher();
 
 	export let dataRaw: Writable<ITooggleableEntityMaybe[]>;
@@ -88,10 +90,12 @@
 	}
 
 	let debouncedCopy = debouncedCall(copyYamlOrJson, 510);
-	let debouncedCopyAllConfirm = debouncedCall((format: 'yaml' | 'json') => {
-		const conf = confirm(
-			`confirm ${format.toUpperCase()} copy of ${filteredData.length} entities?`
-		);
+	let debouncedCopyAllConfirm = debouncedCall(async (format: 'yaml' | 'json') => {
+		const conf = await confirm({
+			message: `confirm ${format.toUpperCase()} copy of ${filteredData.length} entities?`,
+			variant: 'info',
+			confirmText: 'Copy'
+		});
 		if (!conf) {
 			return;
 		}
@@ -218,7 +222,12 @@
 	}
 
 	async function deleteEntity(type: string, id: string, name: string) {
-		const conf = confirm(`Please confirm deletion of '${name}'`);
+		const conf = await confirm({
+			title: 'Delete entity',
+			message: `Please confirm deletion of '${name}'`,
+			variant: 'danger',
+			confirmText: 'Delete'
+		});
 		if (!conf) {
 			return;
 		}
@@ -281,136 +290,8 @@
 	// []
 	// }
 
-	// ex: (hello && test) || (no || test && no) && yes.len != 2
-	// becomes [["hello", "test"], [["no"], ["test", "no"], [{"yes": -2}]]]
-	// loop over initial array, any object satisfying 1st level arrays are allowed
-	// if array of array encountered, any object must satisfy all conditions in the subarray
-	function itemPassesLength(obj: any, len: { [key: string]: number }): boolean {
-		if (!obj) {
-			return false;
-		}
-		for (const [key, val] of Object.entries(len)) {
-			if (!obj[key] || !Array.isArray(obj[key])) {
-				return false;
-			}
-			var arrayValue = obj[key];
-			if (val < 0) {
-				if (arrayValue.length === val * -1) {
-					return false;
-				}
-			} else {
-				if (arrayValue.length != val) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	// const objWithArr = {"hello": ["2", 2]}
-	// console.log(itemPassesLength(objWithArr, {"hello": -2}))
-	// console.log(itemPassesLength(objWithArr, {"hello": -3}))
-	// console.log(itemPassesLength(objWithArr, {"hello": 2}))
-	// console.log(itemPassesLength(objWithArr, {"hell": 2}))
-
-	function itemPassesOrValidations(obj: any, validation: any[]): boolean {
-		const json = JSON.stringify(obj).toLowerCase();
-		for (const condition of validation) {
-			if (typeof condition === 'string') {
-				const conditionStr = `${condition}`.toLowerCase();
-				if (json.includes(conditionStr)) {
-					return true;
-				}
-				continue;
-			}
-			if (Object.keys(condition).length > 0 && !Array.isArray(condition)) {
-				if (itemPassesLength(obj, condition)) {
-					return true;
-				}
-				continue;
-			}
-			if (Array.isArray(condition)) {
-				let res = itemPassesOrValidations(obj, condition);
-				if (res) {
-					return true;
-				}
-				continue;
-			}
-		}
-		return false;
-	}
-
-	// const objWithArr2 = { hello: ['2', 2], yes: 'no', nr: 3 };
-	// console.log(itemPassesValidation(objWithArr2, [{ hello: 1 }, {hello: -3}, ['noa', '31'], "helloo"]));
-
-	const lenNotEqOp = '.len != ';
-	const lenEqOp = '.len == ';
-	function getLogicalGroups(input: string) {
-		if (input.trim().length == 0) {
-			return [];
-		}
-		const inputCommaSplit = input.split(',');
-		let groups = [];
-		for (let anyConditions of inputCommaSplit) {
-			// console.log(anyConditions.trim());
-			let andGroups = [];
-			const booleanAndSearch = anyConditions.split(/\s*&&\s*/);
-			for (const andCondition of booleanAndSearch) {
-				let orGroups = [];
-				const boolOrSearch = andCondition.split(/\s*\|\|\s*/);
-				for (const orCondition of boolOrSearch) {
-					if (orCondition.includes(lenNotEqOp) || orCondition.includes(lenEqOp)) {
-						const lenNotEq: any = {};
-						let split = orCondition.split(lenNotEqOp);
-						let sign = -1;
-						if (split.length == 1) {
-							split = orCondition.split(lenEqOp);
-							sign = 1;
-						}
-						lenNotEq[split[0].trim()] = +split[1].trim() * sign;
-						orGroups.push(lenNotEq);
-						continue;
-					}
-					orGroups.push(orCondition.trim());
-				}
-				andGroups.push(orGroups);
-			}
-			groups.push(andGroups);
-		}
-		return groups;
-	}
-	function doSearch(input: string, arr: any[]) {
-		if (!$dataRaw) {
-			return;
-		}
-		const orAndOr = getLogicalGroups(input);
-		console.log(JSON.stringify(orAndOr));
-		if (orAndOr.length == 0) {
-			return arr;
-		}
-		let result: ITooggleableEntityMaybe[] = [];
-		for (const orGroup of orAndOr) {
-			let orPassed: ITooggleableEntityMaybe[] | undefined = undefined;
-			for (const orAndGroup of orGroup) {
-				let temp = arr.filter((item: any) => itemPassesOrValidations(item, orAndGroup));
-				// console.log(JSON.stringify(orGroup, undefined, 2));
-				if (!orPassed) {
-					orPassed = temp;
-				}
-				orPassed = orPassed!.filter((item) => temp.find((i) => i.id === item.id) != undefined);
-			}
-			result = [...result, ...(orPassed ?? [])];
-		}
-		return result.filter(onlyUnique);
-	}
-	function onlyUnique(value: any, index: number, array: any[]) {
-		return array.indexOf(value) === index;
-	}
-
-	// getLogicalGroups('hello && test, no || test.len == 2 && no, yes.len != 2');
 	function search() {
 		if (searchText.length == 0) {
-			// we don't always sort on update event,
-			// because it could be searched, so we must sort when we know we're no longer searching
 			sort(get(dataRaw), `search ${type}`);
 			filteredData = $dataRaw.map((i: any): FilteredEntity => {
 				if (i.enabled != undefined) {
@@ -418,79 +299,16 @@
 				}
 				return i as FilteredEntity;
 			});
-		}
-		if (get(useNewSearch)) {
-			filteredData = doSearch(searchText, $dataRaw) ?? [];
 		} else {
-			const booleanAndSearch = searchText.split(/\s*&&\s*/);
-			filteredData = $dataRaw.filter((item: any) => {
-				for (let condition of booleanAndSearch) {
-					const len = condition.split('.len == ');
-					if (len && len.length > 1 && Number.isInteger(+len[1]) && Array.isArray(item[len[0]])) {
-						const passed = item[len[0]].length === +len[1];
-						if (!passed) return false;
-						continue;
-					}
-
-					const not_len = condition.split('.len != ');
-					if (
-						not_len &&
-						not_len.length > 1 &&
-						Number.isInteger(+not_len[1]) &&
-						Array.isArray(item[not_len[0]])
-					) {
-						const passed = item[not_len[0]].length != +not_len[1];
-						if (!passed) return false;
-						continue;
-					}
-					condition = condition.trim();
-					const isNot = condition.startsWith('!');
-					let conditionPassed = false;
-					if (isNot) {
-						const truthCondition = condition.substring(1).trim();
-						if (truthCondition.length > 1) {
-							conditionPassed = !JSON.stringify(item)
-								.toLowerCase()
-								.includes(truthCondition.toLowerCase());
-						} else {
-							conditionPassed = true;
-						}
-					} else {
-						conditionPassed = JSON.stringify(item).toLowerCase().includes(condition.toLowerCase());
-					}
-					if (!conditionPassed) return false;
-				}
-				return true;
-			});
+			filteredData = doSearch(searchText, $dataRaw, get(useFuzzySearch));
 		}
 		resetPagination();
 		calculatePagination();
 	}
 
-	const idToInfo: { [key: string]: string } = {};
-	async function getInfo(type: string, id: string, selfIdentifier: string): Promise<string> {
-		if (idToInfo[id] == '-1') {
-			// the idea is to make a single call per id.
-			await delay(200);
-			return getInfo(type, id, selfIdentifier);
-		}
-		if (idToInfo[id]) {
-			return idToInfo[id];
-		} else {
-			idToInfo[id] = '-1';
-		}
-		const res = await (await apiService()).findRecord<any>(type + 's', id);
-		if (!res.ok) {
-			errorToast(`Failed to load ${type} for '${selfIdentifier}'. Res. status code: ${res.code}!`);
-			throw new Error('failed to load');
-		}
-		if (res.data.paths && res.data.paths.length > 0) {
-			idToInfo[id] = res.data.paths[0];
-			return idToInfo[id];
-		}
-		idToInfo[id] = res.data.name ?? res.data.tags ?? res.data.id;
-		return idToInfo[id];
-	}
+	let debouncedSearch = debouncedCall(search, 200);
+
+
 
 	let editorWindow: HTMLTextAreaElement;
 	let editorSyntax: HTMLElement;
@@ -516,22 +334,34 @@
 		console.log(`Triggered on try ${selfCalled}`);
 	}
 
+	function formatBulkJson(): boolean {
+		try {
+			const parsed = JSON.parse(json);
+			json = JSON.stringify(parsed, undefined, 2);
+			triggerHighlight();
+			confirmToast('json is valid');
+			return true;
+		} catch (err: any) {
+			errorToast(`Failed to parse JSON. ${err.message}`);
+			return false;
+		}
+	}
+
 	async function applyBulkUpdate() {
+		if (!formatBulkJson()) return;
 		bulkUpdateOpened = false;
 		const updateBody = JSON.parse(json);
-		for (const element of filteredData) {
-			console.log(updateBody);
-			console.log(element);
-
+		const total = filteredData.length;
+		for (let i = 0; i < total; i++) {
+			const element = filteredData[i];
 			const res = await (await apiService()).updateRecord(type, element.id, updateBody);
-			console.log(res);
 			if (!res.ok) {
-				errorToast(res.err ?? `failed to update ${element.id}`);
+				errorToast(`[${i + 1}/${total}] failed to update ${element.id}. ${res.err}`);
 			} else {
-				infoToast(`ok update ${element.id} with ${JSON.stringify(updateBody)}`);
+				infoToast(`[${i + 1}/${total}] updated ${element.name ?? element.id}`);
 			}
 		}
-		infoToast(`bulk update finished`);
+		infoToast(`bulk update finished (${total} entities)`);
 		clearCache(type);
 		dispatch('refresh');
 	}
@@ -541,6 +371,7 @@
 		updateSearchParamWithDebounce.cancel();
 		debouncedCopy.cancel();
 		debouncedCopyAllConfirm.cancel();
+		debouncedSearch.cancel();
 	});
 
 	function setTextareaHeight() {
@@ -575,21 +406,33 @@
 	<div class="w-full p-3 py-2 dark:bg-stone-800">
 		<input
 			class="bg-transparent border-none outline-none focus:[box-shadow:none] ml-[-8px] w-full dark:bg-stone-800 disabled:cursor-not-allowed"
+			style="font-variant-ligatures: none;"
 			type="text"
 			disabled={!($dataRaw && $dataRaw.length > 0)}
 			bind:value={searchText}
 			on:emptied={() => {
-				console.log('is empty');
 			}}
 			on:input={() => {
-				console.log(searchText);
 				updateSearchParamWithDebounce({ search: searchText });
-				search();
+				debouncedSearch();
 			}}
-			title="Filters based on the JSON representation for the given text. &#013; &#013;Logical 'AND' is supported using the '&&' operator. Logical 'NOT' using '!' &#013;Ex: 'host && !/path'&#013&#013;For arrays, the .len syntax is supported, to assert it's length.&#013;Ex: tags.len == 2; tags.len != 3"
+			title="Filter entities using search DSL. See Reference page for full syntax (&&, ||, !, .len ==, .len !=, comma groups)."
 			placeholder="filter (hover for more info)"
 		/>
 	</div>
+	{#if searchText != '' && useFuzzySearch}
+		<div class="px-4 pb-4 dark:bg-stone-800">
+			<Toggle
+				isChecked={useFuzzySearch}
+				title={'Fuzzy search (typo-tolerant) instead of exact DSL matching'}
+				on:change={async () => {
+					useFuzzySearch.set(!get(useFuzzySearch));
+					search();
+				}}
+				labelRight="Fuzzy text match"
+			/>
+		</div>
+	{/if}
 	{#if filteredData.length > 0}
 		<div class="flex flex-row w-full h-12 pb-2 justify-between items-center dark:bg-stone-800">
 			<div class="flex flex-row items-center space-x-2 ml-[1px] pl-3 dark:dark:bg-stone-800">
@@ -659,31 +502,44 @@
 						title="deletes currently filtered entites"
 						class="flex flex-row items-center dark:bg-rose-900 rounded p-1 pr-2 m-1 h-9 shadow shadow-stone-400 dark:shadow-stone-900"
 						on:click={async () => {
-							const conf = confirm(
-								`this will delete all entities currently visible: ${filteredData.length} in total`
-							);
+							const conf = await confirm({
+								title: 'Delete all entities',
+								message: `This will delete all entities currently visible: ${filteredData.length} in total`,
+								variant: 'danger',
+								confirmText: 'Delete all'
+							});
 							if (!conf) {
 								return;
 							}
-							const confirmEach = confirm(
-								`delete without confirmation on each entity (Cancel)\nor confirm each entity's deletion individually (OK) ?`
-							);
-							const conf2 = confirm(
-								`think twice, this is the last chance to cancel!\n(refresh the page to stop the process)`
-							);
+							const confirmEach = await confirm({
+								title: 'Individual confirmation?',
+								message: `Confirm each entity's deletion individually (Confirm) or delete all without asking (Cancel)?`,
+								variant: 'warning',
+								confirmText: 'Confirm each',
+								cancelText: 'Delete all'
+							});
+							const conf2 = await confirm({
+								title: 'Last chance',
+								message: `Think twice, this is the last chance to cancel! (refresh the page to stop the process)`,
+								variant: 'danger',
+								confirmText: 'Proceed'
+							});
 							if (!conf2) {
 								return;
 							}
 							let anyDeleted = false;
 							for (const entity of filteredData) {
 								if (confirmEach) {
-									const confirmEntity = confirm(
-										`Confirm deletion of:\n ${JSON.stringify(
-											{ name: entity.name, tags: entity.tags, id: entity.id },
-											undefined,
-											2
-										)}`
-									);
+										const confirmEntity = await confirm({
+											title: 'Delete entity',
+											message: `Confirm deletion of: ${JSON.stringify(
+												{ name: entity.name, tags: entity.tags, id: entity.id },
+												undefined,
+												2
+											)}`,
+											variant: 'danger',
+											confirmText: 'Delete'
+										});
 									if (!confirmEntity) {
 										continue;
 									}
@@ -698,12 +554,12 @@
 									);
 								} else {
 									errorToast(`failed deletion of ${entity.name ?? entity.id}`);
-									errorToast(res.err ?? 'unknown error occured');
+									errorToast(res.err ?? 'unknown error occurred');
 									break;
 								}
 							}
 							if (anyDeleted) {
-								infoToast('deletion successfully finished! the page will be refreshed soon.');
+								infoToast('deletion successfully finished! the list will be refreshed soon.');
 								dispatch('refresh');
 							}
 						}}
@@ -806,21 +662,33 @@
 						}}
 					></textarea>
 				</div>
-				<div class=" dark:bg-stone-800 py-3">
+				<div class=" dark:bg-stone-800 py-3 flex flex-row space-x-2">
 					<button
-						class="flex flex-row p-1 px-3 ml-3 shadow 
-						shadow-stone-400 dark:shadow-stone-900 
+						class="flex flex-row p-1 px-3 ml-3 shadow
+						shadow-stone-400 dark:shadow-stone-900
+						h-9 items-center rounded
+						dark:bg-blue-700 bg-blue-500 text-white
+						"
+						title="format and validate JSON"
+						on:click={() => formatBulkJson()}
+					>format + validate</button>
+					<button
+						class="flex flex-row p-1 px-3 shadow
+						shadow-stone-400 dark:shadow-stone-900
 						h-9 items-center rounded
 						text-white
 						dark:bg-emerald-600 bg-emerald-400
 						"
 						title="apply bulk update"
 						on:click={async () => {
-							let ok = confirm(
-								`confirm bulk update of ${filteredData.length} items ?\n${JSON.stringify(
+							let ok = await confirm({
+								title: 'Bulk update',
+								message: `Confirm bulk update of ${filteredData.length} items?\n${JSON.stringify(
 									filteredData.map((i) => i.name ?? i.id ?? 'no name/id')
-								)}`
-							);
+								)}`,
+								variant: 'warning',
+								confirmText: 'Update'
+							});
 							if (ok) {
 								await applyBulkUpdate();
 							} else {
@@ -940,12 +808,13 @@
 													<div on:click|stopPropagation role="button" tabindex="0">
 														<Toggle
 															isChecked={writable(item[field])}
-															title={`click to ${item[field] ? 'disable' : 'enable'} ${item.name ?? item.id}`}
+															title={`click to ${item[field] ? 'disable' : 'enable'} ${
+																item.name ?? item.id
+															}`}
 															on:change={async () => {
 																await disable(item.id, !item.enabled);
 															}}
-															>
-														</Toggle>
+														></Toggle>
 													</div>
 												{:else}
 													{item[field]}
@@ -960,7 +829,7 @@
 												<!-- svelte-ignore a11y-no-static-element-interactions -->
 												<div
 													class="px-2 py-1 m-2 dark:shadow-slate-800 shadow rounded"
-													title="go to {idToInfo[item[field].id] ?? field} ({item[field].id})"
+													title="go to {parentInfoCache[item[field].id] ?? field} ({item[field].id})"
 												>
 													<a
 														class="w-full"
@@ -978,11 +847,9 @@
 														}}
 													>
 														<div>
-															<p
-																class="dark:text-blue-500 text-blue-700 px-1 truncate"
-															>
+															<p class="dark:text-blue-500 text-blue-700 px-1 truncate">
 																{#if $loadParentName}
-																	{#await getInfo(field, item[field].id, item.name ?? item.id) then value}
+																	{#await getParentInfo(field, item[field].id) then value}
 																		{value}
 																	{:catch}
 																		{item[field].id}
@@ -997,9 +864,13 @@
 											{:else if Object.is(item[field], null)}
 												-
 											{:else if Array.isArray(item[field])}
-												<ArrayDisplay {item} {field} on:copy={(e) => {
-													copy(e.detail.value);
-												}}/>
+												<ArrayDisplay
+													{item}
+													{field}
+													on:copy={(e) => {
+														copy(e.detail.value);
+													}}
+												/>
 											{:else}
 												{JSON.stringify(item[field], undefined, 2)}
 											{/if}

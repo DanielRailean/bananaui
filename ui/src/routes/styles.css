@@ -58,3 +58,75 @@ input, select, button {
 .method-options {
 	@apply bg-cyan-400 dark:bg-cyan-600;
 }
+
+.method-get:hover {
+	@apply !bg-emerald-500 dark:!bg-emerald-500;
+}
+
+.method-post:hover {
+	@apply !bg-blue-500 dark:!bg-blue-500;
+}
+
+.method-put:hover {
+	@apply !bg-orange-500 dark:!bg-orange-400;
+}
+
+.method-patch:hover {
+	@apply !bg-yellow-500 dark:!bg-yellow-300;
+}
+
+.method-delete:hover {
+	@apply !bg-red-500 dark:!bg-red-500;
+}
+
+.method-options:hover {
+	@apply !bg-cyan-500 dark:!bg-cyan-500;
+}
+
+.protocol-http {
+	@apply bg-sky-400 dark:bg-sky-600;
+}
+
+.protocol-https {
+	@apply bg-sky-500 dark:bg-sky-700;
+}
+
+.protocol-grpc {
+	@apply bg-purple-400 dark:bg-purple-600;
+}
+
+.protocol-grpcs {
+	@apply bg-purple-500 dark:bg-purple-700;
+}
+
+.protocol-ws {
+	@apply bg-amber-400 dark:bg-amber-600;
+}
+
+.protocol-wss {
+	@apply bg-amber-500 dark:bg-amber-700;
+}
+
+.protocol-http:hover {
+	@apply !bg-sky-500 dark:!bg-sky-500;
+}
+
+.protocol-https:hover {
+	@apply !bg-sky-600 dark:!bg-sky-600;
+}
+
+.protocol-grpc:hover {
+	@apply !bg-purple-500 dark:!bg-purple-500;
+}
+
+.protocol-grpcs:hover {
+	@apply !bg-purple-600 dark:!bg-purple-600;
+}
+
+.protocol-ws:hover {
+	@apply !bg-amber-500 dark:!bg-amber-500;
+}
+
+.protocol-wss:hover {
+	@apply !bg-amber-600 dark:!bg-amber-600;
+}

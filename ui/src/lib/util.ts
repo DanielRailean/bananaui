@@ -1,11 +1,35 @@
 import { apiService } from './requests';
 import type { IPlugins } from './responseTypes';
-import { addToast, confirmToast } from './toastStore';
+import { addToast, confirmToast, errorToast } from './toastStore';
 import type { IConfig, IKongPlugin } from './types';
 
 export const delay = (delayInms: number) => {
 	return new Promise((resolve) => setTimeout(resolve, delayInms));
 };
+
+export const parentInfoCache: { [key: string]: string } = {};
+
+export async function getParentInfo(fieldType: string, id: string): Promise<string> {
+	if (parentInfoCache[id] == '-1') {
+		await delay(200);
+		return getParentInfo(fieldType, id);
+	}
+	if (parentInfoCache[id]) {
+		return parentInfoCache[id];
+	}
+	parentInfoCache[id] = '-1';
+	const res = await (await apiService()).findRecord<any>(fieldType + 's', id);
+	if (!res.ok) {
+		errorToast(`Failed to load ${fieldType} (${id}). Status: ${res.code}`);
+		throw new Error('failed to load');
+	}
+	if (res.data.paths && res.data.paths.length > 0) {
+		parentInfoCache[id] = res.data.paths[0];
+		return parentInfoCache[id];
+	}
+	parentInfoCache[id] = res.data.name ?? res.data.tags ?? res.data.id;
+	return parentInfoCache[id];
+}
 
 export const writeToClipboard = (
 	text: string,

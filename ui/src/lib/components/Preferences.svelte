@@ -103,12 +103,14 @@
 	];
 
 	const defaultPref: { [key: string]: any } = {
-		version: 5.5,
+		version: 5.6,
 		loadParentInfo: false,
+		stripFieldsOnCleanCopy: ["created_at", "updated_at", "id", "service", "route", "consumer", "protocols", "enabled", "instance_name"],
 		paginationSizeUi: 20,
 		paginationSizeApi: 1000,
 		showPluginOrder: false,
 		useNewSearch: false,
+		useFuzzySearch: false,
 		useEphemeralGetRequestsCache: true,
 		sortSearchedItemsDuringPaginationProcess: false,
 		showDeleteAllButton: false,
