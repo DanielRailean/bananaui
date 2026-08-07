@@ -194,7 +194,12 @@
 	let openedPlugins: any = {};
 
 	async function deleteEntity(type: string, id: string, name: string) {
-		const conf = await confirm(`Please confirm deletion of '${name}'`);
+		const conf = await confirm({
+			title: 'Delete entity',
+			message: `Please confirm deletion of '${name}'`,
+			variant: 'danger',
+			confirmText: 'Delete'
+		});
 		if (!conf) {
 			return;
 		}
@@ -220,7 +225,11 @@
 		confirmToast(`json is valid`);
 	}
 	async function save() {
-		const a = await confirm('confirm save?');
+		const a = await confirm({
+			message: 'Confirm save?',
+			variant: 'info',
+			confirmText: 'Save'
+		});
 		if (!a) {
 			return;
 		}

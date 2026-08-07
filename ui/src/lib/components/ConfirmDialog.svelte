@@ -40,6 +40,11 @@
 		const btn = dialogEl.querySelector<HTMLButtonElement>('[data-confirm-cancel]');
 		btn?.focus();
 	}
+
+	const MAX_MESSAGE_LENGTH = 500;
+	$: displayMessage = $confirmState.message.length > MAX_MESSAGE_LENGTH
+		? $confirmState.message.slice(0, MAX_MESSAGE_LENGTH) + '…'
+		: $confirmState.message;
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -57,11 +62,11 @@
 	>
 		<div
 			bind:this={dialogEl}
-			class="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-[#1E2021] dark:border dark:border-stone-700"
+			class="w-full max-w-md max-h-[80vh] flex flex-col rounded-xl bg-white p-6 shadow-2xl dark:bg-[#1E2021] dark:border dark:border-stone-700"
 			transition:scale={{ duration: 150, start: 0.95 }}
 			on:click|stopPropagation
 		>
-			<div class="flex items-start gap-4">
+			<div class="flex items-start gap-4 min-h-0 overflow-y-auto">
 				<div class="shrink-0 mt-0.5">
 					<ExclamationCircleSolid class="w-7 h-7 {variantColors.icon}" />
 				</div>
@@ -69,13 +74,13 @@
 					<h3 id="confirm-title" class="text-lg font-semibold text-gray-900 dark:text-stone-50">
 						{$confirmState.title}
 					</h3>
-					<p id="confirm-message" class="mt-2 text-sm text-gray-600 dark:text-stone-400">
-						{$confirmState.message}
+					<p id="confirm-message" class="mt-2 text-sm text-gray-600 dark:text-stone-400 whitespace-pre-wrap break-words">
+						{displayMessage}
 					</p>
 				</div>
 			</div>
 
-			<div class="mt-6 flex justify-end gap-3">
+			<div class="mt-6 flex justify-end gap-3 shrink-0">
 				<button
 					data-confirm-cancel
 					class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:bg-stone-700 dark:text-stone-200 dark:hover:bg-stone-600 dark:focus:ring-stone-500"

@@ -144,7 +144,11 @@
 											<Toggle
 												isChecked={writable(data[key])}
 												on:change={async () => {
-													let ok = await confirm('confirm action');
+													let ok = await confirm({
+														message: 'Confirm toggle?',
+														variant: 'warning',
+														confirmText: data[key] ? 'Disable' : 'Enable'
+													});
 													if (ok) {
 														await disable(data['id'], data[key]);
 													}

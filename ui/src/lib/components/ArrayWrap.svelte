@@ -91,9 +91,11 @@
 
 	let debouncedCopy = debouncedCall(copyYamlOrJson, 510);
 	let debouncedCopyAllConfirm = debouncedCall(async (format: 'yaml' | 'json') => {
-		const conf = await confirm(
-			`confirm ${format.toUpperCase()} copy of ${filteredData.length} entities?`
-		);
+		const conf = await confirm({
+			message: `confirm ${format.toUpperCase()} copy of ${filteredData.length} entities?`,
+			variant: 'info',
+			confirmText: 'Copy'
+		});
 		if (!conf) {
 			return;
 		}
@@ -220,7 +222,12 @@
 	}
 
 	async function deleteEntity(type: string, id: string, name: string) {
-		const conf = await confirm(`Please confirm deletion of '${name}'`);
+		const conf = await confirm({
+			title: 'Delete entity',
+			message: `Please confirm deletion of '${name}'`,
+			variant: 'danger',
+			confirmText: 'Delete'
+		});
 		if (!conf) {
 			return;
 		}
@@ -495,31 +502,44 @@
 						title="deletes currently filtered entites"
 						class="flex flex-row items-center dark:bg-rose-900 rounded p-1 pr-2 m-1 h-9 shadow shadow-stone-400 dark:shadow-stone-900"
 						on:click={async () => {
-							const conf = await confirm(
-								`this will delete all entities currently visible: ${filteredData.length} in total`
-							);
+							const conf = await confirm({
+								title: 'Delete all entities',
+								message: `This will delete all entities currently visible: ${filteredData.length} in total`,
+								variant: 'danger',
+								confirmText: 'Delete all'
+							});
 							if (!conf) {
 								return;
 							}
-							const confirmEach = await confirm(
-								`delete without confirmation on each entity (Cancel)\nor confirm each entity's deletion individually (OK) ?`
-							);
-							const conf2 = await confirm(
-								`think twice, this is the last chance to cancel!\n(refresh the page to stop the process)`
-							);
+							const confirmEach = await confirm({
+								title: 'Individual confirmation?',
+								message: `Confirm each entity's deletion individually (Confirm) or delete all without asking (Cancel)?`,
+								variant: 'warning',
+								confirmText: 'Confirm each',
+								cancelText: 'Delete all'
+							});
+							const conf2 = await confirm({
+								title: 'Last chance',
+								message: `Think twice, this is the last chance to cancel! (refresh the page to stop the process)`,
+								variant: 'danger',
+								confirmText: 'Proceed'
+							});
 							if (!conf2) {
 								return;
 							}
 							let anyDeleted = false;
 							for (const entity of filteredData) {
 								if (confirmEach) {
-										const confirmEntity = await confirm(
-										`Confirm deletion of:\n ${JSON.stringify(
-											{ name: entity.name, tags: entity.tags, id: entity.id },
-											undefined,
-											2
-										)}`
-									);
+										const confirmEntity = await confirm({
+											title: 'Delete entity',
+											message: `Confirm deletion of: ${JSON.stringify(
+												{ name: entity.name, tags: entity.tags, id: entity.id },
+												undefined,
+												2
+											)}`,
+											variant: 'danger',
+											confirmText: 'Delete'
+										});
 									if (!confirmEntity) {
 										continue;
 									}
@@ -534,12 +554,12 @@
 									);
 								} else {
 									errorToast(`failed deletion of ${entity.name ?? entity.id}`);
-									errorToast(res.err ?? 'unknown error occured');
+									errorToast(res.err ?? 'unknown error occurred');
 									break;
 								}
 							}
 							if (anyDeleted) {
-								infoToast('deletion successfully finished! the page will be refreshed soon.');
+								infoToast('deletion successfully finished! the list will be refreshed soon.');
 								dispatch('refresh');
 							}
 						}}
@@ -661,11 +681,14 @@
 						"
 						title="apply bulk update"
 						on:click={async () => {
-							let ok = await confirm(
-								`confirm bulk update of ${filteredData.length} items ?\n${JSON.stringify(
+							let ok = await confirm({
+								title: 'Bulk update',
+								message: `Confirm bulk update of ${filteredData.length} items?\n${JSON.stringify(
 									filteredData.map((i) => i.name ?? i.id ?? 'no name/id')
-								)}`
-							);
+								)}`,
+								variant: 'warning',
+								confirmText: 'Update'
+							});
 							if (ok) {
 								await applyBulkUpdate();
 							} else {
