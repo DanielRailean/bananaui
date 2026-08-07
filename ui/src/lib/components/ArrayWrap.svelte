@@ -349,18 +349,34 @@
 		console.log(`Triggered on try ${selfCalled}`);
 	}
 
+	function formatBulkJson(): boolean {
+		try {
+			const parsed = JSON.parse(json);
+			json = JSON.stringify(parsed, undefined, 2);
+			triggerHighlight();
+			confirmToast('json is valid');
+			return true;
+		} catch (err: any) {
+			errorToast(`Failed to parse JSON. ${err.message}`);
+			return false;
+		}
+	}
+
 	async function applyBulkUpdate() {
+		if (!formatBulkJson()) return;
 		bulkUpdateOpened = false;
 		const updateBody = JSON.parse(json);
-		for (const element of filteredData) {
+		const total = filteredData.length;
+		for (let i = 0; i < total; i++) {
+			const element = filteredData[i];
 			const res = await (await apiService()).updateRecord(type, element.id, updateBody);
 			if (!res.ok) {
-				errorToast(res.err ?? `failed to update ${element.id}`);
+				errorToast(`[${i + 1}/${total}] failed to update ${element.id}. ${res.err}`);
 			} else {
-				infoToast(`ok update ${element.id} with ${JSON.stringify(updateBody)}`);
+				infoToast(`[${i + 1}/${total}] updated ${element.name ?? element.id}`);
 			}
 		}
-		infoToast(`bulk update finished`);
+		infoToast(`bulk update finished (${total} entities)`);
 		clearCache(type);
 		dispatch('refresh');
 	}
@@ -648,9 +664,18 @@
 						}}
 					></textarea>
 				</div>
-				<div class=" dark:bg-stone-800 py-3">
+				<div class=" dark:bg-stone-800 py-3 flex flex-row space-x-2">
 					<button
 						class="flex flex-row p-1 px-3 ml-3 shadow
+						shadow-stone-400 dark:shadow-stone-900
+						h-9 items-center rounded
+						dark:bg-blue-700 bg-blue-500 text-white
+						"
+						title="format and validate JSON"
+						on:click={() => formatBulkJson()}
+					>format + validate</button>
+					<button
+						class="flex flex-row p-1 px-3 shadow
 						shadow-stone-400 dark:shadow-stone-900
 						h-9 items-center rounded
 						text-white
