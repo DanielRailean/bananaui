@@ -15,7 +15,7 @@
 		"@neoconfetti/svelte": "1.0.0",
 		"@sveltejs/adapter-auto": "3.0.0",
 		"@sveltejs/adapter-static": "3.0.2",
-		"@sveltejs/kit": "2.4.3",
+		"@sveltejs/kit": "2.70.2",
 		"@sveltejs/vite-plugin-svelte": "3.0.0",
 		"@types/js-yaml": "4.0.9",
 		"@types/luxon": "3.4.2",
@@ -24,7 +24,7 @@
 		"flowbite-svelte": "0.46.2",
 		"flowbite-svelte-icons": "1.6.1",
 		"luxon": "3.4.4",
-		"postcss": "8.4.38",
+		"postcss": "8.5.26",
 		"prettier": "3.1.1",
 		"prettier-plugin-svelte": "3.1.2",
 		"svelte": "4.2.7",
@@ -33,13 +33,13 @@
 		"tailwindcss": "3.4.4",
 		"tslib": "2.4.1",
 		"typescript": "5.5.2",
-		"vite": "5.0.13"
+		"vite": "5.4.21"
 	},
 	"type": "module",
 	"dependencies": {
 		"@sveltejs/adapter-node": "5.2.0",
 		"fuse.js": "7.5.0",
-		"js-yaml": "4.1.0"
+		"js-yaml": "5.2.3"
 	},
 	"packageManager": "pnpm@10.18.1+sha512.77a884a165cbba2d8d1c19e3b4880eee6d2fcabd0d879121e282196b80042351d5eb3ca0935fa599da1dc51265cc68816ad2bddd2a2de5ea9fdf92adbec7cd34"
 }
