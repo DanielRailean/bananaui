@@ -62,7 +62,7 @@
 		if (entityType) {
 			return entityType === item.name;
 		}
-		return window.location.pathname == item.appPath;
+		return window.location.pathname.endsWith(item.appPath);
 	}
 
 	onMount(() => {
