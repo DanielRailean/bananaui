@@ -58,3 +58,27 @@ input, select, button {
 .method-options {
 	@apply bg-cyan-400 dark:bg-cyan-600;
 }
+
+.method-get:hover {
+	@apply !bg-emerald-500 dark:!bg-emerald-500;
+}
+
+.method-post:hover {
+	@apply !bg-blue-500 dark:!bg-blue-500;
+}
+
+.method-put:hover {
+	@apply !bg-orange-500 dark:!bg-orange-400;
+}
+
+.method-patch:hover {
+	@apply !bg-yellow-500 dark:!bg-yellow-300;
+}
+
+.method-delete:hover {
+	@apply !bg-red-500 dark:!bg-red-500;
+}
+
+.method-options:hover {
+	@apply !bg-cyan-500 dark:!bg-cyan-500;
+}
