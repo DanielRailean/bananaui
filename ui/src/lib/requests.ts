@@ -240,10 +240,6 @@ export let apiService = async (retryNo?: number): Promise<ApiService> => {
 		addToast({ message: `Failed to return apiService after ${maxRetries} retries` });
 	}
 	const token = get(userToken);
-	if (token && token.expires > 0 && DateTime.now().toUnixInteger() > token.expires) {
-		userToken.set(undefined)
-		goto(`${base}/login?auto=true`);
-	}
 	if (apiInstance) {
 		return apiInstance;
 	}
