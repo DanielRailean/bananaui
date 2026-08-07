@@ -9,6 +9,7 @@
 	import { page, navigating, updated } from '$app/stores';
 	import { delay, getPluginPriorityMap, getPlugins, writeToClipboard } from '$lib/util';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
+	import { confirm } from '$lib/confirmStore';
 	import {
 		CaretDownOutline,
 		CirclePlusOutline,
@@ -193,7 +194,7 @@
 	let openedPlugins: any = {};
 
 	async function deleteEntity(type: string, id: string, name: string) {
-		const conf = confirm(`Please confirm deletion of '${name}'`);
+		const conf = await confirm(`Please confirm deletion of '${name}'`);
 		if (!conf) {
 			return;
 		}
@@ -219,7 +220,7 @@
 		confirmToast(`json is valid`);
 	}
 	async function save() {
-		const a = confirm('confirm save?');
+		const a = await confirm('confirm save?');
 		if (!a) {
 			return;
 		}

@@ -13,6 +13,7 @@
 	import { dateFields, yamlDumpOptions } from '$lib/config';
 	import { apiService, clearCache } from '$lib/requests';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
+	import { confirm } from '$lib/confirmStore';
 	import { createEventDispatcher } from 'svelte';
 	import type { IKongEntity, ITooggleableEntityMaybe } from '$lib/types';
 	import { base } from '$app/paths';
@@ -89,8 +90,8 @@
 	}
 
 	let debouncedCopy = debouncedCall(copyYamlOrJson, 510);
-	let debouncedCopyAllConfirm = debouncedCall((format: 'yaml' | 'json') => {
-		const conf = confirm(
+	let debouncedCopyAllConfirm = debouncedCall(async (format: 'yaml' | 'json') => {
+		const conf = await confirm(
 			`confirm ${format.toUpperCase()} copy of ${filteredData.length} entities?`
 		);
 		if (!conf) {
@@ -219,7 +220,7 @@
 	}
 
 	async function deleteEntity(type: string, id: string, name: string) {
-		const conf = confirm(`Please confirm deletion of '${name}'`);
+		const conf = await confirm(`Please confirm deletion of '${name}'`);
 		if (!conf) {
 			return;
 		}
@@ -494,16 +495,16 @@
 						title="deletes currently filtered entites"
 						class="flex flex-row items-center dark:bg-rose-900 rounded p-1 pr-2 m-1 h-9 shadow shadow-stone-400 dark:shadow-stone-900"
 						on:click={async () => {
-							const conf = confirm(
+							const conf = await confirm(
 								`this will delete all entities currently visible: ${filteredData.length} in total`
 							);
 							if (!conf) {
 								return;
 							}
-							const confirmEach = confirm(
+							const confirmEach = await confirm(
 								`delete without confirmation on each entity (Cancel)\nor confirm each entity's deletion individually (OK) ?`
 							);
-							const conf2 = confirm(
+							const conf2 = await confirm(
 								`think twice, this is the last chance to cancel!\n(refresh the page to stop the process)`
 							);
 							if (!conf2) {
@@ -512,7 +513,7 @@
 							let anyDeleted = false;
 							for (const entity of filteredData) {
 								if (confirmEach) {
-									const confirmEntity = confirm(
+										const confirmEntity = await confirm(
 										`Confirm deletion of:\n ${JSON.stringify(
 											{ name: entity.name, tags: entity.tags, id: entity.id },
 											undefined,
@@ -660,7 +661,7 @@
 						"
 						title="apply bulk update"
 						on:click={async () => {
-							let ok = confirm(
+							let ok = await confirm(
 								`confirm bulk update of ${filteredData.length} items ?\n${JSON.stringify(
 									filteredData.map((i) => i.name ?? i.id ?? 'no name/id')
 								)}`

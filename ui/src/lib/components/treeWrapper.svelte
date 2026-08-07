@@ -10,6 +10,7 @@
 	import Toggle from './Toggle.svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { confirmToast, infoToast } from '$lib/toastStore';
+	import { confirm } from '$lib/confirmStore';
 	import { apiService } from '$lib/requests';
 	import { preferences } from '$lib/stores';
 	import ArrayDisplay from './ArrayDisplay.svelte';
@@ -143,7 +144,7 @@
 											<Toggle
 												isChecked={writable(data[key])}
 												on:change={async () => {
-													let ok = confirm('confirm action');
+													let ok = await confirm('confirm action');
 													if (ok) {
 														await disable(data['id'], data[key]);
 													}
