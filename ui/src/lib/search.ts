@@ -29,9 +29,11 @@ function getFuse<T>(arr: T[]): Fuse<T> {
 }
 
 export function doFuzzySearch<T extends { id: string }>(input: string, arr: T[]): T[] {
-	if (input.trim().length === 0) return arr;
+	const { query, limit } = parseLimit(input);
+	if (query.trim().length === 0) return limit != null ? arr.slice(0, limit) : arr;
 	const fuse = getFuse(arr);
-	return fuse.search(input).map(r => r.item);
+	const results = fuse.search(query).map(r => r.item);
+	return limit != null ? results.slice(0, limit) : results;
 }
 
 function fuzzyMatch(obj: any, term: string, fuzzyMatchSets?: Map<string, Set<string>>): boolean {
@@ -170,11 +172,20 @@ function buildFuzzyMatchSets<T extends { id: string }>(terms: string[], arr: T[]
 	return map;
 }
 
+const limitRegex = /\|\s*limit\s+(\d+)\s*$/i;
+
+function parseLimit(input: string): { query: string; limit: number | null } {
+	const m = input.match(limitRegex);
+	if (m) return { query: input.slice(0, m.index).trimEnd(), limit: parseInt(m[1], 10) };
+	return { query: input, limit: null };
+}
+
 // loop over comma groups (OR), intersect && groups (AND), any || condition passes within a group
 export function doSearch<T extends { id: string }>(input: string, arr: T[], fuzzy = false): T[] {
-	const orAndOr = getLogicalGroups(input);
+	const { query, limit } = parseLimit(input);
+	const orAndOr = getLogicalGroups(query);
 	if (orAndOr.length == 0) {
-		return arr;
+		return limit != null ? arr.slice(0, limit) : arr;
 	}
 	const fuzzyMatchSets = fuzzy ? buildFuzzyMatchSets(extractTerms(orAndOr), arr) : undefined;
 	const seenIds = new Set<string>();
@@ -197,7 +208,7 @@ export function doSearch<T extends { id: string }>(input: string, arr: T[], fuzz
 			}
 		}
 	}
-	return result;
+	return limit != null ? result.slice(0, limit) : result;
 }
 
 // --- tests (run with: npx tsx src/lib/search.ts) ---
@@ -300,6 +311,14 @@ if (typeof process !== 'undefined' && process.argv[1]?.endsWith('search.ts')) {
 
 	// duplicate comma groups (dedup)
 	assert('dedup comma', 'prod, prod', doSearch('prod, prod', items).map(i => i.id), ['1', '3']);
+
+	// | take N
+	assert('limit: basic', 'prod | limit 1', doSearch('prod | limit 1', items).map(i => i.id), ['1']);
+	assert('limit: larger than results', 'prod | limit 99', doSearch('prod | limit 99', items).map(i => i.id), ['1', '3']);
+	assert('limit: with AND', 'api && !staging | limit 1', doSearch('api && !staging | limit 1', items).map(i => i.id), ['1']);
+	assert('limit: case insensitive', 'prod | LIMIT 2', doSearch('prod | LIMIT 2', items).map(i => i.id), ['1', '3']);
+	assert('limit: empty query', '| limit 2', doSearch('| limit 2', items).map(i => i.id), ['1', '2']);
+	assert('limit: fuzzySearch', 'prod | limit 1', doFuzzySearch('prod | limit 1', items).map(i => i.id), ['1']);
 
 	// getLogicalGroups
 	assert('parse empty', '(empty)', getLogicalGroups(''), []);
