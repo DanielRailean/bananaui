@@ -322,7 +322,7 @@
 					}}
 				>
 					<FileCopyOutline class="m-2" />
-					copy JSON</Button
+					JSON copy</Button
 				>
 				<Button
 					color="alternative"
@@ -333,7 +333,21 @@
 					}}
 				>
 					<FileCopyAltOutline class="m-2" />
-					copy YAML</Button
+					YAML copy</Button
+				>
+				<Button
+					color="alternative"
+					class="h-10 m-1"
+					on:click={() => {
+						const obj = JSON.parse(stateJson);
+						for (const field of get(preferences.stripFieldsOnCleanCopy)) {
+							obj[field] = undefined;
+						}
+						writeToClipboard(dump(obj, yamlDumpOptions));
+					}}
+				>
+					<FileCopyAltOutline class="m-2" />
+					YAML copy (clean)</Button
 				>
 			{:else}
 				<Button
