@@ -31,6 +31,8 @@
 		['Unfocus / cancel', 'Esc'],
 	];
 
+	const dpFetchIntervalSeconds = 10
+
 	async function fetchDataplanes() {
 		try {
 			clearCache('clustering/data-planes');
@@ -94,7 +96,7 @@
 			});
 			tickInterval = setInterval(() => { tick++; }, 1000);
 			await Promise.all([...countPromises, fetchDataplanes()]);
-			dpInterval = setInterval(fetchDataplanes, 15000);
+			dpInterval = setInterval(fetchDataplanes, dpFetchIntervalSeconds * 1000);
 		} catch (error: any) {
 			if (error.message !== 'Failed to fetch' && error.message !== 'Config not available') {
 				addToast({ message: `Failed fetching the info. ${error.message ? error.message : ''}` });
@@ -181,7 +183,7 @@
 					</span>
 					{#if dpLastRefresh}
 				{@const elapsed = Math.round((Date.now() - dpLastRefresh.toMillis()) / 1000) + tick * 0}
-						{@const remaining = Math.max(0, 15 - elapsed)}
+						{@const remaining = Math.max(0, dpFetchIntervalSeconds - elapsed)}
 						<span class="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--accent)] pr-1">
 							<span class="relative flex h-2 w-2">
 								<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-50"></span>

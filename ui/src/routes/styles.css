@@ -55,6 +55,15 @@ input, button {
 	@apply focus:ring-0 focus:outline-none;
 }
 
+:focus:not(:focus-visible) {
+	outline: none;
+}
+
+:focus-visible {
+	outline: 1px solid var(--accent);
+	outline-offset: 2px;
+}
+
 select {
 	@apply focus:ring-0;
 	border: 1px solid var(--glass-border);
