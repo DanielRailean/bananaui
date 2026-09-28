@@ -381,31 +381,43 @@
 		editorWindow.style.height = editorWindow.scrollHeight + 3 + 'px';
 	}
 
-	const paginationClasses = `p-2
-	items-center
-	justify-center
-	flex
-					dark:dark:bg-stone-800
-					disabled:dark:bg-zinc-800
-					disabled:dark:text-white
-					shadow
-					disabled:shadow-stone-400
-					disabled:dark:shadow-stone-900
-					cursor-pointer
-					disabled:cursor-not-allowed`;
+	const paginationClasses = `btn-icon h-8 w-8 rounded-lg glass`;
+
+	let searchInputEl: HTMLInputElement;
+	let highlightedRow = -1;
+
+	function handleGlobalKey(e: KeyboardEvent) {
+		if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+		if (e.key === '/') {
+			e.preventDefault();
+			searchInputEl?.focus();
+		} else if (e.key === 'j' && filteredData.length > 0) {
+			e.preventDefault();
+			highlightedRow = Math.min(highlightedRow + 1, filteredData.slice(arrayStart, arrayEnd).length - 1);
+		} else if (e.key === 'k' && filteredData.length > 0) {
+			e.preventDefault();
+			highlightedRow = Math.max(highlightedRow - 1, 0);
+		} else if (e.key === 'Enter' && highlightedRow >= 0) {
+			e.preventDefault();
+			const item = filteredData.slice(arrayStart, arrayEnd)[highlightedRow];
+			if (item) goto(`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`);
+		}
+	}
 </script>
 
-<div class="w-full text-sm text-left rtl:text-right text-stone-800 font-light dark:text-stone-300">
-	<div class="p-3 pl-4 pb-2 dark:bg-stone-800">
-		<h1 class="text-xl ml-1 dark:text-zinc-300">
-			{filteredData ? filteredData.length : 'Loading'}
-			{capitalizeFirstLetter(type)}
-		</h1>
+<svelte:window on:keydown={handleGlobalKey} />
+
+<div class="w-full text-sm text-left rtl:text-right text-[var(--text-primary)]">
+	<div class="px-4 pt-3 pb-2">
+		<p class="text-sm text-[var(--text-secondary)] font-medium">
+			{filteredData ? filteredData.length : '…'} items
+		</p>
 	</div>
 
-	<div class="w-full p-3 py-2 dark:bg-stone-800">
+	<div class="w-full px-4 py-2">
 		<input
-			class="bg-transparent border-none outline-none focus:[box-shadow:none] ml-[-8px] w-full dark:bg-stone-800 disabled:cursor-not-allowed"
+			bind:this={searchInputEl}
+			class="input-field"
 			style="font-variant-ligatures: none;"
 			type="text"
 			disabled={!($dataRaw && $dataRaw.length > 0)}
@@ -416,12 +428,13 @@
 				updateSearchParamWithDebounce({ search: searchText });
 				debouncedSearch();
 			}}
+			on:keydown={(e) => { if (e.key === 'Escape') { e.preventDefault(); searchInputEl?.blur(); } }}
 			title="Filter entities using search DSL. See Reference page for full syntax (&&, ||, !, .len ==, .len !=, comma groups)."
-			placeholder="filter (hover for more info)"
+			placeholder="Search or filter… (press / to focus, Esc to unfocus)"
 		/>
 	</div>
 	{#if searchText != '' && useFuzzySearch}
-		<div class="px-4 pb-4 dark:bg-stone-800">
+		<div class="px-4 pb-4">
 			<Toggle
 				isChecked={useFuzzySearch}
 				title={'Fuzzy search (typo-tolerant) instead of exact DSL matching'}
@@ -434,15 +447,11 @@
 		</div>
 	{/if}
 	{#if filteredData.length > 0}
-		<div class="flex flex-row w-full h-12 pb-2 justify-between items-center dark:bg-stone-800">
-			<div class="flex flex-row items-center space-x-2 ml-[1px] pl-3 dark:dark:bg-stone-800">
+		<div class="flex flex-row w-full pb-2 justify-between items-center">
+			<div class="flex flex-row items-center gap-2 px-4">
 				<select
 					title="chose the field used to sort the items"
-					class="dark:dark:bg-stone-800 p-0 h-9
-					max-w-40
-					text-sm
-				 pl-2 border-none rounded focus:border-none
-				shadow shadow-stone-400 dark:shadow-stone-900 cursor-pointer"
+					class="input-field max-w-48 cursor-pointer"
 					bind:value={sortByField}
 					on:change={() => {
 						updateSearchParamWithDebounce.flush({ sortBy: sortByField });
@@ -455,9 +464,7 @@
 						>
 					{/each}
 				</select>
-				<div
-					class="h-9 flex items-center shadow shadow-stone-400 dark:shadow-stone-900 px-2 rounded"
-				>
+				<div class="h-10 flex items-center glass px-3 rounded-xl">
 					<Toggle
 						isChecked={sortAscending}
 						labelLeft="Z->A"
@@ -479,7 +486,7 @@
 						filteredData = filteredData;
 						infoToast('sorted!');
 					}}
-					class="flex flex-row items-center dark:dark:bg-stone-800 shadow shadow-stone-400 dark:shadow-stone-900 rounded p-1 pr-2 m-1"
+					class="btn-glass"
 				>
 					<OrderedListOutline class="m-1" />
 					Sort
@@ -492,7 +499,7 @@
 					on:dblclick={() => {
 						debouncedCopyAllConfirm.flush('yaml');
 					}}
-					class="flex flex-row items-center dark:dark:bg-stone-800 rounded p-1 pr-2 m-1 shadow shadow-stone-400 dark:shadow-stone-900"
+					class="btn-glass"
 				>
 					<FileCopyOutline class="m-1" />
 					Copy all
@@ -500,7 +507,7 @@
 				{#if get(preferences.showDeleteAllButton)}
 					<button
 						title="deletes currently filtered entites"
-						class="flex flex-row items-center dark:bg-rose-900 rounded p-1 pr-2 m-1 h-9 shadow shadow-stone-400 dark:shadow-stone-900"
+						class="btn-danger"
 						on:click={async () => {
 							const conf = await confirm({
 								title: 'Delete all entities',
@@ -569,7 +576,7 @@
 					</button>
 				{/if}
 				<button
-					class="flex flex-row p-1 m-1 shadow shadow-stone-400 dark:shadow-stone-900 h-9 items-center rounded"
+					class="btn-glass"
 					title="will update the entire list of entities with a given PATCH body. Sends a PATCH HTTP request"
 					on:click={() => {
 						if (json.length == 0) {
@@ -589,9 +596,7 @@
 					<CaretDownOutline class="" />
 					Bulk update</button
 				>
-				<div
-					class="flex flex-row items-center dark:bg-stone-800 shadow shadow-stone-400 dark:shadow-stone-900 h-9 px-2 rounded"
-				>
+				<div class="flex items-center glass h-10 px-3 rounded-xl">
 					<Toggle
 						isChecked={loadParentName}
 						title={'Loads parent entity name if enabled'}
@@ -662,23 +667,14 @@
 						}}
 					></textarea>
 				</div>
-				<div class=" dark:bg-stone-800 py-3 flex flex-row space-x-2">
+				<div class="flex flex-row gap-2 py-3 px-4">
 					<button
-						class="flex flex-row p-1 px-3 ml-3 shadow
-						shadow-stone-400 dark:shadow-stone-900
-						h-9 items-center rounded
-						dark:bg-blue-700 bg-blue-500 text-white
-						"
+						class="btn-accent"
 						title="format and validate JSON"
 						on:click={() => formatBulkJson()}
-					>format + validate</button>
+					>Format</button>
 					<button
-						class="flex flex-row p-1 px-3 shadow
-						shadow-stone-400 dark:shadow-stone-900
-						h-9 items-center rounded
-						text-white
-						dark:bg-emerald-600 bg-emerald-400
-						"
+						class="btn-success"
 						title="apply bulk update"
 						on:click={async () => {
 							let ok = await confirm({
@@ -699,15 +695,14 @@
 				</div>
 			</div>
 		{/if}
-		<table class="w-full mb-2">
-			<thead
-				class="text-stone-800 text-sm dark:dark:bg-stone-800 bg-gray-200 font-bold dark:text-stone-300 h-10"
-			>
+		<div class="mx-4 rounded-xl border border-[var(--glass-border)] overflow-hidden">
+		<table class="w-full">
+			<thead class="text-xs uppercase tracking-wider text-[var(--text-tertiary)] h-10 border-b border-[var(--glass-border)] bg-black/[0.02] dark:bg-white/[0.02]">
 				<tr>
 					{#if get(preferences.enumerateEntities)}
 						<th><p class="p-4">No.</p></th>
 					{/if}
-					<th><p class="p-4">Actions</p></th>
+					<th class="w-0"><p class="p-4"></p></th>
 					{#each displayedFields ?? Object.keys($dataRaw[0] ?? {}) as field}
 						{#if Object.keys($dataRaw[0] ?? {}).includes(field)}
 							<th scope="col" class="p-2">
@@ -720,7 +715,8 @@
 			<tbody>
 				{#each filteredData.slice(arrayStart, arrayEnd) as item, index}
 					<tr
-						class="dark:hover:bg-stone-900 hover:bg-indigo-100 border dark:border-stone-800 rounded"
+						class="group border-b border-[var(--glass-border)] transition-colors duration-100
+							{index === highlightedRow ? 'bg-[var(--accent)]/[0.08] dark:bg-[var(--accent)]/[0.12]' : 'hover:bg-[var(--accent)]/[0.03] dark:hover:bg-white/[0.04]'}"
 						on:auxclick={() => {
 							window.open(
 								`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`,
@@ -735,39 +731,35 @@
 								</p></td
 							>
 						{/if}
-						<td class="p-2">
-							<div class=" space-x-1 flex flex-row">
+						<td class="p-2 w-0">
+							<div class="flex flex-row gap-0.5 opacity-30 group-hover:opacity-100 transition-opacity duration-100">
 								<button
-									class="h-8"
-									title={'copy (single click for JSON, double click for YAML) ' +
-										JSON.stringify(item, undefined, 2)}
-									on:click={() => {
+									class="btn-icon h-8 w-8"
+									title={'copy (single click for JSON, double click for YAML)'}
+									on:click|stopPropagation={() => {
 										debouncedCopy('json', item);
 									}}
-									on:dblclick={() => {
+									on:dblclick|stopPropagation={() => {
 										debouncedCopy.flush('yaml', item);
 									}}
 								>
-									<div
-										class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700"
-									>
-										<FileCopyOutline class="m-1" size="lg" />
-									</div>
+									<FileCopyOutline size="sm" />
 								</button>
-								<Link href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}" />
+								<a
+									href="{base}/entity?type={type}&id={item.id}&prefix={pathPrefix}"
+									class="btn-icon h-8 w-8 inline-flex items-center justify-center"
+									title="open"
+									on:click|stopPropagation|preventDefault={() => goto(`${base}/entity?type=${type}&id=${item.id}&prefix=${pathPrefix}`)}
+								>
+									<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+								</a>
 								<button
-									class="h-8"
+									class="btn-icon h-8 w-8 text-[var(--danger)]"
 									title="delete"
-									on:click={async () =>
+									on:click|stopPropagation={async () =>
 										await deleteEntity(entity?.name ?? '', item.id, item.name ?? item.id)}
 								>
-									<div class="text-rose-500">
-										<div
-											class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700"
-										>
-											<TrashBinOutline class="m-1" size="lg" />
-										</div>
-									</div>
+									<TrashBinOutline size="sm" />
 								</button>
 							</div>
 						</td>
@@ -861,7 +853,7 @@
 														</div>
 													</a>
 												</div>
-											{:else if Object.is(item[field], null)}
+											{:else if Object.is(item[field], null) || item[field] === undefined}
 												-
 											{:else if Array.isArray(item[field])}
 												<ArrayDisplay
@@ -883,6 +875,27 @@
 				{/each}
 			</tbody>
 		</table>
+		</div>
+	{:else}
+		{#if $dataRaw && $dataRaw.length === 0}
+			<div class="flex flex-col items-center justify-center py-16 px-4">
+				<div class="h-12 w-12 rounded-full bg-[var(--accent)]/10 flex items-center justify-center mb-4">
+					<svg class="w-6 h-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+					</svg>
+				</div>
+				<p class="text-base font-semibold text-[var(--text-primary)] mb-1">No {type} found</p>
+				<p class="text-sm text-[var(--text-secondary)] mb-4">Add a new one to get started.</p>
+				<a href="{base}/add?type={type}" class="btn-accent inline-flex items-center gap-1.5">
+					<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+					Add new
+				</a>
+			</div>
+		{:else if searchText}
+			<div class="flex flex-col items-center py-12 px-4">
+				<p class="text-sm text-[var(--text-tertiary)]">No results matching "{searchText}"</p>
+			</div>
+		{/if}
 	{/if}
 </div>
 

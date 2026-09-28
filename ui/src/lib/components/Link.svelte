@@ -6,10 +6,8 @@
 	export let classes = '';
 </script>
 
-<button {title} class="h-8 {classes}" color="alternative">
-	<a {href} class="dark:text-emerald-600 text-emerald-400">
-		<div class="flex flex-row items-center rounded hover:outline outline-1 hover:outline-stone-700">
-			<ArrowUpRightFromSquareOutline class="m-1" size="lg" />
-		</div>
+<button {title} class="btn-icon {classes}" color="alternative">
+	<a {href} class="text-[var(--accent)]">
+		<ArrowUpRightFromSquareOutline size="sm" />
 	</a>
 </button>

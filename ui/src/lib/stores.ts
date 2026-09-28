@@ -3,8 +3,13 @@ import type { IConfig, IConfigWrap, IKongEntity } from './types';
 import { DateTime } from 'luxon';
 
 export const isDark = writable(0);
+export const sidebarCollapsed = writable(false);
 export const userToken: Writable<{ token: string, expires: number } | undefined> = writable(undefined);
 export const config: Writable<IConfigWrap | undefined | null> = writable(undefined);
+
+let _resolveAuthReady: () => void;
+export const authReady: Promise<void> = new Promise((r) => { _resolveAuthReady = r; });
+export function signalAuthReady() { _resolveAuthReady(); }
 
 export function setPreferences(prefs: any) {
 	preferences = prefs

@@ -23,16 +23,16 @@
 
 	$: variantColors = {
 		danger: {
-			icon: 'fill-rose-500',
-			btn: 'bg-rose-600 hover:bg-rose-700 focus:ring-rose-500'
+			icon: 'fill-[var(--danger)]',
+			btn: 'btn-danger'
 		},
 		warning: {
-			icon: 'fill-amber-500',
-			btn: 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500'
+			icon: 'fill-[var(--warning)]',
+			btn: 'btn-accent'
 		},
 		info: {
-			icon: 'fill-blue-500 dark:fill-blue-400',
-			btn: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+			icon: 'fill-[var(--accent)]',
+			btn: 'btn-accent'
 		}
 	}[$confirmState.variant];
 
@@ -62,34 +62,56 @@
 	>
 		<div
 			bind:this={dialogEl}
-			class="w-full max-w-md max-h-[80vh] flex flex-col rounded-xl bg-white p-6 shadow-2xl dark:bg-[#1E2021] dark:border dark:border-stone-700"
-			transition:scale={{ duration: 150, start: 0.95 }}
+			class="w-full max-h-[80vh] flex flex-col rounded-2xl p-6 glass {$confirmState.changes.length > 0 ? 'max-w-lg' : 'max-w-md'}"
+			transition:scale={{ duration: 150, start: 0.97 }}
 			on:click|stopPropagation
 		>
-			<div class="flex items-start gap-4 min-h-0 overflow-y-auto">
+			<div class="flex items-start gap-3">
 				<div class="shrink-0 mt-0.5">
-					<ExclamationCircleSolid class="w-7 h-7 {variantColors.icon}" />
+					<ExclamationCircleSolid class="w-6 h-6 {variantColors.icon}" />
 				</div>
 				<div class="flex-1 min-w-0">
-					<h3 id="confirm-title" class="text-lg font-semibold text-gray-900 dark:text-stone-50">
+					<h3 id="confirm-title" class="text-base font-semibold">
 						{$confirmState.title}
 					</h3>
-					<p id="confirm-message" class="mt-2 text-sm text-gray-600 dark:text-stone-400 whitespace-pre-wrap break-words">
+					<p id="confirm-message" class="mt-1.5 text-[13px] text-[var(--text-secondary)] whitespace-pre-wrap break-words">
 						{displayMessage}
 					</p>
 				</div>
 			</div>
+			{#if $confirmState.changes.length > 0}
+				<div class="mt-3 max-h-[40vh] overflow-auto rounded-lg border border-[var(--glass-border)]">
+					<table class="w-full text-xs">
+						<thead class="sticky top-0 bg-[var(--bg-secondary)] z-10">
+							<tr class="text-left text-[var(--text-tertiary)] border-b border-[var(--glass-border)]">
+								<th class="px-3 py-2 font-medium">Field</th>
+								<th class="px-3 py-2 font-medium">Old</th>
+								<th class="px-3 py-2 font-medium">New</th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each $confirmState.changes as change, i}
+								<tr class="{i > 0 ? 'border-t border-[var(--glass-border)]' : ''}">
+									<td class="px-3 py-2 font-mono font-medium text-[var(--text-primary)] whitespace-nowrap">{change.field}</td>
+									<td class="px-3 py-2 font-mono text-red-600 dark:text-red-400 bg-red-500/5 break-all">{change.oldValue}</td>
+									<td class="px-3 py-2 font-mono text-green-600 dark:text-green-400 bg-green-500/5 break-all">{change.newValue}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/if}
 
-			<div class="mt-6 flex justify-end gap-3 shrink-0">
+			<div class="mt-6 flex justify-end gap-2">
 				<button
 					data-confirm-cancel
-					class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:bg-stone-700 dark:text-stone-200 dark:hover:bg-stone-600 dark:focus:ring-stone-500"
+					class="btn-ghost"
 					on:click={() => respond(false)}
 				>
 					{$confirmState.cancelText}
 				</button>
 				<button
-					class="rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-[#1E2021] {variantColors.btn}"
+					class="btn {variantColors.btn}"
 					on:click={() => respond(true)}
 				>
 					{$confirmState.confirmText}

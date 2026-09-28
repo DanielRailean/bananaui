@@ -2,7 +2,7 @@ import type { DumpOptions } from 'js-yaml';
 
 export const staticConfig = {
 	autoLoginDelayMs: 100,
-	name: 'BananaUI'
+	name: import.meta.env.VITE_APP_NAME || 'BananaUI'
 };
 
 export const yamlDumpOptions: DumpOptions = {

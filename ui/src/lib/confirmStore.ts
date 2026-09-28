@@ -1,5 +1,11 @@
 import { writable } from 'svelte/store';
 
+export interface FieldChange {
+	field: string;
+	oldValue: string;
+	newValue: string;
+}
+
 interface ConfirmState {
 	open: boolean;
 	title: string;
@@ -7,6 +13,7 @@ interface ConfirmState {
 	confirmText: string;
 	cancelText: string;
 	variant: 'danger' | 'warning' | 'info';
+	changes: FieldChange[];
 	resolve: ((value: boolean) => void) | null;
 }
 
@@ -17,6 +24,7 @@ const defaults: ConfirmState = {
 	confirmText: 'Confirm',
 	cancelText: 'Cancel',
 	variant: 'danger',
+	changes: [],
 	resolve: null
 };
 
@@ -28,6 +36,7 @@ export interface ConfirmOptions {
 	confirmText?: string;
 	cancelText?: string;
 	variant?: 'danger' | 'warning' | 'info';
+	changes?: FieldChange[];
 }
 
 export function confirm(options: ConfirmOptions | string): Promise<boolean> {
@@ -40,6 +49,7 @@ export function confirm(options: ConfirmOptions | string): Promise<boolean> {
 			confirmText: opts.confirmText ?? defaults.confirmText,
 			cancelText: opts.cancelText ?? defaults.cancelText,
 			variant: opts.variant ?? defaults.variant,
+			changes: opts.changes ?? [],
 			resolve
 		});
 	});

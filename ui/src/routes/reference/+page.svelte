@@ -187,4 +187,188 @@
 			</ol>
 		</div>
 	</section>
+
+	<section class="mb-8">
+		<AnchorHeading id="keyboard-shortcuts" level="h2">Keyboard Shortcuts</AnchorHeading>
+
+		<div class="mb-8">
+			<AnchorHeading id="global-shortcuts">Global</AnchorHeading>
+			<div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">⌘K / Ctrl+K</code>
+				<span>Open command palette — fuzzy search pages and entity types</span>
+
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">g + key</code>
+				<span>Go to page (e.g. <code>g h</code> = Home, <code>g f</code> = Reference, <code>g n</code> = Notifications, <code>g ,</code> = Preferences, <code>g u</code> = Profile)</span>
+
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">Esc</code>
+				<span>Close command palette, cancel editing, close dialogs</span>
+			</div>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="entity-list-shortcuts">Entity List</AnchorHeading>
+			<div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">/</code>
+				<span>Focus the search/filter input</span>
+
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">j</code>
+				<span>Move highlight down one row</span>
+
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">k</code>
+				<span>Move highlight up one row</span>
+
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">Enter</code>
+				<span>Open the highlighted entity</span>
+			</div>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="entity-detail-shortcuts">Entity Detail</AnchorHeading>
+			<div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">e</code>
+				<span>Toggle edit mode</span>
+
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">d</code>
+				<span>Delete entity (shows confirmation)</span>
+
+				<code class="dark:bg-stone-800 bg-gray-200 px-2 py-0.5 rounded text-center">Esc</code>
+				<span>Exit edit mode without saving</span>
+			</div>
+		</div>
+	</section>
+
+	<section class="mb-8">
+		<AnchorHeading id="navigation" level="h2">Navigation</AnchorHeading>
+
+		<div class="mb-8">
+			<AnchorHeading id="command-palette">Command Palette</AnchorHeading>
+			<p class="text-sm leading-relaxed mb-3">
+				Press <code class="dark:bg-stone-800 bg-gray-200 px-1.5 py-0.5 rounded">⌘K</code> (or <code class="dark:bg-stone-800 bg-gray-200 px-1.5 py-0.5 rounded">Ctrl+K</code>) anywhere to open the command palette.
+				Type to fuzzy-search all pages and entity types. Use arrow keys to navigate, Enter to open.
+			</p>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="breadcrumbs">Breadcrumbs</AnchorHeading>
+			<p class="text-sm leading-relaxed">
+				Breadcrumb trail appears at the top of every page showing your position in the hierarchy.
+				Entity type icons are shown when available. Click any breadcrumb segment to navigate back.
+			</p>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="sidebar">Sidebar</AnchorHeading>
+			<p class="text-sm leading-relaxed mb-2">
+				The sidebar is divided into three sections:
+			</p>
+			<ul class="text-sm list-disc list-inside space-y-1 text-stone-500 dark:text-stone-400">
+				<li><strong>Navigation</strong> — Home, Reference</li>
+				<li><strong>Entities</strong> — All configured entity types with icons</li>
+				<li><strong>Account</strong> — Profile, Notifications, Settings, Preferences</li>
+			</ul>
+			<p class="text-sm leading-relaxed mt-2">
+				Click the collapse button (double chevron) to shrink the sidebar to icon-only mode.
+				The collapsed state persists during your session.
+			</p>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="notifications-panel">Notification Bell</AnchorHeading>
+			<p class="text-sm leading-relaxed">
+				The bell icon in the top-right corner shows a badge count of errors.
+				Click to open a slide-over panel with recent notifications. Click "View all" to go to the full notifications page.
+			</p>
+		</div>
+	</section>
+
+	<section class="mb-8">
+		<AnchorHeading id="entity-detail" level="h2">Entity Detail Page</AnchorHeading>
+
+		<div class="mb-8">
+			<AnchorHeading id="entity-tabs">Tabbed Layout</AnchorHeading>
+			<p class="text-sm leading-relaxed mb-2">
+				Entity detail pages use a tabbed layout:
+			</p>
+			<ul class="text-sm list-disc list-inside space-y-1 text-stone-500 dark:text-stone-400">
+				<li><strong>Details</strong> — the entity's fields as a key/value table</li>
+				<li><strong>Plugins</strong> — attached plugins shown as expandable cards with execution order</li>
+				<li><strong>Sub-entities</strong> — routes, targets, etc. shown in their own tabs with counts</li>
+			</ul>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="entity-header">Entity Header</AnchorHeading>
+			<p class="text-sm leading-relaxed">
+				The header shows: entity type badge, name (or ID if no name), the ID in monospace,
+				and an enabled/disabled status dot. Below: action buttons grouped by function
+				with a visual divider separating destructive actions from copy actions.
+			</p>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="diff-on-save">Diff on Save</AnchorHeading>
+			<p class="text-sm leading-relaxed">
+				When saving an edited entity, the confirmation dialog lists which fields have changed.
+				This prevents accidental overwrites by making changes visible before they're applied.
+			</p>
+		</div>
+	</section>
+
+	<section class="mb-8">
+		<AnchorHeading id="ui-features" level="h2">UI Features</AnchorHeading>
+
+		<div class="mb-8">
+			<AnchorHeading id="page-transitions">Page Transitions</AnchorHeading>
+			<p class="text-sm leading-relaxed">
+				Navigation between pages uses the View Transitions API for smooth fade/slide animations.
+				Requires a supported browser (Chrome 111+, Edge 111+). Falls back to instant navigation elsewhere.
+			</p>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="toasts">Toast Notifications</AnchorHeading>
+			<p class="text-sm leading-relaxed mb-2">
+				Toasts slide in from the right with a progress bar showing auto-dismiss countdown.
+				All toasts are persisted to the Notifications page for later review.
+			</p>
+			<ul class="text-sm list-disc list-inside space-y-1 text-stone-500 dark:text-stone-400">
+				<li><span class="text-green-600 dark:text-green-400">Green</span> — success</li>
+				<li><span class="text-red-600 dark:text-red-400">Red</span> — error</li>
+				<li><span class="text-indigo-600 dark:text-indigo-400">Indigo</span> — info</li>
+			</ul>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="dark-mode">Dark Mode</AnchorHeading>
+			<p class="text-sm leading-relaxed">
+				Click the logo in the sidebar to toggle between light and dark mode.
+				The transition is smooth (200ms background-color ease). The preference is saved in localStorage.
+			</p>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="loading-states">Loading States</AnchorHeading>
+			<p class="text-sm leading-relaxed">
+				Entity lists show a shimmer skeleton while data loads, matching the table structure.
+				Empty lists show a friendly "No X found" state with a prompt to create one.
+				Search results show "No results matching '…'" when filtered to zero items.
+			</p>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="hover-actions">Hover Actions</AnchorHeading>
+			<p class="text-sm leading-relaxed">
+				Table row action buttons (copy, open, delete) are invisible by default and appear on row hover.
+				This reduces visual noise when scanning a list. Middle-click any row to open in a new tab.
+			</p>
+		</div>
+
+		<div class="mb-8">
+			<AnchorHeading id="favicon-badge">Favicon Badge</AnchorHeading>
+			<p class="text-sm leading-relaxed">
+				When error notifications exist, a red dot appears on the browser favicon.
+				This makes errors visible even when the tab is in the background.
+			</p>
+		</div>
+	</section>
 </div>

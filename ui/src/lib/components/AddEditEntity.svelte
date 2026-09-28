@@ -6,7 +6,6 @@
 	import { goto } from '$app/navigation';
 	import { apiService, clearCache } from '$lib/requests';
 	import { onMount } from 'svelte';
-	import { Button, Label, Select } from 'flowbite-svelte';
 	import { addToast, errorToast, infoToast } from '$lib/toastStore';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 	import { base } from '$app/paths';
@@ -311,46 +310,38 @@
 </script>
 
 {#if entity}
-	<div class="flex flex-col m-2">
-		<div class="flex flex-row flex-wrap">
-			<Button class="h-10 m-1" on:click={async () => await save()} color="green">
-				<FloppyDiskAltOutline class="m-2" />
-				save {isArray ? entity?.name : entity?.name.substr(0, entity.name.length - 1)}
-			</Button>
-			<Button class="h-10 m-1" on:click={() => format(true)} color="blue">
-				<PaletteOutline class="m-2" />
-				format and validate JSON
-			</Button>
-			<Button class="h-10 m-1" color="alternative">
-				<a target="_blank" href="https://docs.konghq.com/gateway/3.7.x/admin-api/">
-					<div class="flex flex-row items-center">
-						<LinkOutline class="m-2" />
-						Open Admin API Docs in new tab
-					</div>
-				</a>
-			</Button>
+	<div class="flex flex-col p-4">
+		<div class="flex flex-row flex-wrap gap-1.5">
+			<button class="btn-success" on:click={async () => await save()}>
+				<FloppyDiskAltOutline size="sm" />
+				Save {isArray ? entity?.name : entity?.name.substr(0, entity.name.length - 1)}
+			</button>
+			<button class="btn-accent" on:click={() => format(true)}>
+				<PaletteOutline size="sm" />Format
+			</button>
+			<a class="btn-ghost" target="_blank" href="https://docs.konghq.com/gateway/3.7.x/admin-api/">
+				<LinkOutline size="sm" />Admin API Docs
+			</a>
 			{#if selectedPluginName}
-				<Button class="h-10 m-1" color="alternative">
-					<a target="_blank" href="https://docs.konghq.com/hub/kong-inc/{selectedPluginName}/">
-						<div class="flex flex-row items-center">
-							<LinkOutline class="m-2" />
-							{selectedPluginName} plugin - configuration reference
-						</div>
-					</a>
-				</Button>
+				<a class="btn-ghost" target="_blank" href="https://docs.konghq.com/hub/kong-inc/{selectedPluginName}/">
+					<LinkOutline size="sm" />{selectedPluginName} docs
+				</a>
 			{/if}
 		</div>
 		{#if pluginSelect}
-			<div class="my-2">
-				<Label>
-					Select a plugin to load it's configuration schema
-					<Select
-						class="mt-2"
-						items={pluginSelect}
-						bind:value={selectedPluginName}
-						on:change={() => pluginSelected(true)}
-					/>
-				</Label>
+			<div class="mt-3">
+				<label class="text-[13px] font-medium text-[var(--text-secondary)] block mb-1.5">
+					Select a plugin to load its schema
+				</label>
+				<select
+					class="input-field max-w-sm"
+					bind:value={selectedPluginName}
+					on:change={() => pluginSelected(true)}
+				>
+					{#each pluginSelect as item}
+						<option value={item.value}>{item.name}</option>
+					{/each}
+				</select>
 			</div>
 		{/if}
 	</div>
@@ -379,7 +370,7 @@
 	</div>
 </div>
 {#if pluginSchema}
-	<h2 class="text-xl m-4">'config' fields:</h2>
+	<h2 class="text-base font-semibold mx-4 mt-4">'config' fields:</h2>
 	<TreeWrapper
 		data={pluginSchema}
 		expandLevel={0}
