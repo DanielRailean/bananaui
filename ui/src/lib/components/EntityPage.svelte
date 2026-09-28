@@ -23,7 +23,6 @@
 	import { fieldOrder, sortObjectFieldsByOrder, staticConfig, yamlDumpOptions } from '$lib/config';
 	import type { IKongEntity, IKongPlugin } from '$lib/types';
 	import { base } from '$app/paths';
-	import Spinner from './Spinner.svelte';
 	import { preferences } from '$lib/stores';
 	import { get, writable, type Writable } from 'svelte/store';
 	import { icons } from '$lib/icons';
@@ -54,11 +53,25 @@
 
 	let prevSearch = '';
 	$: if ($page.url.pathname.endsWith('/entity')) {
-		const search = $page.url.search;
+		const params = new URLSearchParams($page.url.search);
+		params.delete('tab');
+		const search = params.toString();
 		if (search !== prevSearch) {
 			prevSearch = search;
 			load();
 		}
+		activeTab = $page.url.searchParams.get('tab') ?? 'details';
+	}
+
+	function setTab(tab: string) {
+		activeTab = tab;
+		const url = new URL(window.location.toString());
+		if (tab === 'details') {
+			url.searchParams.delete('tab');
+		} else {
+			url.searchParams.set('tab', tab);
+		}
+		history.pushState(null, '', url);
 	}
 
 	let isMounted = false;
@@ -138,6 +151,7 @@
 		// load entity schema
 		entitySchema = undefined;
 		pluginSchema = undefined;
+		relevantPlugins = [];
 		const schemaRes = await (await apiService()).schema(entityType);
 		if (schemaRes.ok && schemaRes.data) {
 			entitySchema = {};
@@ -336,7 +350,10 @@
 	}
 </script>
 
-<svelte:window on:keydown={handleEntityKeydown} />
+<svelte:window
+	on:keydown={handleEntityKeydown}
+	on:popstate={() => (activeTab = new URL(window.location.href).searchParams.get('tab') ?? 'details')}
+/>
 
 <svelte:head>
 	<title>{data?.name ?? data?.id ?? staticConfig.name}</title>
@@ -494,18 +511,18 @@
 				<div class="flex items-center gap-1 px-5 py-2.5 border-b border-[var(--glass-border)]">
 					<button
 						class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {activeTab === 'details' ? 'text-[var(--text-primary)] bg-[var(--accent)]/10' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}"
-						on:click={() => activeTab = 'details'}
+						on:click={() => setTab('details')}
 					>Details</button>
 				{#if relevantPlugins.length > 0}
 					<button
 						class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {activeTab === 'plugin_order' ? 'text-[var(--text-primary)] bg-[var(--accent)]/10' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}"
-						on:click={() => { activeTab = 'plugin_order'; showPluginOrder.set(true); }}
+						on:click={() => { setTab('plugin_order'); showPluginOrder.set(true); }}
 					>Execution Order ({relevantPlugins.length})</button>
 				{/if}
 					{#each subEntities as subEntity}
 						<button
 							class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {activeTab === subEntity.name ? 'text-[var(--text-primary)] bg-[var(--accent)]/10' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}"
-							on:click={() => activeTab = subEntity.name}
+							on:click={() => setTab(subEntity.name)}
 						>{capitalizeFirstLetter(subEntity.name)} {subEntity.data ? `(${get(subEntity.data).length})` : ''}</button>
 					{/each}
 				</div>
