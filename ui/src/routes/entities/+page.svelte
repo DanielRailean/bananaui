@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { staticConfig } from '$lib/config';
 	import ArrayWrap from '$lib/components/ArrayWrap.svelte';
+	import Skeleton from '$lib/components/Skeleton.svelte';
 	import { apiService, cacheMap, clearCache, type ResWrapped } from '$lib/requests';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
@@ -11,8 +12,6 @@
 	import { base } from '$app/paths';
 	import { DateTime } from 'luxon';
 	import { addToast, errorToast, infoToast } from '$lib/toastStore';
-	import { Button } from 'flowbite-svelte';
-	import Spinner from '$lib/components/Spinner.svelte';
 	import { writable, get, type Writable } from 'svelte/store';
 	import { preferences } from '$lib/stores';
 
@@ -91,7 +90,9 @@
 			}
 		} catch (error: any) {
 			console.error(error);
-			addToast({ message: `Failed fetching ${entity}. ${error.message ? error.message : ''}` });
+			if (error.message !== 'Failed to fetch' && error.message !== 'Config not available') {
+				addToast({ message: `Failed fetching ${entity}. ${error.message ? error.message : ''}` });
+			}
 		}
 	}
 </script>
@@ -101,31 +102,27 @@
 </svelte:head>
 
 {#if entity}
-	<div class="flex flex-col m-3 p-1 mb-5 font-light justify-center">
-		<div class="flex flex-row h-11">
+	<div class="flex items-center justify-between mb-4">
+		<h1 class="text-2xl font-semibold">{capitalizeFirstLetter(entity)}</h1>
+		<div class="flex items-center gap-2">
 			<button
-				class="flex select-none flex-row hover:shadow-lg px-2 m-1 dark:bg-emerald-700 bg-emerald-400 shadow shadow-stone-400 text-white dark:shadow-stone-900 items-center rounded"
+				class="btn-ghost"
 				on:click={() => {
 					load('user clicked', true);
 					infoToast('refresh started!');
 				}}
 			>
-				<RefreshOutline class="mr-1"></RefreshOutline>
-				Refresh list
+				<RefreshOutline size="sm"></RefreshOutline>
+				Refresh
 			</button>
-			<button
-				class="flex select-none flex-row hover:shadow-lg px-2 m-1 dark:bg-indigo-700 bg-indigo-500 shadow shadow-stone-400 text-white dark:shadow-stone-900 items-center rounded"
-				on:click={() => {
-					goto(`${base}/add?type=${entity}`);
-				}}
+			<a
+				class="btn-accent"
+				href="{base}/add?type={entity}"
+				on:click|preventDefault={() => goto(`${base}/add?type=${entity}`)}
 			>
-				<a href="{base}/add?type={entity}">
-					<div class="flex flex-row items-center space-x-1">
-						<CirclePlusOutline class="mr-1" />
-						Add
-					</div>
-				</a>
-			</button>
+				<CirclePlusOutline size="sm" />
+				Add new
+			</a>
 		</div>
 	</div>
 	<ArrayWrap
@@ -135,7 +132,5 @@
 		on:refresh={async () => await load('array wrap requested refresh', true)}
 	></ArrayWrap>
 {:else}
-	<div class="flex flex-row items-center p-5 h-full w-full">
-		<Spinner text={entity ? `loading ${entity}` : ''} />
-	</div>
+	<Skeleton rows={8} columns={4} />
 {/if}

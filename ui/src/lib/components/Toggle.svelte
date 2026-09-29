@@ -15,26 +15,30 @@
 	onMount(() => {});
 </script>
 
-<!-- https://flowbite.com/docs/forms/toggle/ -->
-<div class="flex flex-row items-center">
+<div class="flex flex-row items-center gap-2">
 	{#if labelLeft}
-		<span class=" text-sm font-medium text-gray-900 dark:text-gray-300 mr-2">{labelLeft}</span>
+		<span class="text-sm font-medium text-[var(--text-secondary)] whitespace-nowrap">{labelLeft}</span>
 	{/if}
 	<label class="inline-flex items-center cursor-pointer" {title}>
 		<input type="checkbox" checked={$isChecked} on:click={handleChange} class="sr-only peer" />
 		<div
-			class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:dark:bg-stone-900 after:dark:border-none after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-500 dark:peer-checked:bg-indigo-700"
-		></div>
-		<!-- <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Toggle me</span> -->
+			class="toggle-track peer peer-checked:bg-[var(--accent)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--accent)] peer-focus-visible:ring-offset-2"
+		>
+			<div class="toggle-knob" class:translate-x-4={$isChecked}></div>
+		</div>
 	</label>
 	{#if labelRight}
-		<!-- content here -->
-		<span class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{labelRight}</span>
+		<span class="text-sm font-medium text-[var(--text-secondary)] whitespace-nowrap">{labelRight}</span>
 	{/if}
 </div>
 
 <style lang="postcss">
-	span {
-		@apply text-nowrap;
+	.toggle-track {
+		@apply relative w-9 h-5 rounded-full transition-colors duration-200 ease-in-out;
+		background: var(--text-tertiary);
+	}
+	.toggle-knob {
+		@apply absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white
+			shadow-sm transition-transform duration-200 ease-in-out;
 	}
 </style>

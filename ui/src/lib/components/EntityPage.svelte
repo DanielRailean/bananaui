@@ -1,17 +1,15 @@
 <script lang="ts">
 	import ArrayWrap from './ArrayWrap.svelte';
-	export let data: any = {};
-	import { Button } from 'flowbite-svelte';
+	export let data: any = undefined;
 	import { afterUpdate, onMount, tick } from 'svelte';
 	import TreeWrapper from './treeWrapper.svelte';
 	import { apiService, clearCache } from '$lib/requests';
 	import { goto } from '$app/navigation';
 	import { page, navigating, updated } from '$app/stores';
-	import { delay, getPluginPriorityMap, getPlugins, writeToClipboard } from '$lib/util';
+	import { delay, capitalizeFirstLetter, getPluginPriorityMap, getPlugins, writeToClipboard } from '$lib/util';
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { confirm } from '$lib/confirmStore';
 	import {
-		CaretDownOutline,
 		CirclePlusOutline,
 		CodeOutline,
 		EditOutline,
@@ -25,7 +23,6 @@
 	import { fieldOrder, sortObjectFieldsByOrder, staticConfig, yamlDumpOptions } from '$lib/config';
 	import type { IKongEntity, IKongPlugin } from '$lib/types';
 	import { base } from '$app/paths';
-	import Spinner from './Spinner.svelte';
 	import { preferences } from '$lib/stores';
 	import { get, writable, type Writable } from 'svelte/store';
 	import { icons } from '$lib/icons';
@@ -56,11 +53,25 @@
 
 	let prevSearch = '';
 	$: if ($page.url.pathname.endsWith('/entity')) {
-		const search = $page.url.search;
+		const params = new URLSearchParams($page.url.search);
+		params.delete('tab');
+		const search = params.toString();
 		if (search !== prevSearch) {
 			prevSearch = search;
 			load();
 		}
+		activeTab = $page.url.searchParams.get('tab') ?? 'details';
+	}
+
+	function setTab(tab: string) {
+		activeTab = tab;
+		const url = new URL(window.location.toString());
+		if (tab === 'details') {
+			url.searchParams.delete('tab');
+		} else {
+			url.searchParams.set('tab', tab);
+		}
+		history.pushState(null, '', url);
 	}
 
 	let isMounted = false;
@@ -140,6 +151,7 @@
 		// load entity schema
 		entitySchema = undefined;
 		pluginSchema = undefined;
+		relevantPlugins = [];
 		const schemaRes = await (await apiService()).schema(entityType);
 		if (schemaRes.ok && schemaRes.data) {
 			entitySchema = {};
@@ -192,6 +204,7 @@
 	}
 
 	let openedPlugins: any = {};
+	let activeTab = 'details';
 
 	async function deleteEntity(type: string, id: string, name: string) {
 		const conf = await confirm({
@@ -225,15 +238,19 @@
 		confirmToast(`json is valid`);
 	}
 	async function save() {
+		format();
+		const changedFields = getChangedFields(stateJson, json);
 		const a = await confirm({
-			message: 'Confirm save?',
+			message: changedFields.length > 0
+				? `${changedFields.length} field${changedFields.length > 1 ? 's' : ''} modified`
+				: 'Confirm save?',
 			variant: 'info',
-			confirmText: 'Save'
+			confirmText: 'Save',
+			changes: changedFields
 		});
 		if (!a) {
 			return;
 		}
-		format();
 		const res = await (
 			await apiService()
 		).updateRecord(entityType, id, JSON.parse(json), pathPrefix);
@@ -292,7 +309,51 @@
 	function setTextareaHeight() {
 		editorWindow.style.height = editorWindow.scrollHeight + 3 + 'px';
 	}
+
+	function getChangedFields(oldJson: string, newJson: string): { field: string; oldValue: string; newValue: string }[] {
+		try {
+			const oldObj = JSON.parse(oldJson);
+			const newObj = JSON.parse(newJson);
+			const changes: { field: string; oldValue: string; newValue: string }[] = [];
+			const allKeys = new Set([...Object.keys(oldObj), ...Object.keys(newObj)]);
+			for (const key of allKeys) {
+				const oldVal = JSON.stringify(oldObj[key] ?? null, null, 2);
+				const newVal = JSON.stringify(newObj[key] ?? null, null, 2);
+				if (oldVal !== newVal) {
+					changes.push({
+						field: key,
+						oldValue: oldObj[key] === undefined ? '—' : truncateValue(oldVal),
+						newValue: newObj[key] === undefined ? '—' : truncateValue(newVal)
+					});
+				}
+			}
+			return changes;
+		} catch { return []; }
+	}
+
+	function truncateValue(val: string, max = 80): string {
+		return val.length > max ? val.slice(0, max) + '…' : val;
+	}
+
+	function handleEntityKeydown(e: KeyboardEvent) {
+		if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+		if (e.key === 'e' && !isEdited && data) {
+			e.preventDefault();
+			flipIsEdited();
+		} else if (e.key === 'd' && !isEdited && data) {
+			e.preventDefault();
+			deleteEntity(entityType, id, data.name ?? data.id);
+		} else if (e.key === 'Escape' && isEdited) {
+			e.preventDefault();
+			flipIsEdited();
+		}
+	}
 </script>
+
+<svelte:window
+	on:keydown={handleEntityKeydown}
+	on:popstate={() => (activeTab = new URL(window.location.href).searchParams.get('tab') ?? 'details')}
+/>
 
 <svelte:head>
 	<title>{data?.name ?? data?.id ?? staticConfig.name}</title>
@@ -300,54 +361,68 @@
 
 <div class="mb-2">
 	{#if data}
-		<div class="flex flex-row flex-wrap m-2">
-			<Button
-				class="h-10 m-1 focus:shadow-none"
+		<!-- Entity header -->
+		<div class="flex items-center justify-between p-5 border-b border-[var(--glass-border)]">
+			<div class="flex items-center gap-3">
+				{#if entityType && entityType !== 'none'}
+					<span class="text-[11px] uppercase tracking-wider font-semibold px-2.5 py-1 rounded-lg bg-[var(--accent)]/10 text-[var(--accent)]">
+						{entityType}
+					</span>
+				{/if}
+				<h1 class="text-xl font-semibold">{data.name || data.id || '…'}</h1>
+				{#if data.name && data.id}
+					<span class="text-xs font-mono text-[var(--text-tertiary)]">{data.id}</span>
+				{/if}
+			</div>
+			{#if data.enabled !== undefined}
+				<div class="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+					<div class="h-2 w-2 rounded-full {data.enabled ? 'bg-[var(--success)]' : 'bg-[var(--danger)]'}"></div>
+					{data.enabled ? 'Enabled' : 'Disabled'}
+				</div>
+			{/if}
+		</div>
+
+		<!-- Actions -->
+		<div class="flex flex-row flex-wrap items-center gap-2 px-5 py-3 border-b border-[var(--glass-border)]">
+			<button
+				class="btn-accent"
 				on:click={() => {
 					flipIsEdited();
 				}}
 			>
-				<FilePenOutline class="m-2" />edit
-			</Button>
+				<FilePenOutline size="sm" />Edit
+			</button>
 			{#if !isEdited}
-				<Button
-					class="h-10 m-1"
+				<button
+					class="btn-danger-ghost"
 					title="delete"
-					color="alternative"
 					on:click={async () => await deleteEntity(entityType, id, data.name ?? data.id)}
 				>
-					<div class="text-rose-500">
-						<div class="flex flex-row items-center">
-							<TrashBinOutline class="m-1" />
-							delete
-						</div>
-					</div>
-				</Button>
-				<Button
-					color="alternative"
-					class="h-10 m-1"
+					<TrashBinOutline size="sm" />Delete
+				</button>
+
+				<div class="w-px h-6 bg-[var(--glass-border)] mx-1"></div>
+
+				<button
+					class="btn-ghost"
 					title={stateJson}
 					on:click={() => {
 						writeToClipboard(stateJson);
 					}}
 				>
-					<FileCopyOutline class="m-2" />
-					JSON copy</Button
-				>
-				<Button
-					color="alternative"
-					class="h-10 m-1"
+					<FileCopyOutline size="sm" />JSON
+				</button>
+				<button
+					class="btn-ghost"
 					title={stateJson}
 					on:click={() => {
 						writeToClipboard(dump(JSON.parse(stateJson), yamlDumpOptions));
 					}}
 				>
-					<FileCopyAltOutline class="m-2" />
-					YAML copy</Button
-				>
-				<Button
-					color="alternative"
-					class="h-10 m-1"
+					<FileCopyAltOutline size="sm" />YAML
+				</button>
+				<button
+					class="btn-ghost"
 					on:click={() => {
 						const obj = JSON.parse(stateJson);
 						for (const field of get(preferences.stripFieldsOnCleanCopy)) {
@@ -356,43 +431,35 @@
 						writeToClipboard(dump(obj, yamlDumpOptions));
 					}}
 				>
-					<FileCopyAltOutline class="m-2" />
-					YAML copy (clean)</Button
-				>
+					<FileCopyAltOutline size="sm" />YAML clean
+				</button>
 			{:else}
-				<Button
-					class="h-10 m-1"
+				<button
+					class="btn-glass"
 					on:click={() => {
 						setTextareaHeight();
 						highlightDisabled = !highlightDisabled;
-						// triggerHighlight();
 					}}
-					color="blue"
 					title="might be needed for json with long strings"
 				>
-					<CodeOutline class="m-2" />
-					toggle syntax highlight
-				</Button>
-				<Button
-					class="h-10 m-1"
+					<CodeOutline size="sm" />Highlight
+				</button>
+				<button
+					class="btn-accent"
 					on:click={format}
-					color="blue"
 					title={stateJson == json ? 'entity unchanged' : ''}
 					disabled={stateJson == json}
 				>
-					<PaletteOutline class="m-2" />
-					format and validate JSON
-				</Button>
-				<Button
-					class="h-10 m-1"
+					<PaletteOutline size="sm" />Format
+				</button>
+				<button
+					class="btn-success"
 					disabled={stateJson == json}
 					title={stateJson == json ? 'entity unchanged' : ''}
 					on:click={async () => await save()}
-					color="green"
 				>
-					<FloppyDiskAltOutline class="m-2" />
-					save</Button
-				>
+					<FloppyDiskAltOutline size="sm" />Save
+				</button>
 			{/if}
 		</div>
 		<div
@@ -439,114 +506,151 @@
 			/>
 		{/if}
 		<div class={isEdited ? 'hidden' : ''}>
-			<TreeWrapper
-				{data}
-				rounded={false}
-				type={entityType}
-				on:refresh={() => {
-					load();
-				}}
-			/>
-			<Button
-				color="alternative"
-				class="h-10 m-1 ml-4"
-				title="show plugin execution order"
-				on:click={() => {
-					showPluginOrder.set(!get(showPluginOrder));
-					openedPlugins = {};
-				}}
-			>
-				<CaretDownOutline class="m-2" />
-				show plugin order</Button
-			>
-			{#if relevantPlugins && $showPluginOrder}
-				<div bind:this={pluginConfigContainer} class="flex flex-wrap items-center p-4">
-					{#each relevantPlugins as plugin}
-						<div class="border border-stone-600 rounded-lg dark:border-stone-600 my-2">
-							<div
-								class="flex flex-row items-center cursor-pointer p-4"
-								on:click={() => {
-									if (openedPlugins[plugin.id]) {
-										openedPlugins[plugin.id] = !openedPlugins[plugin.id];
-									} else {
-										openedPlugins[plugin.id] = true;
-									}
-									openedPlugins = openedPlugins;
-								}}
-							>
-								{#if plugin.service}
-									<div class="mr-1 h-6 w-6" title="service plugin. priority={plugin.priority}">
-										{@html icons['globe']}
-									</div>
-								{:else if plugin.route}
-									<div class="mr-1 h-6 w-6" title="route plugin. priority={plugin.priority}">
-										{@html icons['shuffle']}
-									</div>
-								{/if}
-								<p class="ml-2 cursor-pointer">
-									{plugin.name}
-								</p>
-								<Link
-									classes="pl-3"
-									href="{base}/entity?type=plugins&id={plugin.id}"
-									title="open {plugin.name} page"
-								/>
-							</div>
-							{#if openedPlugins[plugin.id]}
-								<pre class="language-json m-0 p-4 w-full dark:bg-[#1E2021] bg-white rounded-none" style="font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6;"><code class="language-json dark:bg-[#1E2021] bg-white">{JSON.stringify(plugin.config, null, 2)}</code></pre>
-							{/if}
-						</div>
-						{#if relevantPlugins.indexOf(plugin) + 1 != relevantPlugins.length}
-							<span class="text-3xl text-center p-1">→</span>
-						{/if}
+			<!-- Tab bar -->
+			{#if subEntities && subEntities.length > 0}
+				<div class="flex items-center gap-1 px-5 py-2.5 border-b border-[var(--glass-border)]">
+					<button
+						class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {activeTab === 'details' ? 'text-[var(--text-primary)] bg-[var(--accent)]/10' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}"
+						on:click={() => setTab('details')}
+					>Details</button>
+				{#if relevantPlugins.length > 0}
+					<button
+						class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {activeTab === 'plugin_order' ? 'text-[var(--text-primary)] bg-[var(--accent)]/10' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}"
+						on:click={() => { setTab('plugin_order'); showPluginOrder.set(true); }}
+					>Execution Order ({relevantPlugins.length})</button>
+				{/if}
+					{#each subEntities as subEntity}
+						<button
+							class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {activeTab === subEntity.name ? 'text-[var(--text-primary)] bg-[var(--accent)]/10' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}"
+							on:click={() => setTab(subEntity.name)}
+						>{capitalizeFirstLetter(subEntity.name)} {subEntity.data ? `(${get(subEntity.data).length})` : ''}</button>
 					{/each}
 				</div>
 			{/if}
+
+			<!-- Tab: Details -->
+			<div class={activeTab === 'details' ? 'px-5 pt-4 pb-5' : 'hidden'}>
+				<div class="rounded-xl border border-[var(--glass-border)] overflow-hidden">
+					<TreeWrapper
+						{data}
+						rounded={false}
+						type={entityType}
+						on:refresh={() => {
+							load();
+						}}
+					/>
+				</div>
+			</div>
+
+			<!-- Tab: Plugin Execution Order -->
+			<div class={activeTab === 'plugin_order' ? '' : 'hidden'}>
+				{#if relevantPlugins && relevantPlugins.length > 0}
+					<div bind:this={pluginConfigContainer} class="flex flex-wrap items-center gap-2 p-5">
+						{#each relevantPlugins as plugin}
+							<div class="glass rounded-xl">
+								<div
+									class="flex flex-row items-center cursor-pointer p-3 gap-2"
+									on:click={() => {
+										openedPlugins[plugin.id] = !openedPlugins[plugin.id];
+										openedPlugins = openedPlugins;
+									}}
+									role="button"
+									tabindex="0"
+									on:keydown={(e) => { if (e.key === 'Enter') { openedPlugins[plugin.id] = !openedPlugins[plugin.id]; openedPlugins = openedPlugins; } }}
+								>
+									{#if plugin.service}
+										<div class="h-5 w-5" title="service plugin. priority={plugin.priority}">
+											{@html icons['globe']}
+										</div>
+									{:else if plugin.route}
+										<div class="h-5 w-5" title="route plugin. priority={plugin.priority}">
+											{@html icons['shuffle']}
+										</div>
+									{/if}
+									<p class="text-sm font-medium">{plugin.name}</p>
+									<Link
+										classes="ml-1"
+										href="{base}/entity?type=plugins&id={plugin.id}"
+										title="open {plugin.name} page"
+									/>
+								</div>
+								{#if openedPlugins[plugin.id]}
+									<pre class="language-json m-0 p-4 w-full dark:bg-[#1E2021] bg-white rounded-none" style="font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6;"><code class="language-json dark:bg-[#1E2021] bg-white">{JSON.stringify(plugin.config, null, 2)}</code></pre>
+								{/if}
+							</div>
+							{#if relevantPlugins.indexOf(plugin) + 1 != relevantPlugins.length}
+								<span class="text-xl text-[var(--text-tertiary)]">→</span>
+							{/if}
+						{/each}
+					</div>
+				{:else}
+					<p class="p-5 text-sm text-[var(--text-tertiary)]">No plugins attached.</p>
+				{/if}
+			</div>
+
+			<!-- Tab: Sub-entities -->
 			{#if subEntities}
 				{#each subEntities as subEntity}
-					<div class="flex flex-row m-4 h-8 items-center">
-						<div class="flex flex-row h-10">
-							<Button
-								color="alternative"
-								on:click={() => {
-									goto(
-										`${base}/add?type=${subEntity.name}&apiPostPath=${btoa(
-											subEntity.entitySubPath
-										)}&prefix=${subEntityPrefix}`
-									);
-								}}
+					<div class={activeTab === subEntity.name ? '' : 'hidden'}>
+						<div class="flex items-center gap-2 px-5 pt-4">
+							<a
+								class="btn-accent"
+								href="{base}/add?type={subEntity.name}&apiPostPath={btoa(subEntity.entitySubPath)}&prefix={subEntityPrefix}"
+								on:click|preventDefault={() => goto(`${base}/add?type=${subEntity.name}&apiPostPath=${btoa(subEntity.entitySubPath)}&prefix=${subEntityPrefix}`)}
 							>
-								<a
-									href="{base}/add?type={subEntity.name}&apiPostPath={btoa(
-										subEntity.entitySubPath
-									)}&prefix={subEntityPrefix}"
-								>
-									<div class="flex flex-row items-center">
-										<CirclePlusOutline class="m-2" />
-										add {subEntity.name}
-									</div>
-								</a>
-							</Button>
+								<CirclePlusOutline size="sm" />Add {subEntity.name}
+							</a>
 						</div>
+						{#if subEntity.data && get(subEntity.data).length > 0}
+							<ArrayWrap
+								dataRaw={subEntity.data}
+								type={subEntity.name}
+								entity={subEntity}
+								pathPrefix={subEntityPrefix}
+								on:refresh={async () => await load()}
+							/>
+						{:else}
+							<p class="p-5 text-sm text-[var(--text-tertiary)]">No {subEntity.name} found.</p>
+						{/if}
 					</div>
-					{#if subEntity.data && get(subEntity.data).length > 0}
-						<ArrayWrap
-							dataRaw={subEntity.data}
-							type={subEntity.name}
-							entity={subEntity}
-							pathPrefix={subEntityPrefix}
-							on:refresh={async () => await load()}
-						/>
-					{/if}
 				{/each}
 			{/if}
 		</div>
 	{:else}
-		<div class="flex flex-row items-center m-4">
-			<Spinner
-				uppercased={false}
-				text="loading {entityType.substring(0, entityType.length - 1)} with id='{id}'"
-			/>
+		<!-- Loading skeleton mimicking entity page structure -->
+		<div class="animate-pulse">
+			<!-- Header -->
+			<div class="flex items-center justify-between p-5 border-b border-[var(--glass-border)]">
+				<div class="flex items-center gap-3">
+					<div class="h-7 w-20 rounded-lg bg-black/[0.06] dark:bg-white/[0.06]"></div>
+					<div class="h-7 w-56 rounded-lg bg-black/[0.08] dark:bg-white/[0.08]"></div>
+					<div class="h-5 w-64 rounded bg-black/[0.04] dark:bg-white/[0.04]"></div>
+				</div>
+			</div>
+			<!-- Action bar -->
+			<div class="flex items-center gap-2 px-5 py-3 border-b border-[var(--glass-border)]">
+				<div class="h-10 w-24 rounded-xl bg-black/[0.06] dark:bg-white/[0.06]"></div>
+				<div class="h-10 w-24 rounded-xl bg-black/[0.05] dark:bg-white/[0.05]"></div>
+				<div class="w-px h-6 bg-[var(--glass-border)]"></div>
+				<div class="h-10 w-20 rounded-xl bg-black/[0.04] dark:bg-white/[0.04]"></div>
+				<div class="h-10 w-20 rounded-xl bg-black/[0.04] dark:bg-white/[0.04]"></div>
+				<div class="h-10 w-28 rounded-xl bg-black/[0.04] dark:bg-white/[0.04]"></div>
+			</div>
+			<!-- Tab bar -->
+			<div class="flex items-center gap-2 px-5 py-2 border-b border-[var(--glass-border)]">
+				<div class="h-8 w-16 rounded-lg bg-black/[0.06] dark:bg-white/[0.06]"></div>
+				<div class="h-8 w-28 rounded-lg bg-black/[0.04] dark:bg-white/[0.04]"></div>
+				<div class="h-8 w-20 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]"></div>
+			</div>
+			<!-- Key-value table -->
+			<div class="mx-5 mt-4 rounded-xl border border-[var(--glass-border)] divide-y divide-[var(--glass-border)]">
+				{#each Array(10) as _, i}
+					<div class="flex items-center gap-6 px-5 py-4">
+						<div class="h-4 w-[160px] rounded bg-black/[0.06] dark:bg-white/[0.06]" style="opacity: {1 - i * 0.06}"></div>
+						<div class="h-4 rounded bg-black/[0.04] dark:bg-white/[0.04] flex-1 max-w-[400px]" style="opacity: {1 - i * 0.05}"></div>
+					</div>
+				{/each}
+			</div>
 		</div>
 	{/if}
 </div>

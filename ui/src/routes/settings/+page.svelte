@@ -3,7 +3,6 @@
 	import { LOCALSTORAGE_CONFIG_KEY, delay } from '$lib/util';
 	import { PaletteOutline, FloppyDiskAltOutline } from 'flowbite-svelte-icons';
 	import { addToast, infoToast } from '$lib/toastStore';
-	import { Button } from 'flowbite-svelte';
 	import type { IConfig } from '$lib/types.ts';
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
@@ -62,27 +61,23 @@
 	}
 </script>
 
-<div class="mx-4 mb-3">
-	<div class="my-5">
-		<h2 class="text-2xl">Settings</h2>
-		<p>you can change the settings here, if running in static mode.</p>
-		<p>the settings are saved in the browser's Local storage</p>
-		<div class="mt-2">
-			<Button class="" on:click={writeConfig}>
-				<FloppyDiskAltOutline class="mr-1" />
-
-				save
-			</Button>
-			<Button class="ml-3" on:click={formatConfig} color="blue">
-				<PaletteOutline class="mr-1" />
-				format and validate JSON
-			</Button>
+<div>
+	<div class="flex items-center justify-between mb-6">
+		<div>
+			<h1 class="text-2xl font-semibold">Settings</h1>
+			<p class="text-sm text-[var(--text-secondary)]">Configuration JSON — saved in browser Local Storage.</p>
+		</div>
+		<div class="flex items-center gap-2">
+			<button class="btn-accent" on:click={formatConfig}>
+				<PaletteOutline size="sm" />Format
+			</button>
+			<button class="btn-success" on:click={writeConfig}>
+				<FloppyDiskAltOutline size="sm" />Save
+			</button>
 		</div>
 	</div>
 	<textarea
-		class="w-full min-h-96 rounded-lg dark:bg-stone-900"
-		name=""
-		id=""
+		class="w-full min-h-96 rounded-xl input-field h-auto py-3 font-mono text-sm"
 		bind:value={editableConfig}
 	></textarea>
 </div>

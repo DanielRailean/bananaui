@@ -46,9 +46,6 @@
 
 	onMount(() => {
 		handleDark();
-		setInterval(() => {
-			handleDark();
-		}, 500);
 
 		isDark.subscribe((val) => {
 			if (!document) {
@@ -88,14 +85,14 @@
 	{/if}
 </svelte:head>
 
-<div class="flex flex-col">
+<div class="flex flex-col pl-1 pt-2">
 	{#if showTip}
-		<p class="text-md ">click on banana to toggle dark/light mode</p>
+		<p class="text-xs text-[var(--text-tertiary)]">click logo to toggle dark mode</p>
 	{/if}
-	<div class="flex flex-row items-center">
+	<div class="flex flex-row items-center gap-3">
 		<div class="cursor-pointer {div_class}" title="toggle dark mode" on:click={handleClick}>
-			<img src={logo} alt="bananaui logo" class="w-14 h-14 m-4  hover:rotate-3 hover:scale-[110%] {$isDark ? 'invert' : ''}" />
+			<img src={logo} alt="bananaui logo" class="w-11 h-11 hover:rotate-3 hover:scale-110 transition-transform duration-200 {$isDark ? 'invert' : ''}" />
 		</div>
-		<h1 class="text-3xl font-bold">{staticConfig.name}</h1>
+		<h1 class="text-xl font-semibold tracking-tight">{staticConfig.name}</h1>
 	</div>
 </div>

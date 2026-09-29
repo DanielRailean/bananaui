@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { LOCALSTORAGE_CONFIG_KEY, delay } from '$lib/util';
-	import { PaletteOutline, FloppyDiskAltOutline, LinkOutline } from 'flowbite-svelte-icons';
+	import { PaletteOutline, FloppyDiskAltOutline } from 'flowbite-svelte-icons';
 	import { addToast, infoToast } from '$lib/toastStore';
-	import { Button } from 'flowbite-svelte';
 	import type { IConfig } from '$lib/types.ts';
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
@@ -50,16 +48,22 @@
 	}
 </script>
 
-<div class="flex flex-col m-2">
-	<div class="flex flex-row flex-wrap">
-		<Button class="h-10 m-1" on:click={async () => save()} color="green">
-			<FloppyDiskAltOutline class="m-2" />
-			save
-		</Button>
-		<Button class="h-10 m-1" on:click={() => format()} color="blue">
-			<PaletteOutline class="m-2" />
-			format and validate JSON
-		</Button>
+<div class="flex flex-col">
+	<div class="flex items-center justify-between mb-4">
+		<div>
+			<h1 class="text-2xl font-semibold">Preferences</h1>
+			<p class="text-sm text-[var(--text-secondary)]">Edit app preferences as JSON. Saved in browser storage.</p>
+		</div>
+		<div class="flex items-center gap-2">
+			<button class="btn-accent" on:click={() => format()}>
+				<PaletteOutline size="sm" />
+				Format
+			</button>
+			<button class="btn-success" on:click={async () => save()}>
+				<FloppyDiskAltOutline size="sm" />
+				Save
+			</button>
+		</div>
 	</div>
 </div>
 <div class="dark:border-stone-700">

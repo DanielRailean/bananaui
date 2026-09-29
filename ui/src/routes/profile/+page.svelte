@@ -4,7 +4,6 @@
 	import { config, userToken } from '$lib/stores';
 	import { addToast, confirmToast, infoToast } from '$lib/toastStore';
 	import { DateTime } from 'luxon';
-	import { Button } from 'flowbite-svelte';
 	import { writeToClipboard } from '$lib/util';
 	let info: any = {
 		username: '',
@@ -25,28 +24,47 @@
 	});
 </script>
 
-<div class="w-full">
-	<TreeWrapper data={info} expandLevel={2} />
-	<div class="flex flex-row items-center">
-		<Button
-			class="m-2"
-			disabled={$userToken?.expires == -1}
-			on:click={() => {
-				writeToClipboard($userToken?.token ?? '', '', () => {
-					confirmToast(
-						`copied! expires at ${DateTime.fromMillis(info.payload.exp * 1000).toFormat('T')}`
-					);
-				});
-			}}
-			>copy personal API token
-		</Button>
-		<Button
-			class="m-2"
-			disabled={$userToken?.expires != -1}
-			on:click={() => {
-				userToken.set(undefined);
-				config.set($config);
-			}}>login again</Button
-		>
+<div>
+	<!-- Profile card -->
+	<div class="glass rounded-xl p-6 mb-6">
+		<div class="flex items-center gap-4 mb-4">
+			<div class="h-12 w-12 rounded-full bg-[var(--accent)]/20 flex items-center justify-center text-lg font-bold text-[var(--accent)]">
+				{(info.username || info.email || '?').charAt(0).toUpperCase()}
+			</div>
+			<div>
+				<h1 class="text-xl font-semibold">{info.username || 'Unknown user'}</h1>
+				{#if info.email}
+					<p class="text-sm text-[var(--text-secondary)]">{info.email}</p>
+				{/if}
+			</div>
+		</div>
+		<div class="flex items-center gap-2">
+			<button
+				class="btn-accent"
+				disabled={$userToken?.expires == -1}
+				on:click={() => {
+					writeToClipboard($userToken?.token ?? '', '', () => {
+						confirmToast(
+							`copied! expires at ${DateTime.fromMillis(info.payload.exp * 1000).toFormat('T')}`
+						);
+					});
+				}}
+			>Copy API token</button>
+			<button
+				class="btn-ghost"
+				disabled={$userToken?.expires != -1}
+				on:click={() => {
+					userToken.set(undefined);
+					config.set($config);
+				}}>Login again</button>
+		</div>
 	</div>
+
+	<!-- Token details -->
+	{#if info.payload && Object.keys(info.payload).length > 0}
+		<h2 class="text-lg font-semibold mb-3">Token payload</h2>
+		<div class="glass rounded-xl overflow-hidden">
+			<TreeWrapper data={info.payload} expandLevel={1} />
+		</div>
+	{/if}
 </div>

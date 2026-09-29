@@ -54,14 +54,14 @@
 	{#if data}
 		<div
 			class="relative overflow-x-hidden {rounded
-				? 'rounded-xl'
-				: ''} border-b dark:border-stone-800"
+				? 'rounded-xl border border-[var(--glass-border)]'
+				: ''}"
 		>
-			<table class="w-full text-sm text-left rtl:text-right text-gray-800 dark:text-zinc-300">
-				<tbody>
+			<table class="w-full text-sm text-left rtl:text-right text-[var(--text-primary)]">
+				<tbody class="divide-y divide-[var(--glass-border)]">
 					{#each Object.keys(data).filter((key) => data[key] != null) as key}
 						<tr
-							class="bg-white border-t dark:bg-[#1E2021] dark:border-gray-700 dark:hover:bg-stone-900 hover:bg-blue-300"
+							class="hover:bg-[var(--accent)]/[0.04] dark:hover:bg-[var(--accent)]/[0.06] transition-colors duration-75 {(typeof data[key] == 'object' && data[key] != null && (expandFields.includes(key) || (Array.isArray(data[key]) && data[key].length > 3))) ? 'align-top' : ''}"
 						>
 							<th
 								on:click={async () => {
@@ -70,7 +70,7 @@
 									}
 								}}
 								scope="row"
-								class="px-6 py-4 font-medium text-stone-900 whitespace-nowrap dark:text-zinc-300 {allowKeyCopy ||
+								class="px-5 py-3.5 font-semibold text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] whitespace-nowrap w-[200px] {allowKeyCopy ||
 								keyClickHandler != undefined
 									? 'cursor-pointer'
 									: ''}"
@@ -83,7 +83,7 @@
 								{key}
 							</th>
 							<td
-								class="px-6 py-4 flex flex-row select-none items-center {allowCopy
+								class="px-5 py-3.5 flex flex-row select-none items-center text-[var(--text-secondary)] font-mono text-[13px] {allowCopy
 									? 'cursor-pointer'
 									: ''}"
 								title="double-click to copy"
@@ -132,7 +132,7 @@
 									/>
 								{:else if typeof data[key] == 'object' && data[key] != null && expandFields.includes(key)}
 									<div class="w-full" bind:this={yamlContainer}>
-										<pre class="language-json m-0 p-4 dark:bg-[#1E2021] bg-white rounded-none"><code class="language-json dark:bg-[#1E2021] bg-white">{JSON.stringify(data[key], null, 2)}</code></pre>
+										<pre class="language-json m-0 p-4 bg-transparent rounded-none"><code class="language-json bg-transparent">{JSON.stringify(data[key], null, 2)}</code></pre>
 									</div>
 								{:else if typeof data[key] == 'object' && data[key] != null}
 									<div class="cursor-pointer">
@@ -183,12 +183,13 @@
 
 <style lang="postcss">
 	.tree {
-		--json-tree-label-color: green;
-		/* change colors in DarkToggle.svelte */
+		--json-tree-label-color: var(--accent, #6366f1);
+		--json-tree-string-color: var(--text-secondary, #64748b);
+		--json-tree-number-color: var(--text-primary, #1e293b);
 		--json-tree-li-indentation: 1em;
 		--json-tree-li-line-height: 1.3;
 
-		--json-tree-font-size: 15px;
+		--json-tree-font-size: 13px;
 		--json-tree-font-family: 'JetBrains Mono', monospace;
 	}
 

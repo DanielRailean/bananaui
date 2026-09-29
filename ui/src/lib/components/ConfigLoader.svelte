@@ -1,29 +1,29 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import { config, userToken } from '$lib/stores';
+	import { config, userToken, signalAuthReady } from '$lib/stores';
 	import { infoToast } from '$lib/toastStore';
 	import type { IConfig } from '$lib/types';
 	import { delay, getLocalStorageConfig, setLocalStorageConfig } from '$lib/util';
 	import { onMount } from 'svelte';
 
-	function triggerLogin(configRef: any) {
+	function triggerLogin(configRef: any, source: 'local' | 'remote' = 'local') {
 		if ($userToken && $userToken.expires > 0) {
 			return;
 		}
 		userToken.set(undefined);
-		config.set({ config: configRef, source: 'local' });
+		config.set({ config: configRef, source });
 	}
 
-	async function checkCookieAuth(appConfigRef: any) {
+	async function checkCookieAuth(appConfigRef: any, source: 'local' | 'remote' = 'local') {
 		try {
 			const ok = await fetch(`${appConfigRef.kongApi.endpoint}`);
 			if (!ok.ok) {
-				triggerLogin(appConfigRef);
+				triggerLogin(appConfigRef, source);
 			}
 		} catch (error) {
 			console.log(error);
-			triggerLogin(appConfigRef);
+			triggerLogin(appConfigRef, source);
 		}
 	}
 
@@ -57,7 +57,9 @@
 					goto(`${base}/settings`);
 				}
 			}
-			await checkCookieAuth(localConfig);
+			const source = localConfig ? (res.ok ? 'remote' : 'local') : 'local';
+			await checkCookieAuth(localConfig, source as 'local' | 'remote');
+			signalAuthReady();
 		}, 100);
 	});
 </script>

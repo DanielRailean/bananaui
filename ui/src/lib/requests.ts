@@ -1,6 +1,6 @@
 import { goto } from '$app/navigation';
 import { get } from 'svelte/store';
-import { config, preferences, userToken } from './stores';
+import { authReady, config, preferences, userToken } from './stores';
 import { addToast, errorToast, infoToast } from './toastStore';
 import { delay } from './util';
 import { type IEntityBase, type IPaginationRes } from './types';
@@ -233,19 +233,20 @@ class ApiService {
 }
 
 let apiInstance: ApiService | undefined;
-const maxRetries = 3;
+const maxRetries = 5;
 
 export let apiService = async (retryNo?: number): Promise<ApiService> => {
 	if (retryNo && retryNo > maxRetries) {
-		addToast({ message: `Failed to return apiService after ${maxRetries} retries` });
+		throw new Error('Config not available');
 	}
+	await authReady;
 	const token = get(userToken);
 	if (apiInstance) {
 		return apiInstance;
 	}
 	const conf = get(config)?.config;
 	if (!conf) {
-		await delay(200);
+		await delay(500);
 		return await apiService(retryNo ? retryNo + 1 : 0);
 	}
 	// if (!token && conf.oidc?.enabled) {

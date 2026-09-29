@@ -2,7 +2,6 @@
 	import { staticConfig } from '$lib/config';
 	import { config, userToken } from '$lib/stores';
 	import { delay } from '$lib/util';
-	import { Button } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import logo from '$lib/assets/favicon.png';
 
@@ -37,15 +36,13 @@
 	});
 </script>
 
-<div class="flex items-center justify-center h-[80vh] w-full my-auto">
-	<div class="flex flex-col items-center w-full">
-		<div class="flex flex-row mx-auto items-center">
-			<img class="h-16 w-16 mr-4" src={logo} alt="bananaui logo" />
-
-			<h1 class="text-5xl font-medium">
-				{staticConfig.name}
-			</h1>
-		</div>
-		<Button class="my-10 h-16 text-xl mx-auto" on:click={tryLogin} color="green">SSO Login</Button>
+<div class="flex items-center justify-center min-h-[80vh] w-full">
+	<div class="glass rounded-2xl p-10 flex flex-col items-center max-w-sm w-full">
+		<img class="h-14 w-14 mb-4" src={logo} alt="bananaui logo" />
+		<h1 class="text-2xl font-semibold tracking-tight mb-1">
+			{staticConfig.name}
+		</h1>
+		<p class="text-sm text-[var(--text-secondary)] mb-8">Sign in to manage your gateway</p>
+		<button class="btn-accent w-full h-12 text-base rounded-xl justify-center" on:click={tryLogin}>SSO Login</button>
 	</div>
 </div>
