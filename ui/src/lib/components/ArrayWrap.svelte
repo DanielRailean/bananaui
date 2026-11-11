@@ -3,7 +3,7 @@
 	import { capitalizeFirstLetter, debouncedCall, delay, getParentInfo, parentInfoCache, writeToClipboard } from '$lib/util';
 	import GrandParentRef from './GrandParentRef.svelte';
 	import { goto } from '$app/navigation';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import { DateTime } from 'luxon';
 	import {
 		CaretDownOutline,
@@ -44,6 +44,15 @@
 	$: isExpanded = (id: string) => expandedRows[id] ?? !!(expandByDefault && $expandByDefault);
 	// toggling the preference overrides any per-row state
 	$: if (expandByDefault) $expandByDefault, (expandedRows = {});
+
+	// keep the clicked element at the same viewport position after rows grow/shrink
+	async function keepInPlace(el: HTMLElement, change: () => void) {
+		const before = el.getBoundingClientRect().top;
+		change();
+		await tick();
+		const scroller = el.closest('main');
+		if (scroller) scroller.scrollTop += el.getBoundingClientRect().top - before;
+	}
 	let displayedFields: string[] = [];
 
 	function updateDisplayedFields() {
@@ -622,7 +631,7 @@
 					<button
 						class="btn-glass"
 						title="expand/collapse sub-entities of all rows (saved as preference)"
-						on:click={() => expandByDefault.set(!$expandByDefault)}
+						on:click={(e) => keepInPlace(e.currentTarget, () => expandByDefault.set(!$expandByDefault))}
 					>
 						{$expandByDefault ? 'Collapse all' : 'Expand all'}
 					</button>
@@ -759,8 +768,9 @@
 										class="btn-icon h-8 w-8"
 										title={isExpanded(item.id) ? 'collapse' : 'expand sub-entities'}
 										aria-expanded={isExpanded(item.id)}
-										on:click|stopPropagation={() => {
-											expandedRows[item.id] = !isExpanded(item.id);
+										on:click|stopPropagation={(e) => {
+											const open = !isExpanded(item.id);
+											keepInPlace(e.currentTarget, () => (expandedRows[item.id] = open));
 										}}
 									>
 										<span class="inline-block transition-transform {isExpanded(item.id) ? 'rotate-90' : ''}">▸</span>
@@ -909,6 +919,8 @@
 					{#if isExpanded(item.id) && nested?.[item.id]}
 						<tr class="border-b border-[var(--glass-border)]">
 							<td colspan="999" class="pb-2 pl-12 pr-2">
+								<!-- w-0 min-w-full: nested content must not widen the parent table's columns -->
+								<div class="w-0 min-w-full overflow-x-auto">
 								{#each nested[item.id] as child}
 									{#if child.data && get(child.data).length > 0}
 										<p class="pt-1 text-[11px] uppercase tracking-wider text-[var(--text-tertiary)]">
@@ -925,6 +937,7 @@
 										/>
 									{/if}
 								{/each}
+								</div>
 							</td>
 						</tr>
 					{/if}
