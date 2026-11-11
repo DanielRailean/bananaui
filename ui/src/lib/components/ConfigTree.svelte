@@ -22,7 +22,7 @@
 		: [];
 </script>
 
-<div class="font-mono text-[13px] leading-6 {depth > 0 ? (Array.isArray(value) ? 'pl-4' : 'pl-4 border-l border-[var(--glass-border)]') : ''}">
+<div class="font-mono text-[13px] leading-6 {depth > 0 ? (Array.isArray(value) ? '' : 'pl-4 border-l border-[var(--glass-border)]') : ''}">
 	{#each entries as [key, val]}
 		<div class={isObject(val) && !Array.isArray(value) ? '' : 'flex flex-row gap-2 items-baseline'}>
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -34,6 +34,14 @@
 				title="double-click to copy key '{key}'"
 				on:dblclick|stopPropagation={() => writeToClipboard(key)}
 			>{key}:</span>
+			{#if isObject(val) && (Array.isArray(val) ? val.length : Object.keys(val).length) > 0}
+				<button
+					class="select-none text-xs text-[var(--text-tertiary)] opacity-40 hover:opacity-100 hover:text-[var(--accent)]"
+					title="copy entire {Array.isArray(val) ? 'array' : 'object'} as JSON"
+					on:click|stopPropagation={() => writeToClipboard(JSON.stringify(val, null, 2))}
+					on:dblclick|stopPropagation
+				>⧉</button>
+			{/if}
 			{/if}
 			{#if isObject(val)}
 				{#if (Array.isArray(val) ? val.length : Object.keys(val).length) === 0}
