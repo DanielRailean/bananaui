@@ -67,14 +67,13 @@
 		entityItems = entityItems;
 	}
 
-	function isCurrentPage(item: NavItem) {
+	// reactive so every nav section re-evaluates the active state on navigation
+	$: isCurrentPage = (item: NavItem) => {
 		if (!mounted) return false;
-		if (!window) return false;
-		const searchParams = new URLSearchParams(window.location.search);
-		const entityType = searchParams.get('type');
+		const entityType = $page.url.searchParams.get('type');
 		if (entityType) return entityType === item.name;
-		return window.location.pathname.endsWith(item.appPath);
-	}
+		return $page.url.pathname.endsWith(item.appPath);
+	};
 
 	function toggleCollapse() {
 		sidebarCollapsed.set(!$sidebarCollapsed);
