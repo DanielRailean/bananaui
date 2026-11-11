@@ -78,6 +78,18 @@ async function requestWithResponseBodyCached<ResType, ErrType = void>(
 	return requestWithResponseBody(url, method, body, headers)
 }
 
+const loginRedirectKey = 'auth401Redirected';
+
+// redirect to login on 401 only once; if still 401 after re-login, stop to avoid a loop
+function redirectToLoginOnce() {
+	if (sessionStorage.getItem(loginRedirectKey)) return;
+	const { pathname, search } = window.location;
+	if (pathname.includes('/login')) return;
+	sessionStorage.setItem(loginRedirectKey, '1');
+	userToken.set(undefined);
+	goto(`${base}/login?auto=true&source=${btoa(pathname + search)}`);
+}
+
 async function requestWithResponseBody<ResType, ErrType = void>(
 	url: string,
 	method: string = 'GET',
@@ -89,6 +101,11 @@ async function requestWithResponseBody<ResType, ErrType = void>(
 		ok: res.ok,
 		code: res.status
 	};
+	if (res.status == 401) {
+		redirectToLoginOnce();
+	} else if (res.ok) {
+		sessionStorage.removeItem(loginRedirectKey);
+	}
 	if (res.ok) {
 		try {
 			result.data = (await res.json()) as ResType;

@@ -34,6 +34,31 @@
 	});
 	let loadStart: DateTime | undefined;
 
+	const prefetchGroup = ['plugins', 'services', 'routes'];
+
+	// warm the GET cache for the other entities of the group, page by page
+	async function prefetchSiblings(current: string, started: DateTime | undefined) {
+		if (!prefetchGroup.includes(current) || !get(preferences.useEphemeralGetRequestsCache)) {
+			return;
+		}
+		try {
+			const api = await apiService();
+			for (const name of prefetchGroup.filter((n) => n != current)) {
+				const ent = get(preferences.kongEntities).find((i) => i.name == name);
+				if (!ent) continue;
+				let res = await api.findAll<any>(ent.apiPath, {}, '');
+				while (res.ok && res.data?.next) {
+					// stop if a new load started (navigation/refresh)
+					if (started != loadStart) return;
+					await delay(get(preferences.paginationRequestsDelayMs));
+					res = await api.request<any>(res.data.next);
+				}
+			}
+		} catch (error) {
+			console.error('prefetch failed', error);
+		}
+	}
+
 	async function load(caller = '', isRefresh = false) {
 		console.log(`load called by '${caller}'`);
 		if (!isMounted) {
@@ -87,6 +112,9 @@
 			}
 			if (isRefresh) {
 				infoToast('refresh finished!');
+			}
+			if (loopStarted == loadStart && !pathPrefix) {
+				prefetchSiblings(entity, loopStarted);
 			}
 		} catch (error: any) {
 			console.error(error);
