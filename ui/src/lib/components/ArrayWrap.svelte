@@ -365,9 +365,9 @@
 			const element = filteredData[i];
 			const res = await (await apiService()).updateRecord(type, element.id, updateBody);
 			if (!res.ok) {
-				errorToast(`[${i + 1}/${total}] failed to update ${element.id}. ${res.err}`);
+				errorToast(`[${i + 1}/${total}] failed to update ${element.id}. ${res.err}`, false, 3500, { request: updateBody, response: res.errTyped ?? res.err });
 			} else {
-				infoToast(`[${i + 1}/${total}] updated ${element.name ?? element.id}`);
+				infoToast(`[${i + 1}/${total}] updated ${element.name ?? element.id}`, false, { before: element, after: res.data });
 			}
 		}
 		infoToast(`bulk update finished (${total} entities)`);
@@ -568,7 +568,9 @@
 									infoToast(
 										`deleted ${entity.name ?? ''}(${entity.id}) ${
 											filteredData.length - filteredData.indexOf(entity)
-										} remaining`
+										} remaining`,
+										false,
+										entity
 									);
 								} else {
 									errorToast(`failed deletion of ${entity.name ?? entity.id}`);

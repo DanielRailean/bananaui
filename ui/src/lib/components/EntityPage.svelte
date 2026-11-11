@@ -220,7 +220,7 @@
 		if (!res.ok) {
 			errorToast(`failed to delete. ${res.err}`);
 		} else {
-			confirmToast(`deleted`);
+			confirmToast(`deleted ${entityType} ${data?.name ?? id}`, false, data);
 			goto(`${base}/entities?type=${entityType}&prefix=${pathPrefix}`);
 		}
 	}
@@ -259,11 +259,15 @@
 			errorToast(
 				(`API error (${res.code}): ` + ((res.errTyped as any)?.message ?? res.err)) as string,
 				true,
-				15000
+				15000,
+				{ request: JSON.parse(json), response: res.errTyped ?? res.err }
 			);
 			return;
 		} else {
-			confirmToast(`entity successfully updated`);
+			confirmToast(`${entityType} ${data?.name ?? id} updated`, false, {
+				changes: changedFields,
+				after: res.data
+			});
 		}
 
 		flipIsEdited();

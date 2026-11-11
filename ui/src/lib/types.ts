@@ -74,6 +74,8 @@ export interface IToast {
 	dismissible?: boolean;
 	timeout?: number;
 	message: string;
+	// extra context kept in the notification history (e.g. entity data)
+	details?: unknown;
 }
 
 export interface IKongEntity {

@@ -6,7 +6,7 @@
 	import { goto } from '$app/navigation';
 	import { apiService, clearCache } from '$lib/requests';
 	import { onMount, tick } from 'svelte';
-	import { addToast, errorToast, infoToast } from '$lib/toastStore';
+	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 	import { base } from '$app/paths';
 	import { delay } from '$lib/util';
@@ -159,16 +159,18 @@
 					addToast({
 						message: (`API error (${res.code}): ` +
 							((res.errTyped as any)?.message ?? res.err)) as string,
-						timeout: 15000
+						timeout: 15000,
+						details: { request: element, response: res.errTyped ?? res.err }
 					});
 					return;
 				}
 				if (res.data?.id) {
 					clearCache(entity?.name);
 					if (!isArray) {
+						confirmToast(`created ${entity?.name} (${element.name ?? res.data.id})`, false, res.data);
 						goto(`${base}/entity?type=${entity?.name}&id=${res.data.id}&prefix=${pathPrefix}`);
 					} else {
-						infoToast(`created ${entity?.name} (${element.name ?? res.data.id})`);
+						infoToast(`created ${entity?.name} (${element.name ?? res.data.id})`, false, res.data);
 					}
 				} else {
 					addToast({ message: 'failed to read the new entity' });
