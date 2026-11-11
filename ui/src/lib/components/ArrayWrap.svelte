@@ -922,9 +922,11 @@
 								<div class="overflow-x-auto">
 								{#each nested[item.id] as child}
 									{#if child.data && get(child.data).length > 0}
+										{#if nested[item.id].filter((c) => c.data && get(c.data).length > 0).length > 1}
 										<p class="pt-1 text-[11px] uppercase tracking-wider text-[var(--text-tertiary)]">
 											{child.name} · {get(child.data).length}
 										</p>
+										{/if}
 										<svelte:self
 											dataRaw={child.data}
 											type={child.name}
