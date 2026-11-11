@@ -13,6 +13,7 @@
 	import { get } from 'svelte/store';
 	import { preferences } from '$lib/stores';
 	import { page } from '$app/stores';
+	import { load as parseYaml } from 'js-yaml';
 
 	let entity: IKongEntity | undefined;
 
@@ -24,6 +25,56 @@
 	let selectedPluginName: any;
 	let pluginSelect: any | undefined;
 	let pathPrefix: string = '';
+
+	function yamlToJson(text: string): string | undefined {
+		try {
+			JSON.parse(text);
+			return;
+		} catch {}
+		let parsed: unknown;
+		try {
+			parsed = parseYaml(text);
+		} catch {
+			return;
+		}
+		if (parsed === null || typeof parsed !== 'object') {
+			return;
+		}
+		return JSON.stringify(parsed, undefined, 2);
+	}
+
+	function afterJsonChange() {
+		triggerHighlight();
+		checkIfPlugin();
+		checkIfArray();
+	}
+
+	function handlePaste(e: ClipboardEvent) {
+		const converted = yamlToJson(e.clipboardData?.getData('text/plain') ?? '');
+		if (!converted) {
+			return;
+		}
+		e.preventDefault();
+		const start = editorWindow.selectionStart;
+		const end = editorWindow.selectionEnd;
+		json = json.slice(0, start) + converted + json.slice(end);
+		afterJsonChange();
+		infoToast('converted pasted YAML to JSON');
+	}
+
+	let yamlTypeTimer: ReturnType<typeof setTimeout> | undefined;
+	function handleTypedYaml() {
+		clearTimeout(yamlTypeTimer);
+		yamlTypeTimer = setTimeout(() => {
+			const converted = yamlToJson(json);
+			if (!converted) {
+				return;
+			}
+			json = converted;
+			afterJsonChange();
+			infoToast('converted YAML to JSON');
+		}, 100);
+	}
 
 	function setEditField(name: string, value: any) {
 		dummyObject[name] = value;
@@ -361,10 +412,12 @@
 			translate="no"
 			class="relative"
 			bind:value={json}
+			on:paste={handlePaste}
 			on:input={() => {
 				triggerHighlight();
 				checkIfPlugin();
 				checkIfArray();
+				handleTypedYaml();
 			}}
 		></textarea>
 	</div>
