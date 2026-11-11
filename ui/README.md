@@ -22,6 +22,7 @@ export BANANA_UI_CONFIG=
 		"requestHeaders": {
 			"apikeyheader": "apikeyvalue"
 		}
-	}
+	},
+	"gateway_url": "https://gateway.example.com"
 }
 ```

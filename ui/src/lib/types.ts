@@ -49,6 +49,7 @@ export interface IConfig {
 		requestHeaders: Record<string, string>;
 	};
 	oidc?: IOidc;
+	gateway_url?: string;
 }
 
 export interface IConfigWrap {

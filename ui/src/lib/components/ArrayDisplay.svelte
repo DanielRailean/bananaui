@@ -1,16 +1,26 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { get } from 'svelte/store';
-	import { preferences } from '$lib/stores';
+	import { config, preferences } from '$lib/stores';
 
 	const eventdispatch = createEventDispatcher();
 	export let item: any = {};
 	export let field = '';
 
+	function prefOn(key: string) {
+		return !!preferences?.[key] && !!get(preferences[key]);
+	}
+
 	function copyValue(row: any) {
 		let value = row;
-		if (field === 'paths' && typeof row === 'string' && preferences?.stripRegexCharsOnPathCopy && get(preferences.stripRegexCharsOnPathCopy)) {
-			value = row.replace(/[$~]/g, '');
+		if (field === 'paths' && typeof row === 'string') {
+			if (prefOn('stripRegexCharsOnPathCopy')) {
+				value = value.replace(/[$~]/g, '');
+			}
+			const url = get(config)?.config.gateway_url ?? "https://example.com";
+			if (url && prefOn('prependGatewayUrlOnPathCopy')) {
+				value = url.replace(/\/+$/, '') + value;
+			}
 		}
 		eventdispatch('copy', { value });
 	}
