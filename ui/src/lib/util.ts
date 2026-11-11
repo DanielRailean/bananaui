@@ -2,6 +2,8 @@ import { apiService } from './requests';
 import type { IPlugins } from './responseTypes';
 import { addToast, confirmToast, errorToast } from './toastStore';
 import type { IConfig, IKongPlugin } from './types';
+import { get } from 'svelte/store';
+import { preferences } from './stores';
 
 export const delay = (delayInms: number) => {
 	return new Promise((resolve) => setTimeout(resolve, delayInms));
@@ -29,6 +31,28 @@ export async function getParentInfo(fieldType: string, id: string): Promise<stri
 	}
 	parentInfoCache[id] = res.data.name ?? res.data.tags ?? res.data.id;
 	return parentInfoCache[id];
+}
+
+const grandParentCache: { [id: string]: Promise<{ field: string; id: string } | undefined> } = {};
+
+export function getGrandParent(fieldType: string, id: string) {
+	return (grandParentCache[id] ??= loadGrandParent(fieldType, id));
+}
+
+async function loadGrandParent(
+	fieldType: string,
+	id: string
+): Promise<{ field: string; id: string } | undefined> {
+	const res = await (await apiService()).findRecord<any>(fieldType + 's', id);
+	if (!res.ok || !res.data) return undefined;
+	const entities = get(preferences.kongEntities);
+	for (const [key, value] of Object.entries(res.data)) {
+		const v = value as any;
+		if (v && typeof v == 'object' && typeof v.id == 'string' && entities.find((i) => i.apiPath == `${key}s`)) {
+			return { field: key, id: v.id };
+		}
+	}
+	return undefined;
 }
 
 export const writeToClipboard = (

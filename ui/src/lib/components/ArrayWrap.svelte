@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Link from './Link.svelte';
 	import { capitalizeFirstLetter, debouncedCall, delay, getParentInfo, parentInfoCache, writeToClipboard } from '$lib/util';
+	import GrandParentRef from './GrandParentRef.svelte';
 	import { goto } from '$app/navigation';
 	import { onDestroy, onMount } from 'svelte';
 	import { DateTime } from 'luxon';
@@ -883,6 +884,7 @@
 															</p>
 														</div>
 													</a>
+													<GrandParentRef field={field} id={item[field].id} />
 												</div>
 											{:else if Object.is(item[field], null) || item[field] === undefined}
 												-

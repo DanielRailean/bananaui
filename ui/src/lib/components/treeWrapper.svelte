@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { dateFields } from '$lib/config';
 	import { getParentInfo, writeToClipboard } from '$lib/util';
+	import GrandParentRef from './GrandParentRef.svelte';
 	import JSONTree from 'svelte-json-tree';
 	import { DateTime } from 'luxon';
 	import { base } from '$app/paths';
@@ -108,6 +109,7 @@
 											</p>
 										</div>
 									</a>
+									<GrandParentRef field={key} id={data[key].id} />
 									<button
 										on:click={() => {
 											console.log(data[key]);
