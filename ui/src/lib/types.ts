@@ -106,5 +106,6 @@ export interface IKongPlugin extends IEntityBase {
 	}
 	name: string,
 	priority: number,
+	enabled?: boolean,
 	config: IPluginConfig
 }

@@ -43,6 +43,7 @@
 
 	const maxSubEntityDepth = 3;
 	let subEntities: ISubEntitySection[];
+	let subEntitiesLoading = false;
 	let relevantPlugins: IKongPlugin[] = [];
 	let entitySchema: any | undefined;
 	let pluginSchema: any | undefined;
@@ -142,7 +143,10 @@
 			stateJson = json;
 
 			currentEntity = get(preferences.kongEntities).find((ent) => ent.name == entityType);
+			subEntities = [];
+			subEntitiesLoading = true;
 			subEntities = await loadSubEntities(entityType, id, 0);
+			subEntitiesLoading = false;
 		}
 		// load entity schema
 		entitySchema = undefined;
@@ -520,7 +524,10 @@
 				</h2>
 					<div bind:this={pluginConfigContainer} class="flex flex-wrap items-center gap-2 p-5">
 						{#each relevantPlugins as plugin}
-							<div class="glass rounded-xl">
+							<div
+								class="glass rounded-xl {plugin.enabled === false ? 'opacity-50 border border-dashed border-[var(--text-tertiary)]' : ''}"
+								title={plugin.enabled === false ? 'disabled — not executed' : ''}
+							>
 								<div
 									class="flex flex-row items-center cursor-pointer p-3 gap-2"
 									on:click={() => {
@@ -540,7 +547,10 @@
 											{@html icons['shuffle']}
 										</div>
 									{/if}
-									<p class="text-sm font-medium">{plugin.name}</p>
+									<p class="text-sm font-medium {plugin.enabled === false ? 'line-through' : ''}">{plugin.name}</p>
+									{#if plugin.enabled === false}
+										<span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[var(--danger)]/10 text-[var(--danger)]">off</span>
+									{/if}
 									<Link
 										classes="ml-1"
 										href="{base}/entity?type=plugins&id={plugin.id}"
@@ -560,7 +570,25 @@
 			{/if}
 
 			<!-- Sub-entities -->
-			{#if subEntities}
+			{#if subEntitiesLoading}
+				{#each currentEntity?.subEntities ?? [] as name}
+					<div class="border-t border-[var(--glass-border)] animate-pulse">
+						<div class="flex items-center gap-3 px-5 pt-4">
+							<span class="text-sm font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{name}</span>
+							<div class="h-9 w-28 rounded-xl bg-black/[0.05] dark:bg-white/[0.05]"></div>
+						</div>
+						<div class="mx-4 mt-4 mb-2 rounded-xl border border-[var(--glass-border)] divide-y divide-[var(--glass-border)]">
+							{#each Array(4) as _, i}
+								<div class="flex items-center gap-6 px-5 py-4" style="opacity: {1 - i * 0.2}">
+									<div class="h-4 w-24 rounded bg-black/[0.06] dark:bg-white/[0.06]"></div>
+									<div class="h-4 flex-1 max-w-[300px] rounded bg-black/[0.04] dark:bg-white/[0.04]"></div>
+									<div class="h-4 w-16 rounded bg-black/[0.04] dark:bg-white/[0.04]"></div>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/each}
+			{:else if subEntities}
 				{#each subEntities as subEntity}
 					<div class="border-t border-[var(--glass-border)]">
 						<div class="flex items-center gap-3 px-5 pt-4">
