@@ -1,9 +1,19 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
+	import { get } from 'svelte/store';
+	import { preferences } from '$lib/stores';
 
 	const eventdispatch = createEventDispatcher();
 	export let item: any = {};
 	export let field = '';
+
+	function copyValue(row: any) {
+		let value = row;
+		if (field === 'paths' && typeof row === 'string' && preferences?.stripRegexCharsOnPathCopy && get(preferences.stripRegexCharsOnPathCopy)) {
+			value = row.replace(/[$~]/g, '');
+		}
+		eventdispatch('copy', { value });
+	}
 </script>
 
 <div class="flex flex-row flex-wrap items-center gap-1.5">
@@ -24,13 +34,13 @@
 			<code
 				class="px-2 py-0.5 rounded-md text-[12px] font-mono bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 cursor-pointer select-none hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors"
 				title="double-click to copy"
-				on:dblclick|stopPropagation|preventDefault={() => eventdispatch('copy', { value: row })}
+				on:dblclick|stopPropagation|preventDefault={() => copyValue(row)}
 			>{row}</code>
 		{:else}
 			<span
 				class="px-2 py-0.5 rounded-md text-[12px] bg-black/[0.04] dark:bg-white/[0.07] text-[var(--text-primary)] cursor-pointer select-none hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-colors"
 				title="double-click to copy"
-				on:dblclick|stopPropagation|preventDefault={() => eventdispatch('copy', { value: row })}
+				on:dblclick|stopPropagation|preventDefault={() => copyValue(row)}
 			>{row}</span>
 		{/if}
 	{/each}
