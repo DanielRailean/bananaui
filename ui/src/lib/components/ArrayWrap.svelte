@@ -39,6 +39,10 @@
 	// compact mode for tables rendered inline inside a parent row
 	export let compact = false;
 	let expandedRows: Record<string, boolean> = {};
+	const expandByDefault = preferences?.expandSubEntitiesByDefault;
+	$: isExpanded = (id: string) => expandedRows[id] ?? !!(expandByDefault && $expandByDefault);
+	// toggling the preference overrides any per-row state
+	$: if (expandByDefault) $expandByDefault, (expandedRows = {});
 	let displayedFields: string[] = [];
 
 	function updateDisplayedFields() {
@@ -612,6 +616,15 @@
 						labelRight="Load parent"
 					/>
 				</div>
+				{#if nested && Object.values(nested).some((c) => c.length > 0) && expandByDefault}
+					<button
+						class="btn-glass"
+						title="expand/collapse sub-entities of all rows (saved as preference)"
+						on:click={() => expandByDefault.set(!$expandByDefault)}
+					>
+						{$expandByDefault ? 'Collapse all' : 'Expand all'}
+					</button>
+				{/if}
 			</div>
 			{#if filteredData.length > paginationSizeUi}
 				<div class="info py-4 flex flex-row items-center space-x-2 pl-6 mr-5">
@@ -701,9 +714,9 @@
 				</div>
 			</div>
 		{/if}
-		<div class="{compact ? '' : 'mx-4'} rounded-xl border border-[var(--glass-border)] overflow-hidden">
-		<table class="w-full">
-			<thead class="text-xs uppercase tracking-wider text-[var(--text-tertiary)] h-10 border-b border-[var(--glass-border)] bg-black/[0.02] dark:bg-white/[0.02]">
+		<div class={compact ? '' : 'mx-4 rounded-xl border border-[var(--glass-border)] overflow-hidden'}>
+		<table class="w-full {compact ? 'text-xs' : ''}">
+			<thead class="text-xs uppercase tracking-wider text-[var(--text-tertiary)] h-10 border-b border-[var(--glass-border)] bg-black/[0.02] dark:bg-white/[0.02] {compact ? 'hidden' : ''}">
 				<tr>
 					{#if get(preferences.enumerateEntities)}
 						<th><p class="p-4">No.</p></th>
@@ -721,7 +734,7 @@
 			<tbody>
 				{#each filteredData.slice(arrayStart, arrayEnd) as item, index}
 					<tr
-						class="group border-b border-[var(--glass-border)] transition-colors duration-100
+						class="group {compact ? '' : 'border-b'} border-[var(--glass-border)] transition-colors duration-100
 							{index === highlightedRow ? 'bg-[var(--accent)]/[0.08] dark:bg-[var(--accent)]/[0.12]' : 'hover:bg-[var(--accent)]/[0.03] dark:hover:bg-white/[0.04]'}"
 						on:auxclick={() => {
 							window.open(
@@ -737,18 +750,18 @@
 								</p></td
 							>
 						{/if}
-						<td class="p-2 w-0">
+						<td class="{compact ? 'px-1 py-0' : 'p-2'} w-0">
 							<div class="flex flex-row gap-0.5 opacity-30 group-hover:opacity-100 transition-opacity duration-100">
 								{#if nested?.[item.id]?.length}
 									<button
 										class="btn-icon h-8 w-8"
-										title={expandedRows[item.id] ? 'collapse' : 'expand sub-entities'}
-										aria-expanded={!!expandedRows[item.id]}
+										title={isExpanded(item.id) ? 'collapse' : 'expand sub-entities'}
+										aria-expanded={isExpanded(item.id)}
 										on:click|stopPropagation={() => {
-											expandedRows[item.id] = !expandedRows[item.id];
+											expandedRows[item.id] = !isExpanded(item.id);
 										}}
 									>
-										<span class="inline-block transition-transform {expandedRows[item.id] ? 'rotate-90' : ''}">▸</span>
+										<span class="inline-block transition-transform {isExpanded(item.id) ? 'rotate-90' : ''}">▸</span>
 									</button>
 								{/if}
 								<button
@@ -784,7 +797,7 @@
 
 						{#each displayedFields ?? Object.keys($dataRaw[0] ?? {}) as field}
 							{#if Object.keys(item).includes(field)}
-								<td class="p-2">
+								<td class={compact ? 'px-1 py-0.5' : 'p-2'}>
 									<div class="flex flex-row items-center justify-between">
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
@@ -792,7 +805,7 @@
 											class="mr-2 cursor-pointer select-none overflow-hidden max-h-40 {field.includes(
 												'name'
 											)
-												? 'text-[16px] font-extralight'
+												? compact ? 'font-normal' : 'text-[16px] font-extralight'
 												: ''}"
 											title={field == 'name'
 												? `open ${item.name ?? ''} (${item.id})`
@@ -890,23 +903,14 @@
 							{/if}
 						{/each}
 					</tr>
-					{#if expandedRows[item.id] && nested?.[item.id]}
-						<tr class="border-b border-[var(--glass-border)] bg-black/[0.015] dark:bg-white/[0.015]">
-							<td colspan="999" class="pl-6 pr-2 pb-2">
+					{#if isExpanded(item.id) && nested?.[item.id]}
+						<tr class="border-b border-[var(--glass-border)]">
+							<td colspan="999" class="pb-2 pl-12 pr-2">
 								{#each nested[item.id] as child}
-									<div class="flex items-center gap-3 py-2">
-										<h3 class="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
-											{capitalizeFirstLetter(child.name)} {child.data ? `(${get(child.data).length})` : ''}
-										</h3>
-										<a
-											class="btn-accent"
-											href="{base}/add?type={child.name}&apiPostPath={btoa(child.entitySubPath)}&prefix={child.pathPrefix}"
-											on:click|preventDefault={() => goto(`${base}/add?type=${child.name}&apiPostPath=${btoa(child.entitySubPath)}&prefix=${child.pathPrefix}`)}
-										>
-											Add {child.name}
-										</a>
-									</div>
 									{#if child.data && get(child.data).length > 0}
+										<p class="pt-1 text-[11px] uppercase tracking-wider text-[var(--text-tertiary)]">
+											{child.name} · {get(child.data).length}
+										</p>
 										<svelte:self
 											dataRaw={child.data}
 											type={child.name}
@@ -916,8 +920,6 @@
 											compact
 											on:refresh
 										/>
-									{:else}
-										<p class="py-2 text-sm text-[var(--text-tertiary)]">No {child.name} found.</p>
 									{/if}
 								{/each}
 							</td>
