@@ -13,10 +13,12 @@
 	import { get } from 'svelte/store';
 	import { preferences } from '$lib/stores';
 	import { page } from '$app/stores';
-	import { load as parseYaml } from 'js-yaml';
+	import { load as parseYaml, dump } from 'js-yaml';
+	import { yamlDumpOptions } from '$lib/config';
 
 	let entity: IKongEntity | undefined;
 
+	// editor content is YAML; JSON input also parses since YAML is a superset of JSON
 	let json = '';
 	let dummyObject: any = {};
 	let postPath: string | undefined;
@@ -26,55 +28,8 @@
 	let pluginSelect: any | undefined;
 	let pathPrefix: string = '';
 
-	function yamlToJson(text: string): string | undefined {
-		try {
-			JSON.parse(text);
-			return;
-		} catch {}
-		let parsed: unknown;
-		try {
-			parsed = parseYaml(text);
-		} catch {
-			return;
-		}
-		if (parsed === null || typeof parsed !== 'object') {
-			return;
-		}
-		return JSON.stringify(parsed, undefined, 2);
-	}
-
-	function afterJsonChange() {
-		triggerHighlight();
-		checkIfPlugin();
-		checkIfArray();
-	}
-
-	function handlePaste(e: ClipboardEvent) {
-		const converted = yamlToJson(e.clipboardData?.getData('text/plain') ?? '');
-		if (!converted) {
-			return;
-		}
-		e.preventDefault();
-		const start = editorWindow.selectionStart;
-		const end = editorWindow.selectionEnd;
-		json = json.slice(0, start) + converted + json.slice(end);
-		afterJsonChange();
-		infoToast('converted pasted YAML to JSON');
-	}
-
-	let yamlTypeTimer: ReturnType<typeof setTimeout> | undefined;
-	function handleTypedYaml() {
-		clearTimeout(yamlTypeTimer);
-		yamlTypeTimer = setTimeout(() => {
-			const converted = yamlToJson(json);
-			if (!converted) {
-				return;
-			}
-			json = converted;
-			afterJsonChange();
-			infoToast('converted YAML to JSON');
-		}, 100);
-	}
+	const toText = (obj: any) => dump(obj, yamlDumpOptions).trimEnd();
+	const fromText = (text: string): any => parseYaml(text);
 
 	function setEditField(name: string, value: any) {
 		dummyObject[name] = value;
@@ -82,7 +37,7 @@
 	}
 
 	function addField(key: string, value: any, subfield: string | undefined = undefined) {
-		let temp = JSON.parse(json);
+		let temp = fromText(json) ?? {};
 		if (subfield) {
 			let temp2 = temp[subfield];
 			temp2[key] = value;
@@ -90,12 +45,12 @@
 		} else {
 			temp[key] = value;
 		}
-		json = JSON.stringify(temp, undefined, 2);
+		json = toText(temp);
 		triggerHighlight();
 	}
 
 	function dummyToJson() {
-		json = JSON.stringify(dummyObject, undefined, 2);
+		json = toText(dummyObject);
 	}
 
 	onMount(async () => {
@@ -144,7 +99,7 @@
 			}
 			dummyToJson();
 		}
-		json = JSON.stringify(entity.defaultAddValue ?? dummyObject, undefined, 2);
+		json = toText(entity.defaultAddValue ?? dummyObject);
 		triggerHighlight();
 		addToast({ timeout: 5000, message: 'for bulk updates use an array of entities', type: 'info' });
 
@@ -163,15 +118,15 @@
 	function format(confirmOk = true) {
 		let parsed: any | undefined;
 		try {
-			parsed = JSON.parse(json);
+			parsed = fromText(json);
 		} catch (err: any) {
-			addToast({ message: `Failed to parse JSON. ${err.message}` });
+			addToast({ message: `Failed to parse YAML. ${err.message}` });
 			return;
 		}
-		json = JSON.stringify(parsed, undefined, 2);
+		json = toText(parsed);
 		triggerHighlight();
 		if (confirmOk) {
-			addToast({ message: `json valid!`, type: 'info' });
+			addToast({ message: `yaml valid!`, type: 'info' });
 		}
 	}
 
@@ -179,7 +134,7 @@
 		format(false);
 		try {
 			let res: ResWrapped<IEntityBase, IResCreateError> | undefined;
-			let data = JSON.parse(json);
+			let data = fromText(json);
 			let isArray = Array.isArray(data);
 			if (!isArray) {
 				data = [data];
@@ -290,7 +245,8 @@
 			await triggerHighlight(selfCalled + 1);
 			return;
 		}
-		editorSyntax.textContent = json;
+		// a trailing newline isn't rendered by <pre>, which would desync it from the textarea
+		editorSyntax.textContent = json.endsWith('\n') ? json + ' ' : json;
 		(globalThis as any).Prism.highlightElement(editorSyntax);
 		console.log(`Triggered on try ${selfCalled}`);
 	}
@@ -300,7 +256,7 @@
 			return;
 		}
 		try {
-			const body = JSON.parse(json);
+			const body = fromText(json);
 			if (body) {
 				isArray = Array.isArray(body);
 			}
@@ -314,7 +270,7 @@
 			return;
 		}
 		try {
-			const body = JSON.parse(json);
+			const body = fromText(json);
 			if (body) {
 				if (body && body.name && body.name != selectedPluginName) {
 					selectedPluginName = body.name;
@@ -400,7 +356,7 @@
 
 <div class="dark:border-stone-700">
 	<div class="editor dark:bg-[#1E2021] w-full min-h-[30vh] line-numbers">
-		<pre class="language-json dark:bg-zinc-900"><code
+		<pre class="language-yaml dark:bg-zinc-900"><code
 				class="dark:bg-zinc-900"
 				bind:this={editorSyntax}></code></pre>
 		<textarea
@@ -412,12 +368,10 @@
 			translate="no"
 			class="relative"
 			bind:value={json}
-			on:paste={handlePaste}
 			on:input={() => {
 				triggerHighlight();
 				checkIfPlugin();
 				checkIfArray();
-				handleTypedYaml();
 			}}
 		></textarea>
 	</div>
