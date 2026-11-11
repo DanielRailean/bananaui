@@ -919,8 +919,7 @@
 					{#if isExpanded(item.id) && nested?.[item.id]}
 						<tr class="border-b border-[var(--glass-border)]">
 							<td colspan="999" class="pb-2 pl-12 pr-2">
-								<!-- w-0 min-w-full: nested content must not widen the parent table's columns -->
-								<div class="w-0 min-w-full overflow-x-auto">
+								<div class="overflow-x-auto">
 								{#each nested[item.id] as child}
 									{#if child.data && get(child.data).length > 0}
 										<p class="pt-1 text-[11px] uppercase tracking-wider text-[var(--text-tertiary)]">

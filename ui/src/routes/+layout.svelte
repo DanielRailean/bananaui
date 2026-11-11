@@ -38,7 +38,7 @@
 <ConfirmDialog />
 <CommandPalette />
 <FaviconBadge />
-<div class="flex flex-row min-h-screen max-h-screen">
+<div class="flex flex-row h-screen overflow-clip">
 	{#if !$page.url.pathname.includes('/login')}
 		<Sidebar />
 	{/if}
