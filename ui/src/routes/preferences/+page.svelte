@@ -18,13 +18,13 @@
 		try {
 			parsed = JSON.parse(json);
 		} catch (err: any) {
-			addToast({ message: `Failed to parse JSON. ${err.message}` });
+			addToast({ message: `Invalid JSON: ${err.message}` });
 			return;
 		}
 		json = JSON.stringify(parsed, undefined, 2);
 		triggerHighlight();
 		if (confirmOk) {
-			addToast({ message: `json valid!`, type: 'info' });
+			addToast({ message: `JSON is valid`, type: 'info' });
 		}
 	}
 
@@ -44,7 +44,7 @@
 		format(false)
 		setPreferences(getPreferencesObject(JSON.parse(json)));
 		savePreferences()
-		infoToast("preferences saved!")
+		infoToast('Preferences saved');
 	}
 </script>
 

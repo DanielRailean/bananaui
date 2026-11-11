@@ -14,7 +14,7 @@
 	onMount(() => {
 		const split = $userToken?.token.split('.');
 		if (!split) {
-			addToast({ message: 'no token!' });
+			addToast({ message: 'No token available' });
 			return;
 		}
 		const token_parsed = JSON.parse(atob(split[1]));
@@ -45,7 +45,7 @@
 				on:click={() => {
 					writeToClipboard($userToken?.token ?? '', '', () => {
 						confirmToast(
-							`copied! expires at ${DateTime.fromMillis(info.payload.exp * 1000).toFormat('T')}`
+							`API token copied (expires at ${DateTime.fromMillis(info.payload.exp * 1000).toFormat('T')})`
 						);
 					});
 				}}

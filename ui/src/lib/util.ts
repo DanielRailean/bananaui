@@ -22,7 +22,7 @@ export async function getParentInfo(fieldType: string, id: string): Promise<stri
 	parentInfoCache[id] = '-1';
 	const res = await (await apiService()).findRecord<any>(fieldType + 's', id);
 	if (!res.ok) {
-		errorToast(`Failed to load ${fieldType} (${id}). Status: ${res.code}`);
+		errorToast(`Failed to load ${fieldType} ${id} (HTTP ${res.code})`);
 		throw new Error('failed to load');
 	}
 	if (res.data.paths && res.data.paths.length > 0) {
@@ -64,7 +64,7 @@ export const writeToClipboard = (
 	text: string,
 	extraNotifyText = "",
 	onSuccess: (value: void) => void = () => {
-		confirmToast(`copied${extraNotifyText}: ${clipPreview(text)}`);
+		confirmToast(`Copied${extraNotifyText}: ${clipPreview(text)}`);
 	}
 ) => {
 	navigator.clipboard.writeText(text).then(onSuccess, () => {

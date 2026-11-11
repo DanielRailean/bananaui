@@ -24,7 +24,7 @@
 			await delay(50);
 		}
 		if ($config && $config.source === 'remote') {
-			infoToast('settings not available if a remote config is present!');
+			infoToast('Settings are unavailable while a remote config is in use');
 			goto(`${base}/`);
 			return;
 		}
@@ -32,7 +32,7 @@
 		if (localSettings) {
 			editableConfig = localSettings;
 		} else {
-			infoToast('loaded a config template!');
+			infoToast('Config template loaded');
 			editableConfig = JSON.stringify(defaultConfig, undefined, 2);
 		}
 	});
@@ -42,10 +42,10 @@
 		try {
 			parsed = JSON.parse(value);
 		} catch (err: any) {
-			addToast({ message: `Failed to parse JSON. ${err.message}` });
+			addToast({ message: `Invalid JSON: ${err.message}` });
 			return;
 		}
-		addToast({ message: `ok`, type: 'info' });
+		addToast({ message: `JSON is valid`, type: 'info' });
 		return JSON.stringify(parsed, undefined, 2);
 	}
 	function formatConfig() {
@@ -57,7 +57,7 @@
 	function writeConfig() {
 		localStorage.setItem(LOCALSTORAGE_CONFIG_KEY, editableConfig);
 		config.set({ config: JSON.parse(editableConfig), source: 'local' });
-		addToast({ message: 'config successfully created!', type: 'info' });
+		addToast({ message: 'Config saved', type: 'info' });
 	}
 </script>
 

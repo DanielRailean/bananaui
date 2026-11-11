@@ -80,7 +80,7 @@
 			result.push(ent);
 			const res = await (await apiService()).findAll(found.name, {}, `/${parentType}/${parentId}`);
 			if (!res.ok) {
-				errorToast(`failed to load ${found.name}`);
+				errorToast(`Failed to load ${found.name} (HTTP ${res.code})`);
 				continue;
 			}
 			const items = (res.data?.data as any[]) ?? [];
@@ -135,7 +135,7 @@
 			data = undefined;
 			const res = await (await apiService()).findRecord(entityType, id, pathPrefix);
 			if (!res.ok) {
-				errorToast(`failed to fetch ${entityType} with id ${id}. Status code: ${res.code}`);
+				errorToast(`Failed to load ${entityType} ${id} (HTTP ${res.code})`);
 				await goto(`${base}/entities?type=services`);
 			}
 			data = res.data;
@@ -218,9 +218,9 @@
 		}
 		const res = await (await apiService()).deleteRecord(type, id, pathPrefix);
 		if (!res.ok) {
-			errorToast(`failed to delete. ${res.err}`);
+			errorToast(`Failed to delete ${entityType} ${data?.name ?? id} (HTTP ${res.code}): ${res.err}`);
 		} else {
-			confirmToast(`deleted ${entityType} ${data?.name ?? id}`, false, data);
+			confirmToast(`Deleted ${entityType} ${data?.name ?? id}`, false, data);
 			goto(`${base}/entities?type=${entityType}&prefix=${pathPrefix}`);
 		}
 	}
@@ -230,12 +230,12 @@
 		try {
 			parsed = JSON.parse(json);
 		} catch (err: any) {
-			errorToast(`Failed to parse JSON. ${err.message}`);
+			errorToast(`Invalid JSON: ${err.message}`);
 			return;
 		}
 		json = JSON.stringify(parsed, undefined, 2);
 		triggerHighlight('format');
-		confirmToast(`json is valid`);
+		confirmToast(`JSON is valid`);
 	}
 	async function save() {
 		format();
@@ -257,14 +257,14 @@
 		console.log(res);
 		if (!res.ok) {
 			errorToast(
-				(`API error (${res.code}): ` + ((res.errTyped as any)?.message ?? res.err)) as string,
+				(`Failed to update ${entityType} ${data?.name ?? id} (HTTP ${res.code}): ` + ((res.errTyped as any)?.message ?? res.err)) as string,
 				true,
 				15000,
 				{ request: JSON.parse(json), response: res.errTyped ?? res.err }
 			);
 			return;
 		} else {
-			confirmToast(`${entityType} ${data?.name ?? id} updated`, false, {
+			confirmToast(`Updated ${entityType} ${data?.name ?? id}`, false, {
 				changes: changedFields,
 				after: res.data
 			});
@@ -283,7 +283,7 @@
 	const max = 10;
 	async function triggerHighlight(caller = '', selfCalled = 0) {
 		if (selfCalled > max) {
-			errorToast('highlight not triggered!');
+			errorToast('Syntax highlighting failed');
 			return;
 		}
 		json = json.replace(/\t/g, '  ');

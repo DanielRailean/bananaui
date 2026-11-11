@@ -31,7 +31,7 @@
 		const res = await (await apiService()).updateRecord(type, id, { enabled: !current });
 		if (res.ok) {
 			dispatch('refresh');
-			confirmToast(`${type} ${id} ${current ? 'disabled' : 'enabled'}`, false, res.data);
+			confirmToast(`${current ? 'Disabled' : 'Enabled'} ${type} ${res.data?.name ?? id}`, false, res.data);
 		}
 	}
 

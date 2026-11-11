@@ -81,7 +81,7 @@
 				await apiService()
 			).findAll<any>(kongEntity.apiPath, {}, pathPrefix, isRefresh);
 			if (!res.ok) {
-				errorToast(`failed to fetch the ${entity}. ${res.err} (${res.code})`);
+				errorToast(`Failed to load ${entity} (HTTP ${res.code}): ${res.err}`);
 				return;
 			}
 			data.set(res.data.data);
@@ -111,7 +111,7 @@
 				}
 			}
 			if (isRefresh) {
-				infoToast('refresh finished!');
+				infoToast('Refresh complete');
 			}
 			if (loopStarted == loadStart && !pathPrefix) {
 				prefetchSiblings(entity, loopStarted);
@@ -119,7 +119,7 @@
 		} catch (error: any) {
 			console.error(error);
 			if (error.message !== 'Failed to fetch' && error.message !== 'Config not available') {
-				addToast({ message: `Failed fetching ${entity}. ${error.message ? error.message : ''}` });
+				addToast({ message: `Failed to load ${entity}${error.message ? `: ${error.message}` : ''}` });
 			}
 		}
 	}
@@ -137,7 +137,7 @@
 				class="btn-ghost"
 				on:click={() => {
 					load('user clicked', true);
-					infoToast('refresh started!');
+					infoToast('Refreshing…');
 				}}
 			>
 				<RefreshOutline size="sm"></RefreshOutline>

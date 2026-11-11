@@ -225,7 +225,7 @@
 		).updateRecord<ITooggleableEntityMaybe>(type, id, { enabled: newEnabledValue });
 		if (res.ok) {
 			dispatch('refresh');
-			confirmToast(`item ${newEnabledValue ? 'enabled' : 'disabled'}`);
+			confirmToast(`${newEnabledValue ? 'Enabled' : 'Disabled'} ${type} ${(res.data as any)?.name ?? id}`, false, res.data);
 		}
 		return res;
 	}
@@ -242,9 +242,9 @@
 		}
 		const res = await (await apiService()).deleteRecord(type, id, pathPrefix);
 		if (!res.ok) {
-			errorToast(`failed to delete. ${res.err}`);
+			errorToast(`Failed to delete ${type} ${id} (HTTP ${res.code}): ${res.err}`);
 		} else {
-			confirmToast(`successfully deleted the ${type}`);
+			confirmToast(`Deleted ${type} ${id}`);
 		}
 		dispatch('refresh');
 	}
@@ -326,7 +326,7 @@
 	const max = 5;
 	async function triggerHighlight(selfCalled = 0) {
 		if (selfCalled > max) {
-			errorToast('highlight not triggered!');
+			errorToast('Syntax highlighting failed');
 			return;
 		}
 		json = json.replace(/\t/g, '  ');
@@ -348,10 +348,10 @@
 			const parsed = JSON.parse(json);
 			json = JSON.stringify(parsed, undefined, 2);
 			triggerHighlight();
-			confirmToast('json is valid');
+			confirmToast('JSON is valid');
 			return true;
 		} catch (err: any) {
-			errorToast(`Failed to parse JSON. ${err.message}`);
+			errorToast(`Invalid JSON: ${err.message}`);
 			return false;
 		}
 	}
@@ -365,12 +365,12 @@
 			const element = filteredData[i];
 			const res = await (await apiService()).updateRecord(type, element.id, updateBody);
 			if (!res.ok) {
-				errorToast(`[${i + 1}/${total}] failed to update ${element.id}. ${res.err}`, false, 3500, { request: updateBody, response: res.errTyped ?? res.err });
+				errorToast(`[${i + 1}/${total}] Failed to update ${element.name ?? element.id} (HTTP ${res.code}): ${res.err}`, false, 3500, { request: updateBody, response: res.errTyped ?? res.err });
 			} else {
-				infoToast(`[${i + 1}/${total}] updated ${element.name ?? element.id}`, false, { before: element, after: res.data });
+				infoToast(`[${i + 1}/${total}] Updated ${element.name ?? element.id}`, false, { before: element, after: res.data });
 			}
 		}
-		infoToast(`bulk update finished (${total} entities)`);
+		infoToast(`Bulk update complete: ${total} ${type}`);
 		clearCache(type);
 		dispatch('refresh');
 	}
@@ -495,7 +495,7 @@
 					on:click={() => {
 						sort(filteredData, `user requested sort`);
 						filteredData = filteredData;
-						infoToast('sorted!');
+						infoToast('Sorted');
 					}}
 					class="btn-glass"
 				>
@@ -566,20 +566,19 @@
 								if (res.ok) {
 									anyDeleted = true;
 									infoToast(
-										`deleted ${entity.name ?? ''}(${entity.id}) ${
-											filteredData.length - filteredData.indexOf(entity)
-										} remaining`,
+										`Deleted ${type} ${entity.name ?? entity.id} (${
+											filteredData.length - filteredData.indexOf(entity) - 1
+										} remaining)`,
 										false,
 										entity
 									);
 								} else {
-									errorToast(`failed deletion of ${entity.name ?? entity.id}`);
-									errorToast(res.err ?? 'unknown error occurred');
+									errorToast(`Failed to delete ${type} ${entity.name ?? entity.id} (HTTP ${res.code}): ${res.err ?? 'unknown error'}`);
 									break;
 								}
 							}
 							if (anyDeleted) {
-								infoToast('deletion successfully finished! the list will be refreshed soon.');
+								infoToast('Bulk delete complete; refreshing the list');
 								dispatch('refresh');
 							}
 						}}
@@ -710,7 +709,7 @@
 							if (ok) {
 								await applyBulkUpdate();
 							} else {
-								infoToast('aborted bulk update');
+								infoToast('Bulk update cancelled');
 							}
 						}}>apply</button
 					>

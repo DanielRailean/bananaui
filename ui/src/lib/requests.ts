@@ -222,16 +222,16 @@ class ApiService {
 		if (entity == "services") {
 			const routes = await (await apiService()).findAll("routes", {}, `/services/${id}`);
 			if (!routes.ok) {
-				errorToast(`failed to load routes for service ${id}`);
+				errorToast(`Failed to load routes for service ${id}`);
 				return routes
 			}
 			for (const element of routes.data?.data ?? []) {
 				const routeDelete = await this.deleteRecord("routes", element.id)
 				if (!routeDelete.ok) {
-					errorToast(`failed to delete service route with id ${element.id}. ${routeDelete.err}`)
+					errorToast(`Failed to delete route ${element.id}: ${routeDelete.err}`)
 					clearCache(id)
 				} else {
-					infoToast(`service route ${element.id} deleted!`)
+					infoToast(`Route ${element.name ?? element.id} deleted`, false, element)
 				}
 			}
 			clearCache('routes')
