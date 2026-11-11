@@ -5,7 +5,7 @@
 	import type { ResWrapped } from '$lib/requests';
 	import { goto } from '$app/navigation';
 	import { apiService, clearCache } from '$lib/requests';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { addToast, errorToast, infoToast } from '$lib/toastStore';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 	import { base } from '$app/paths';
@@ -28,8 +28,16 @@
 	let pluginSelect: any | undefined;
 	let pathPrefix: string = '';
 
-	const toText = (obj: any) => dump(obj, yamlDumpOptions).trimEnd();
+	let editorMode: 'yaml' | 'json' = 'yaml';
+	const toText = (obj: any) =>
+		editorMode === 'json' ? JSON.stringify(obj, undefined, 2) : dump(obj, yamlDumpOptions).trimEnd();
 	const fromText = (text: string): any => parseYaml(text);
+
+	async function convertTo(mode: 'yaml' | 'json') {
+		editorMode = mode;
+		await tick();
+		format(false);
+	}
 
 	function setEditField(name: string, value: any) {
 		dummyObject[name] = value;
@@ -120,13 +128,13 @@
 		try {
 			parsed = fromText(json);
 		} catch (err: any) {
-			addToast({ message: `Failed to parse YAML. ${err.message}` });
+			addToast({ message: `Failed to parse ${editorMode.toUpperCase()}. ${err.message}` });
 			return;
 		}
 		json = toText(parsed);
 		triggerHighlight();
 		if (confirmOk) {
-			addToast({ message: `yaml valid!`, type: 'info' });
+			addToast({ message: `${editorMode} valid!`, type: 'info' });
 		}
 	}
 
@@ -326,6 +334,8 @@
 			<button class="btn-accent" on:click={() => format(true)}>
 				<PaletteOutline size="sm" />Format
 			</button>
+			<button class="btn-ghost" disabled={editorMode === 'yaml'} on:click={() => convertTo('yaml')}>To YAML</button>
+			<button class="btn-ghost" disabled={editorMode === 'json'} on:click={() => convertTo('json')}>To JSON</button>
 			<a class="btn-ghost" target="_blank" href="https://docs.konghq.com/gateway/3.7.x/admin-api/">
 				<LinkOutline size="sm" />Admin API Docs
 			</a>
@@ -356,8 +366,8 @@
 
 <div class="dark:border-stone-700">
 	<div class="editor dark:bg-[#1E2021] w-full min-h-[30vh] line-numbers">
-		<pre class="language-yaml dark:bg-zinc-900"><code
-				class="dark:bg-zinc-900"
+		<pre class="language-{editorMode} dark:bg-zinc-900"><code
+				class="language-{editorMode} dark:bg-zinc-900"
 				bind:this={editorSyntax}></code></pre>
 		<textarea
 			bind:this={editorWindow}
