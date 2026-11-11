@@ -5,17 +5,20 @@
 	import type { ResWrapped } from '$lib/requests';
 	import { goto } from '$app/navigation';
 	import { apiService, clearCache } from '$lib/requests';
-	import { onMount } from 'svelte';
-	import { addToast, errorToast, infoToast } from '$lib/toastStore';
+	import { onMount, tick } from 'svelte';
+	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { FloppyDiskAltOutline, LinkOutline, PaletteOutline } from 'flowbite-svelte-icons';
 	import { base } from '$app/paths';
 	import { delay } from '$lib/util';
 	import { get } from 'svelte/store';
 	import { preferences } from '$lib/stores';
 	import { page } from '$app/stores';
+	import { load as parseYaml, dump } from 'js-yaml';
+	import { yamlDumpOptions } from '$lib/config';
 
 	let entity: IKongEntity | undefined;
 
+	// editor content is YAML; JSON input also parses since YAML is a superset of JSON
 	let json = '';
 	let dummyObject: any = {};
 	let postPath: string | undefined;
@@ -25,13 +28,24 @@
 	let pluginSelect: any | undefined;
 	let pathPrefix: string = '';
 
+	let editorMode: 'yaml' | 'json' = 'yaml';
+	const toText = (obj: any) =>
+		editorMode === 'json' ? JSON.stringify(obj, undefined, 2) : dump(obj, yamlDumpOptions).trimEnd();
+	const fromText = (text: string): any => parseYaml(text);
+
+	async function convertTo(mode: 'yaml' | 'json') {
+		editorMode = mode;
+		await tick();
+		format(false);
+	}
+
 	function setEditField(name: string, value: any) {
 		dummyObject[name] = value;
 		dummyToJson();
 	}
 
 	function addField(key: string, value: any, subfield: string | undefined = undefined) {
-		let temp = JSON.parse(json);
+		let temp = fromText(json) ?? {};
 		if (subfield) {
 			let temp2 = temp[subfield];
 			temp2[key] = value;
@@ -39,12 +53,12 @@
 		} else {
 			temp[key] = value;
 		}
-		json = JSON.stringify(temp, undefined, 2);
+		json = toText(temp);
 		triggerHighlight();
 	}
 
 	function dummyToJson() {
-		json = JSON.stringify(dummyObject, undefined, 2);
+		json = toText(dummyObject);
 	}
 
 	onMount(async () => {
@@ -58,7 +72,7 @@
 			entity = get(preferences.kongEntities).find((i) => i.name == type);
 		}
 		if (!entity) {
-			errorToast(`entity named ${type} not found!`);
+			errorToast(`Unknown entity type: ${type}`);
 			return;
 		}
 		if (path) {
@@ -93,15 +107,15 @@
 			}
 			dummyToJson();
 		}
-		json = JSON.stringify(entity.defaultAddValue ?? dummyObject, undefined, 2);
+		json = toText(entity.defaultAddValue ?? dummyObject);
 		triggerHighlight();
-		addToast({ timeout: 5000, message: 'for bulk updates use an array of entities', type: 'info' });
+		addToast({ timeout: 5000, message: 'Tip: use an array to create multiple entities at once', type: 'info' });
 
 		if (pluginSelect) {
 			selectedPluginName =
 				pluginName ?? pluginSelect[Math.round(Math.random() * pluginSelect.length)].value;
 			infoToast(
-				`loaded schema for ${selectedPluginName} ${pluginName ? '' : '(randomly selected)'}`
+				`Loaded schema for ${selectedPluginName}${pluginName ? '' : ' (randomly selected)'}`
 			);
 			pluginSelected(true);
 		}
@@ -112,15 +126,15 @@
 	function format(confirmOk = true) {
 		let parsed: any | undefined;
 		try {
-			parsed = JSON.parse(json);
+			parsed = fromText(json);
 		} catch (err: any) {
-			addToast({ message: `Failed to parse JSON. ${err.message}` });
+			addToast({ message: `Invalid ${editorMode.toUpperCase()}: ${err.message}` });
 			return;
 		}
-		json = JSON.stringify(parsed, undefined, 2);
+		json = toText(parsed);
 		triggerHighlight();
 		if (confirmOk) {
-			addToast({ message: `json valid!`, type: 'info' });
+			addToast({ message: `${editorMode.toUpperCase()} is valid`, type: 'info' });
 		}
 	}
 
@@ -128,7 +142,7 @@
 		format(false);
 		try {
 			let res: ResWrapped<IEntityBase, IResCreateError> | undefined;
-			let data = JSON.parse(json);
+			let data = fromText(json);
 			let isArray = Array.isArray(data);
 			if (!isArray) {
 				data = [data];
@@ -143,21 +157,23 @@
 				}
 				if (!res.ok) {
 					addToast({
-						message: (`API error (${res.code}): ` +
+						message: (`Failed to create ${entity?.name} (HTTP ${res.code}): ` +
 							((res.errTyped as any)?.message ?? res.err)) as string,
-						timeout: 15000
+						timeout: 15000,
+						details: { request: element, response: res.errTyped ?? res.err }
 					});
 					return;
 				}
 				if (res.data?.id) {
 					clearCache(entity?.name);
 					if (!isArray) {
+						confirmToast(`Created ${entity?.name} ${element.name ?? res.data.id}`, false, res.data);
 						goto(`${base}/entity?type=${entity?.name}&id=${res.data.id}&prefix=${pathPrefix}`);
 					} else {
-						infoToast(`created ${entity?.name} (${element.name ?? res.data.id})`);
+						infoToast(`Created ${entity?.name} ${element.name ?? res.data.id}`, false, res.data);
 					}
 				} else {
-					addToast({ message: 'failed to read the new entity' });
+					addToast({ message: 'Entity created, but the response did not include an ID' });
 					return;
 				}
 			}
@@ -178,7 +194,7 @@
 		if (res.ok && res.data) {
 			let configSchema = res.data.fields.find((i) => Object.entries(i)[0][0] == 'config');
 			if (!configSchema) {
-				addToast({ message: `failed to load config for ${selectedPluginName}` });
+				addToast({ message: `Failed to load schema for ${selectedPluginName}` });
 				return;
 			}
 			pluginSchema = {};
@@ -227,7 +243,7 @@
 	const max = 5;
 	async function triggerHighlight(selfCalled = 0) {
 		if (selfCalled > max) {
-			errorToast('highlight not triggered!');
+			errorToast('Syntax highlighting failed');
 			return;
 		}
 		json = json.replace(/\t/g, '  ');
@@ -239,7 +255,8 @@
 			await triggerHighlight(selfCalled + 1);
 			return;
 		}
-		editorSyntax.textContent = json;
+		// a trailing newline isn't rendered by <pre>, which would desync it from the textarea
+		editorSyntax.textContent = json.endsWith('\n') ? json + ' ' : json;
 		(globalThis as any).Prism.highlightElement(editorSyntax);
 		console.log(`Triggered on try ${selfCalled}`);
 	}
@@ -249,7 +266,7 @@
 			return;
 		}
 		try {
-			const body = JSON.parse(json);
+			const body = fromText(json);
 			if (body) {
 				isArray = Array.isArray(body);
 			}
@@ -263,7 +280,7 @@
 			return;
 		}
 		try {
-			const body = JSON.parse(json);
+			const body = fromText(json);
 			if (body) {
 				if (body && body.name && body.name != selectedPluginName) {
 					selectedPluginName = body.name;
@@ -304,7 +321,7 @@
 			res[key] = getDefault(schemaKey.values);
 			return res;
 		}
-		infoToast(`default not found for: ${JSON.stringify(schemaKey)}`);
+		infoToast(`No default value for ${JSON.stringify(schemaKey)}`);
 		return '';
 	}
 </script>
@@ -319,6 +336,8 @@
 			<button class="btn-accent" on:click={() => format(true)}>
 				<PaletteOutline size="sm" />Format
 			</button>
+			<button class="btn-ghost" disabled={editorMode === 'yaml'} on:click={() => convertTo('yaml')}>To YAML</button>
+			<button class="btn-ghost" disabled={editorMode === 'json'} on:click={() => convertTo('json')}>To JSON</button>
 			<a class="btn-ghost" target="_blank" href="https://docs.konghq.com/gateway/3.7.x/admin-api/">
 				<LinkOutline size="sm" />Admin API Docs
 			</a>
@@ -349,8 +368,8 @@
 
 <div class="dark:border-stone-700">
 	<div class="editor dark:bg-[#1E2021] w-full min-h-[30vh] line-numbers">
-		<pre class="language-json dark:bg-zinc-900"><code
-				class="dark:bg-zinc-900"
+		<pre class="language-{editorMode} dark:bg-zinc-900"><code
+				class="language-{editorMode} dark:bg-zinc-900"
 				bind:this={editorSyntax}></code></pre>
 		<textarea
 			bind:this={editorWindow}
@@ -378,7 +397,7 @@
 		allowKeyCopy={true}
 		keyClickHandler={(key) => {
 			addField(key, getDefault(pluginSchema[key]), 'config');
-			infoToast(`'config.${key}' added`);
+			infoToast(`Added config.${key}`);
 		}}
 		keyTitle={() => `click to add to config`}
 	/>
@@ -393,7 +412,7 @@
 	data={entitySchema}
 	keyClickHandler={(key) => {
 		addField(key, entitySchema[key].default ?? '');
-		infoToast(`'${key}' added`);
+		infoToast(`Added ${key}`);
 	}}
 	keyTitle={() => `click to add to body`}
 	expandLevel={0}

@@ -53,7 +53,7 @@
 					config.set({ config: localConfig, source: 'local' });
 				} else {
 					await delay(1000);
-					infoToast('app config not found, please create one to use the app!');
+					infoToast('No app config found. Create one in Settings to get started');
 					goto(`${base}/settings`);
 				}
 			}

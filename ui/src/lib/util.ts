@@ -2,6 +2,8 @@ import { apiService } from './requests';
 import type { IPlugins } from './responseTypes';
 import { addToast, confirmToast, errorToast } from './toastStore';
 import type { IConfig, IKongPlugin } from './types';
+import { get } from 'svelte/store';
+import { preferences } from './stores';
 
 export const delay = (delayInms: number) => {
 	return new Promise((resolve) => setTimeout(resolve, delayInms));
@@ -20,7 +22,7 @@ export async function getParentInfo(fieldType: string, id: string): Promise<stri
 	parentInfoCache[id] = '-1';
 	const res = await (await apiService()).findRecord<any>(fieldType + 's', id);
 	if (!res.ok) {
-		errorToast(`Failed to load ${fieldType} (${id}). Status: ${res.code}`);
+		errorToast(`Failed to load ${fieldType} ${id} (HTTP ${res.code})`);
 		throw new Error('failed to load');
 	}
 	if (res.data.paths && res.data.paths.length > 0) {
@@ -31,11 +33,38 @@ export async function getParentInfo(fieldType: string, id: string): Promise<stri
 	return parentInfoCache[id];
 }
 
+const grandParentCache: { [id: string]: Promise<{ field: string; id: string } | undefined> } = {};
+
+export function getGrandParent(fieldType: string, id: string) {
+	return (grandParentCache[id] ??= loadGrandParent(fieldType, id));
+}
+
+async function loadGrandParent(
+	fieldType: string,
+	id: string
+): Promise<{ field: string; id: string } | undefined> {
+	const res = await (await apiService()).findRecord<any>(fieldType + 's', id);
+	if (!res.ok || !res.data) return undefined;
+	const entities = get(preferences.kongEntities);
+	for (const [key, value] of Object.entries(res.data)) {
+		const v = value as any;
+		if (v && typeof v == 'object' && typeof v.id == 'string' && entities.find((i) => i.apiPath == `${key}s`)) {
+			return { field: key, id: v.id };
+		}
+	}
+	return undefined;
+}
+
+function clipPreview(text: string, max = 60) {
+	const flat = (text ?? '').replace(/\s+/g, ' ').trim();
+	return flat.length > max ? `${flat.slice(0, max)}… (${text.length} chars)` : flat;
+}
+
 export const writeToClipboard = (
 	text: string,
 	extraNotifyText = "",
 	onSuccess: (value: void) => void = () => {
-		confirmToast(`copied${extraNotifyText}`);
+		confirmToast(`Copied${extraNotifyText}: ${clipPreview(text)}`);
 	}
 ) => {
 	navigator.clipboard.writeText(text).then(onSuccess, () => {

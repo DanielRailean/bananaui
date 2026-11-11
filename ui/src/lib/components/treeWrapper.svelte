@@ -2,8 +2,8 @@
 	import { goto } from '$app/navigation';
 	import { dateFields } from '$lib/config';
 	import { getParentInfo, writeToClipboard } from '$lib/util';
+	import GrandParentRef from './GrandParentRef.svelte';
 	import JSONTree from 'svelte-json-tree';
-	import { afterUpdate } from 'svelte';
 	import { DateTime } from 'luxon';
 	import { base } from '$app/paths';
 	import { get, writable } from 'svelte/store';
@@ -14,6 +14,7 @@
 	import { apiService } from '$lib/requests';
 	import { preferences } from '$lib/stores';
 	import ArrayDisplay from './ArrayDisplay.svelte';
+	import ConfigTree from './ConfigTree.svelte';
 	export let data: any;
 	export let expandLevel = 0;
 	export let allowCopy = true;
@@ -30,7 +31,7 @@
 		const res = await (await apiService()).updateRecord(type, id, { enabled: !current });
 		if (res.ok) {
 			dispatch('refresh');
-			confirmToast(`item ${current ? 'disabled' : 'enabled'}`);
+			confirmToast(`${current ? 'Disabled' : 'Enabled'} ${type} ${res.data?.name ?? id}`, false, res.data);
 		}
 	}
 
@@ -39,15 +40,6 @@
 	export let keyTitle = (key: string) => {
 		return `copy ${key}`;
 	};
-
-	let yamlContainer: HTMLElement;
-	afterUpdate(() => {
-		if (yamlContainer) {
-			yamlContainer.querySelectorAll('code.language-json').forEach((el) => {
-				(globalThis as any).Prism.highlightElement(el);
-			});
-		}
-	});
 </script>
 
 <div class="tree">
@@ -117,6 +109,7 @@
 											</p>
 										</div>
 									</a>
+									<GrandParentRef field={key} id={data[key].id} />
 									<button
 										on:click={() => {
 											console.log(data[key]);
@@ -131,8 +124,8 @@
 										}}
 									/>
 								{:else if typeof data[key] == 'object' && data[key] != null && expandFields.includes(key)}
-									<div class="w-full" bind:this={yamlContainer}>
-										<pre class="language-json m-0 p-4 bg-transparent rounded-none"><code class="language-json bg-transparent">{JSON.stringify(data[key], null, 2)}</code></pre>
+									<div class="w-full">
+										<ConfigTree value={data[key]} />
 									</div>
 								{:else if typeof data[key] == 'object' && data[key] != null}
 									<div class="cursor-pointer">
@@ -191,12 +184,5 @@
 
 		--json-tree-font-size: 13px;
 		--json-tree-font-family: 'JetBrains Mono', monospace;
-	}
-
-	.tree pre[class*="language-"],
-	.tree code[class*="language-"] {
-		font-family: 'JetBrains Mono', monospace !important;
-		font-size: 14px;
-		line-height: 1.6;
 	}
 </style>

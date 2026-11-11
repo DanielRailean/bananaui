@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ArrayWrap from './ArrayWrap.svelte';
+	import ConfigTree from './ConfigTree.svelte';
 	export let data: any = undefined;
 	import { afterUpdate, onMount, tick } from 'svelte';
 	import TreeWrapper from './treeWrapper.svelte';
@@ -21,7 +22,7 @@
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import { fieldOrder, sortObjectFieldsByOrder, staticConfig, yamlDumpOptions } from '$lib/config';
-	import type { IKongEntity, IKongPlugin } from '$lib/types';
+	import type { IKongEntity, IKongPlugin, ISubEntitySection } from '$lib/types';
 	import { base } from '$app/paths';
 	import { preferences } from '$lib/stores';
 	import { get, writable, type Writable } from 'svelte/store';
@@ -38,40 +39,59 @@
 	let id: string;
 	let entityType: string;
 	let pathPrefix: string = '';
-	let subEntityPrefix: string = '';
 
 	let currentEntity: IKongEntity | undefined;
 
-	interface IEntities extends IKongEntity {
-		data?: Writable<any[]>;
-		entitySubPath: string;
-	}
-	let subEntities: IEntities[];
+	const maxSubEntityDepth = 3;
+	let subEntities: ISubEntitySection[];
+	let subEntitiesLoading = false;
 	let relevantPlugins: IKongPlugin[] = [];
 	let entitySchema: any | undefined;
 	let pluginSchema: any | undefined;
 
 	let prevSearch = '';
 	$: if ($page.url.pathname.endsWith('/entity')) {
-		const params = new URLSearchParams($page.url.search);
-		params.delete('tab');
-		const search = params.toString();
+		const search = $page.url.search;
 		if (search !== prevSearch) {
 			prevSearch = search;
 			load();
 		}
-		activeTab = $page.url.searchParams.get('tab') ?? 'details';
 	}
 
-	function setTab(tab: string) {
-		activeTab = tab;
-		const url = new URL(window.location.toString());
-		if (tab === 'details') {
-			url.searchParams.delete('tab');
-		} else {
-			url.searchParams.set('tab', tab);
+	async function loadSubEntities(
+		parentType: string,
+		parentId: string,
+		depth: number
+	): Promise<ISubEntitySection[]> {
+		const kongEntities = get(preferences.kongEntities);
+		const parent = kongEntities.find((ent) => ent.name == parentType);
+		const result: ISubEntitySection[] = [];
+		for (const name of parent?.subEntities ?? []) {
+			const found = kongEntities.find((ent) => ent.name == name);
+			if (!found) {
+				continue;
+			}
+			const ent: ISubEntitySection = {
+				...found,
+				entitySubPath: `${parentType}/${parentId}/${found.name}`,
+				pathPrefix: parentType == 'upstreams' ? `/upstreams/${parentId}` : '',
+				children: {}
+			};
+			result.push(ent);
+			const res = await (await apiService()).findAll(found.name, {}, `/${parentType}/${parentId}`);
+			if (!res.ok) {
+				errorToast(`Failed to load ${found.name} (HTTP ${res.code})`);
+				continue;
+			}
+			const items = (res.data?.data as any[]) ?? [];
+			ent.data = writable(items);
+			if (depth + 1 < maxSubEntityDepth && (found.subEntities?.length ?? 0) > 0) {
+				for (const item of items) {
+					ent.children[item.id] = await loadSubEntities(found.name, item.id, depth + 1);
+				}
+			}
 		}
-		history.pushState(null, '', url);
+		return result;
 	}
 
 	let isMounted = false;
@@ -111,14 +131,11 @@
 		id = searchParams.get('id') ?? 'none';
 		let edited = searchParams.get('isEdited') ?? '';
 		pathPrefix = searchParams.get('prefix') ?? '';
-		if (entityType == 'upstreams') {
-			subEntityPrefix = `/upstreams/${id}`;
-		}
 		{
 			data = undefined;
 			const res = await (await apiService()).findRecord(entityType, id, pathPrefix);
 			if (!res.ok) {
-				errorToast(`failed to fetch ${entityType} with id ${id}. Status code: ${res.code}`);
+				errorToast(`Failed to load ${entityType} ${id} (HTTP ${res.code})`);
 				await goto(`${base}/entities?type=services`);
 			}
 			data = res.data;
@@ -128,25 +145,9 @@
 
 			currentEntity = get(preferences.kongEntities).find((ent) => ent.name == entityType);
 			subEntities = [];
-			for (const entity of currentEntity?.subEntities ?? []) {
-				const found = get(preferences.kongEntities).find((ent) => ent.name == entity);
-				if (!found) {
-					continue;
-				}
-				subEntities.push({
-					...found,
-					entitySubPath: `${entityType}/${id}/${found.name}`
-				});
-			}
-			for (const ent of subEntities) {
-				const res2 = await (await apiService()).findAll(ent.name, {}, `/${entityType}/${id}`);
-				if (!res2.ok) {
-					errorToast(`failed to load ${ent.name}`);
-					continue;
-				}
-				ent.data = writable(res2.data?.data as any[]);
-				subEntities = subEntities;
-			}
+			subEntitiesLoading = true;
+			subEntities = await loadSubEntities(entityType, id, 0);
+			subEntitiesLoading = false;
 		}
 		// load entity schema
 		entitySchema = undefined;
@@ -204,7 +205,6 @@
 	}
 
 	let openedPlugins: any = {};
-	let activeTab = 'details';
 
 	async function deleteEntity(type: string, id: string, name: string) {
 		const conf = await confirm({
@@ -218,9 +218,9 @@
 		}
 		const res = await (await apiService()).deleteRecord(type, id, pathPrefix);
 		if (!res.ok) {
-			errorToast(`failed to delete. ${res.err}`);
+			errorToast(`Failed to delete ${entityType} ${data?.name ?? id} (HTTP ${res.code}): ${res.err}`);
 		} else {
-			confirmToast(`deleted`);
+			confirmToast(`Deleted ${entityType} ${data?.name ?? id}`, false, data);
 			goto(`${base}/entities?type=${entityType}&prefix=${pathPrefix}`);
 		}
 	}
@@ -230,12 +230,12 @@
 		try {
 			parsed = JSON.parse(json);
 		} catch (err: any) {
-			errorToast(`Failed to parse JSON. ${err.message}`);
+			errorToast(`Invalid JSON: ${err.message}`);
 			return;
 		}
 		json = JSON.stringify(parsed, undefined, 2);
 		triggerHighlight('format');
-		confirmToast(`json is valid`);
+		confirmToast(`JSON is valid`);
 	}
 	async function save() {
 		format();
@@ -257,13 +257,17 @@
 		console.log(res);
 		if (!res.ok) {
 			errorToast(
-				(`API error (${res.code}): ` + ((res.errTyped as any)?.message ?? res.err)) as string,
+				(`Failed to update ${entityType} ${data?.name ?? id} (HTTP ${res.code}): ` + ((res.errTyped as any)?.message ?? res.err)) as string,
 				true,
-				15000
+				15000,
+				{ request: JSON.parse(json), response: res.errTyped ?? res.err }
 			);
 			return;
 		} else {
-			confirmToast(`entity successfully updated`);
+			confirmToast(`Updated ${entityType} ${data?.name ?? id}`, false, {
+				changes: changedFields,
+				after: res.data
+			});
 		}
 
 		flipIsEdited();
@@ -279,7 +283,7 @@
 	const max = 10;
 	async function triggerHighlight(caller = '', selfCalled = 0) {
 		if (selfCalled > max) {
-			errorToast('highlight not triggered!');
+			errorToast('Syntax highlighting failed');
 			return;
 		}
 		json = json.replace(/\t/g, '  ');
@@ -350,10 +354,7 @@
 	}
 </script>
 
-<svelte:window
-	on:keydown={handleEntityKeydown}
-	on:popstate={() => (activeTab = new URL(window.location.href).searchParams.get('tab') ?? 'details')}
-/>
+<svelte:window on:keydown={handleEntityKeydown} />
 
 <svelte:head>
 	<title>{data?.name ?? data?.id ?? staticConfig.name}</title>
@@ -506,30 +507,8 @@
 			/>
 		{/if}
 		<div class={isEdited ? 'hidden' : ''}>
-			<!-- Tab bar -->
-			{#if subEntities && subEntities.length > 0}
-				<div class="flex items-center gap-1 px-5 py-2.5 border-b border-[var(--glass-border)]">
-					<button
-						class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {activeTab === 'details' ? 'text-[var(--text-primary)] bg-[var(--accent)]/10' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}"
-						on:click={() => setTab('details')}
-					>Details</button>
-				{#if relevantPlugins.length > 0}
-					<button
-						class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {activeTab === 'plugin_order' ? 'text-[var(--text-primary)] bg-[var(--accent)]/10' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}"
-						on:click={() => { setTab('plugin_order'); showPluginOrder.set(true); }}
-					>Execution Order ({relevantPlugins.length})</button>
-				{/if}
-					{#each subEntities as subEntity}
-						<button
-							class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {activeTab === subEntity.name ? 'text-[var(--text-primary)] bg-[var(--accent)]/10' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}"
-							on:click={() => setTab(subEntity.name)}
-						>{capitalizeFirstLetter(subEntity.name)} {subEntity.data ? `(${get(subEntity.data).length})` : ''}</button>
-					{/each}
-				</div>
-			{/if}
-
-			<!-- Tab: Details -->
-			<div class={activeTab === 'details' ? 'px-5 pt-4 pb-5' : 'hidden'}>
+			<!-- Details -->
+			<div class="px-5 pt-4 pb-5">
 				<div class="rounded-xl border border-[var(--glass-border)] overflow-hidden">
 					<TreeWrapper
 						{data}
@@ -542,12 +521,18 @@
 				</div>
 			</div>
 
-			<!-- Tab: Plugin Execution Order -->
-			<div class={activeTab === 'plugin_order' ? '' : 'hidden'}>
-				{#if relevantPlugins && relevantPlugins.length > 0}
+			<!-- Plugin Execution Order -->
+			{#if relevantPlugins && relevantPlugins.length > 0}
+			<div class="border-t border-[var(--glass-border)]">
+				<h2 class="px-5 pt-4 text-sm font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+					Execution Order ({relevantPlugins.length})
+				</h2>
 					<div bind:this={pluginConfigContainer} class="flex flex-wrap items-center gap-2 p-5">
 						{#each relevantPlugins as plugin}
-							<div class="glass rounded-xl">
+							<div
+								class="glass rounded-xl {plugin.enabled === false ? 'opacity-50 border border-dashed border-[var(--text-tertiary)]' : ''}"
+								title={plugin.enabled === false ? 'disabled — not executed' : ''}
+							>
 								<div
 									class="flex flex-row items-center cursor-pointer p-3 gap-2"
 									on:click={() => {
@@ -567,7 +552,10 @@
 											{@html icons['shuffle']}
 										</div>
 									{/if}
-									<p class="text-sm font-medium">{plugin.name}</p>
+									<p class="text-sm font-medium {plugin.enabled === false ? 'line-through' : ''}">{plugin.name}</p>
+									{#if plugin.enabled === false}
+										<span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[var(--danger)]/10 text-[var(--danger)]">off</span>
+									{/if}
 									<Link
 										classes="ml-1"
 										href="{base}/entity?type=plugins&id={plugin.id}"
@@ -575,7 +563,9 @@
 									/>
 								</div>
 								{#if openedPlugins[plugin.id]}
-									<pre class="language-json m-0 p-4 w-full dark:bg-[#1E2021] bg-white rounded-none" style="font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6;"><code class="language-json dark:bg-[#1E2021] bg-white">{JSON.stringify(plugin.config, null, 2)}</code></pre>
+									<div class="p-4 w-full dark:bg-[#1E2021] bg-white rounded-b-xl">
+										<ConfigTree value={plugin.config} />
+									</div>
 								{/if}
 							</div>
 							{#if relevantPlugins.indexOf(plugin) + 1 != relevantPlugins.length}
@@ -583,20 +573,39 @@
 							{/if}
 						{/each}
 					</div>
-				{:else}
-					<p class="p-5 text-sm text-[var(--text-tertiary)]">No plugins attached.</p>
-				{/if}
 			</div>
+			{/if}
 
-			<!-- Tab: Sub-entities -->
-			{#if subEntities}
+			<!-- Sub-entities -->
+			{#if subEntitiesLoading}
+				{#each currentEntity?.subEntities ?? [] as name}
+					<div class="border-t border-[var(--glass-border)] animate-pulse">
+						<div class="flex items-center gap-3 px-5 pt-4">
+							<span class="text-sm font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{name}</span>
+							<div class="h-9 w-28 rounded-xl bg-black/[0.05] dark:bg-white/[0.05]"></div>
+						</div>
+						<div class="mx-4 mt-4 mb-2 rounded-xl border border-[var(--glass-border)] divide-y divide-[var(--glass-border)]">
+							{#each Array(4) as _, i}
+								<div class="flex items-center gap-6 px-5 py-4" style="opacity: {1 - i * 0.2}">
+									<div class="h-4 w-24 rounded bg-black/[0.06] dark:bg-white/[0.06]"></div>
+									<div class="h-4 flex-1 max-w-[300px] rounded bg-black/[0.04] dark:bg-white/[0.04]"></div>
+									<div class="h-4 w-16 rounded bg-black/[0.04] dark:bg-white/[0.04]"></div>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/each}
+			{:else if subEntities}
 				{#each subEntities as subEntity}
-					<div class={activeTab === subEntity.name ? '' : 'hidden'}>
-						<div class="flex items-center gap-2 px-5 pt-4">
+					<div class="border-t border-[var(--glass-border)]">
+						<div class="flex items-center gap-3 px-5 pt-4">
+							<h2 class="text-sm font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+								{capitalizeFirstLetter(subEntity.name)} {subEntity.data ? `(${get(subEntity.data).length})` : ''}
+							</h2>
 							<a
 								class="btn-accent"
-								href="{base}/add?type={subEntity.name}&apiPostPath={btoa(subEntity.entitySubPath)}&prefix={subEntityPrefix}"
-								on:click|preventDefault={() => goto(`${base}/add?type=${subEntity.name}&apiPostPath=${btoa(subEntity.entitySubPath)}&prefix=${subEntityPrefix}`)}
+								href="{base}/add?type={subEntity.name}&apiPostPath={btoa(subEntity.entitySubPath)}&prefix={subEntity.pathPrefix}"
+								on:click|preventDefault={() => goto(`${base}/add?type=${subEntity.name}&apiPostPath=${btoa(subEntity.entitySubPath)}&prefix=${subEntity.pathPrefix}`)}
 							>
 								<CirclePlusOutline size="sm" />Add {subEntity.name}
 							</a>
@@ -606,7 +615,8 @@
 								dataRaw={subEntity.data}
 								type={subEntity.name}
 								entity={subEntity}
-								pathPrefix={subEntityPrefix}
+								pathPrefix={subEntity.pathPrefix}
+								nested={subEntity.children}
 								on:refresh={async () => await load()}
 							/>
 						{:else}
@@ -635,12 +645,6 @@
 				<div class="h-10 w-20 rounded-xl bg-black/[0.04] dark:bg-white/[0.04]"></div>
 				<div class="h-10 w-20 rounded-xl bg-black/[0.04] dark:bg-white/[0.04]"></div>
 				<div class="h-10 w-28 rounded-xl bg-black/[0.04] dark:bg-white/[0.04]"></div>
-			</div>
-			<!-- Tab bar -->
-			<div class="flex items-center gap-2 px-5 py-2 border-b border-[var(--glass-border)]">
-				<div class="h-8 w-16 rounded-lg bg-black/[0.06] dark:bg-white/[0.06]"></div>
-				<div class="h-8 w-28 rounded-lg bg-black/[0.04] dark:bg-white/[0.04]"></div>
-				<div class="h-8 w-20 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]"></div>
 			</div>
 			<!-- Key-value table -->
 			<div class="mx-5 mt-4 rounded-xl border border-[var(--glass-border)] divide-y divide-[var(--glass-border)]">

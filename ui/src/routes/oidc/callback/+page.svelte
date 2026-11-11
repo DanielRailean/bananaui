@@ -14,8 +14,8 @@
 		const token = searchParams.get('id_token');
 		const state = searchParams.get('state');
 		if (token) {
-			userToken.set({token, expires: DateTime.now().plus({minutes: 55}).toUnixInteger()});
-			// refresh the token in 59 minutes
+			// re-login on the next click once the token is 59 minutes old
+			userToken.set({token, expires: DateTime.now().plus({minutes: 59}).toUnixInteger()});
 			if (state) {
 				const target = atob(state);
 				goto(target);

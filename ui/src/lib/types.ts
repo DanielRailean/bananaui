@@ -49,6 +49,7 @@ export interface IConfig {
 		requestHeaders: Record<string, string>;
 	};
 	oidc?: IOidc;
+	gateway_url?: string;
 }
 
 export interface IConfigWrap {
@@ -73,6 +74,8 @@ export interface IToast {
 	dismissible?: boolean;
 	timeout?: number;
 	message: string;
+	// extra context kept in the notification history (e.g. entity data)
+	details?: unknown;
 }
 
 export interface IKongEntity {
@@ -89,6 +92,14 @@ export interface IKongEntity {
 	logo?: string
 }
 
+export interface ISubEntitySection extends IKongEntity {
+	data?: import('svelte/store').Writable<any[]>;
+	entitySubPath: string;
+	pathPrefix: string;
+	// nested sections keyed by parent item id
+	children: Record<string, ISubEntitySection[]>;
+}
+
 export interface IKongPlugin extends IEntityBase {
 	service: {
 		id: string
@@ -98,5 +109,6 @@ export interface IKongPlugin extends IEntityBase {
 	}
 	name: string,
 	priority: number,
+	enabled?: boolean,
 	config: IPluginConfig
 }

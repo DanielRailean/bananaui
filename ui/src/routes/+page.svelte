@@ -44,7 +44,7 @@
 				const now = Date.now() / 1000;
 				const unhealthy = dataplanes.filter(dp => (now - dp.last_seen) < 1800 && dp.sync_status !== 'normal');
 				if (unhealthy.length > 0) {
-					addToast({ message: `${unhealthy.length} data plane(s) with sync issues: ${unhealthy.map(dp => dp.hostname).join(', ')}`, type: 'error' });
+					addToast({ message: `${unhealthy.length} data plane(s) out of sync: ${unhealthy.map(dp => dp.hostname).join(', ')}`, type: 'error' });
 				}
 			}
 		} catch {}
@@ -99,7 +99,7 @@
 			dpInterval = setInterval(fetchDataplanes, dpFetchIntervalSeconds * 1000);
 		} catch (error: any) {
 			if (error.message !== 'Failed to fetch' && error.message !== 'Config not available') {
-				addToast({ message: `Failed fetching the info. ${error.message ? error.message : ''}` });
+				addToast({ message: `Failed to load gateway info${error.message ? `: ${error.message}` : ''}` });
 			}
 		}
 	});

@@ -103,7 +103,7 @@
 	];
 
 	const defaultPref: { [key: string]: any } = {
-		version: 5.6,
+		version: 5.7,
 		loadParentInfo: false,
 		stripFieldsOnCleanCopy: ["created_at", "updated_at", "id", "service", "route", "consumer", "protocols", "enabled", "instance_name"],
 		paginationSizeUi: 20,
@@ -116,6 +116,9 @@
 		showDeleteAllButton: false,
 		paginationRequestsDelayMs: 0,
 		enumerateEntities: false,
+		expandSubEntitiesByDefault: true,
+		stripRegexCharsOnPathCopy: true,
+		prependGatewayUrlOnPathCopy: true,
 		kongEntities: kongEntities
 	};
 

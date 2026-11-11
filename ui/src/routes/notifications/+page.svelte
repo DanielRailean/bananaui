@@ -1,13 +1,16 @@
 <script lang="ts">
 	import { toastList, clearToasts } from '$lib/toastStore';
-	import { confirm } from '$lib/confirmStore';
+	import ConfirmButton from '$lib/components/ConfirmButton.svelte';
 	import { onMount } from 'svelte';
 	import { TrashBinOutline } from 'flowbite-svelte-icons';
+	import ConfigTree from '$lib/components/ConfigTree.svelte';
+	import { writeToClipboard } from '$lib/util';
 
 	let localToasts: any[] = [];
+	let openDetails: Record<string, boolean> = {};
 	function loadToasts() {
-		localToasts = toastList.reverse().map((item) => {
-			return { message: item.message, type: item.type, timestamp: item.timestamp };
+		localToasts = [...toastList].reverse().map((item) => {
+			return { message: item.message, type: item.type, timestamp: item.timestamp, details: item.details };
 		});
 	}
 	onMount(() => {
@@ -48,15 +51,9 @@
 			<p class="text-sm text-[var(--text-secondary)]">{localToasts.length} total</p>
 		</div>
 		{#if localToasts.length > 0}
-			<button
-				on:click={async () => {
-					const ok = await confirm({
-						title: 'Clear notifications',
-						message: `Delete all ${localToasts.length} notifications?`,
-						variant: 'danger',
-						confirmText: 'Delete all'
-					});
-					if (!ok) return;
+			<ConfirmButton
+				confirmText="Confirm: delete {localToasts.length}?"
+				on:confirm={() => {
 					clearToasts();
 					loadToasts();
 				}}
@@ -64,7 +61,7 @@
 			>
 				<TrashBinOutline size="sm" />
 				Clear all
-			</button>
+			</ConfirmButton>
 		{/if}
 	</div>
 
@@ -75,12 +72,36 @@
 			<div class="mb-6">
 				<p class="text-[11px] uppercase tracking-widest font-semibold text-[var(--text-tertiary)] mb-3">{group.label}</p>
 				<div class="flex flex-col gap-2">
-					{#each group.items as item}
+					{#each group.items as item, i (item.timestamp + i)}
 						<div class="flex items-start gap-3 px-4 py-3 rounded-xl glass">
 							<div class="mt-1 h-2.5 w-2.5 rounded-full flex-shrink-0 {iconColor[item.type] ?? iconColor.info}"></div>
 							<div class="flex-1 min-w-0">
 								<p class="text-sm text-[var(--text-primary)] break-words">{item.message}</p>
-								<p class="text-xs text-[var(--text-tertiary)] mt-1">{new Date(item.timestamp).toLocaleTimeString()}</p>
+								<div class="flex items-center gap-3 mt-1 text-xs text-[var(--text-tertiary)]">
+									<span>{new Date(item.timestamp).toLocaleTimeString()}</span>
+									{#if item.details !== undefined}
+										<button
+											class="hover:text-[var(--accent)]"
+											on:click={() => (openDetails[item.timestamp] = !openDetails[item.timestamp])}
+										>
+											{openDetails[item.timestamp] ? '▾ hide details' : '▸ details'}
+										</button>
+										<button
+											class="hover:text-[var(--accent)]"
+											title="copy details as JSON"
+											on:click={() => writeToClipboard(JSON.stringify(item.details, null, 2), ' JSON')}
+										>⧉</button>
+									{/if}
+								</div>
+								{#if item.details !== undefined && openDetails[item.timestamp]}
+									<div class="mt-2 text-xs overflow-x-auto">
+										{#if typeof item.details == 'object' && item.details !== null}
+											<ConfigTree value={item.details} />
+										{:else}
+											<pre class="whitespace-pre-wrap">{item.details}</pre>
+										{/if}
+									</div>
+								{/if}
 							</div>
 						</div>
 					{/each}

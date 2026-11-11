@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Link from './Link.svelte';
 	import { capitalizeFirstLetter, debouncedCall, delay, getParentInfo, parentInfoCache, writeToClipboard } from '$lib/util';
+	import GrandParentRef from './GrandParentRef.svelte';
 	import { goto } from '$app/navigation';
 	import { onDestroy, onMount } from 'svelte';
 	import { DateTime } from 'luxon';
@@ -15,7 +16,7 @@
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { confirm } from '$lib/confirmStore';
 	import { createEventDispatcher } from 'svelte';
-	import type { IKongEntity, ITooggleableEntityMaybe } from '$lib/types';
+	import type { IKongEntity, ISubEntitySection, ITooggleableEntityMaybe } from '$lib/types';
 	import { base } from '$app/paths';
 	import Toggle from './Toggle.svelte';
 	import { get, writable, type Writable } from 'svelte/store';
@@ -35,6 +36,14 @@
 	export let type: string;
 	export let entity: IKongEntity | undefined;
 	export let pathPrefix: string | undefined = '';
+	export let nested: Record<string, ISubEntitySection[]> | undefined = undefined;
+	// compact mode for tables rendered inline inside a parent row
+	export let compact = false;
+	let expandedRows: Record<string, boolean> = {};
+	const expandByDefault = preferences?.expandSubEntitiesByDefault;
+	$: isExpanded = (id: string) => expandedRows[id] ?? !!(expandByDefault && $expandByDefault);
+	// toggling the preference overrides any per-row state
+	$: if (expandByDefault) $expandByDefault, (expandedRows = {});
 	let displayedFields: string[] = [];
 
 	function updateDisplayedFields() {
@@ -140,7 +149,7 @@
 				result = JSON.stringify(data[0], undefined, 2);
 			}
 		}
-		writeToClipboard(result, ' JSON');
+		writeToClipboard(result, result.trimStart().match(/^[[{]/) ? ' JSON' : '');
 	}
 	let sortByField = entity?.sortBy ?? 'updated_at';
 	let sortAscending = writable(entity?.sortAscending ?? false);
@@ -216,7 +225,7 @@
 		).updateRecord<ITooggleableEntityMaybe>(type, id, { enabled: newEnabledValue });
 		if (res.ok) {
 			dispatch('refresh');
-			confirmToast(`item ${newEnabledValue ? 'enabled' : 'disabled'}`);
+			confirmToast(`${newEnabledValue ? 'Enabled' : 'Disabled'} ${type} ${(res.data as any)?.name ?? id}`, false, res.data);
 		}
 		return res;
 	}
@@ -233,9 +242,9 @@
 		}
 		const res = await (await apiService()).deleteRecord(type, id, pathPrefix);
 		if (!res.ok) {
-			errorToast(`failed to delete. ${res.err}`);
+			errorToast(`Failed to delete ${type} ${id} (HTTP ${res.code}): ${res.err}`);
 		} else {
-			confirmToast(`successfully deleted the ${type}`);
+			confirmToast(`Deleted ${type} ${id}`);
 		}
 		dispatch('refresh');
 	}
@@ -317,7 +326,7 @@
 	const max = 5;
 	async function triggerHighlight(selfCalled = 0) {
 		if (selfCalled > max) {
-			errorToast('highlight not triggered!');
+			errorToast('Syntax highlighting failed');
 			return;
 		}
 		json = json.replace(/\t/g, '  ');
@@ -339,10 +348,10 @@
 			const parsed = JSON.parse(json);
 			json = JSON.stringify(parsed, undefined, 2);
 			triggerHighlight();
-			confirmToast('json is valid');
+			confirmToast('JSON is valid');
 			return true;
 		} catch (err: any) {
-			errorToast(`Failed to parse JSON. ${err.message}`);
+			errorToast(`Invalid JSON: ${err.message}`);
 			return false;
 		}
 	}
@@ -356,12 +365,12 @@
 			const element = filteredData[i];
 			const res = await (await apiService()).updateRecord(type, element.id, updateBody);
 			if (!res.ok) {
-				errorToast(`[${i + 1}/${total}] failed to update ${element.id}. ${res.err}`);
+				errorToast(`[${i + 1}/${total}] Failed to update ${element.name ?? element.id} (HTTP ${res.code}): ${res.err}`, false, 3500, { request: updateBody, response: res.errTyped ?? res.err });
 			} else {
-				infoToast(`[${i + 1}/${total}] updated ${element.name ?? element.id}`);
+				infoToast(`[${i + 1}/${total}] Updated ${element.name ?? element.id}`, false, { before: element, after: res.data });
 			}
 		}
-		infoToast(`bulk update finished (${total} entities)`);
+		infoToast(`Bulk update complete: ${total} ${type}`);
 		clearCache(type);
 		dispatch('refresh');
 	}
@@ -408,6 +417,7 @@
 <svelte:window on:keydown={handleGlobalKey} />
 
 <div class="w-full text-sm text-left rtl:text-right text-[var(--text-primary)]">
+	{#if !compact}
 	<div class="px-4 pt-3 pb-2">
 		<p class="text-sm text-[var(--text-secondary)] font-medium">
 			{filteredData ? filteredData.length : '…'} items
@@ -446,9 +456,10 @@
 			/>
 		</div>
 	{/if}
+	{/if}
 	{#if filteredData.length > 0}
-		<div class="flex flex-row w-full pb-2 justify-between items-center">
-			<div class="flex flex-row items-center gap-2 px-4">
+		<div class="flex flex-row w-full justify-between items-center {compact ? '' : 'pb-2'}">
+			<div class="flex flex-row items-center gap-2 px-4 {compact ? 'hidden' : ''}">
 				<select
 					title="chose the field used to sort the items"
 					class="input-field max-w-48 cursor-pointer"
@@ -484,7 +495,7 @@
 					on:click={() => {
 						sort(filteredData, `user requested sort`);
 						filteredData = filteredData;
-						infoToast('sorted!');
+						infoToast('Sorted');
 					}}
 					class="btn-glass"
 				>
@@ -555,18 +566,19 @@
 								if (res.ok) {
 									anyDeleted = true;
 									infoToast(
-										`deleted ${entity.name ?? ''}(${entity.id}) ${
-											filteredData.length - filteredData.indexOf(entity)
-										} remaining`
+										`Deleted ${type} ${entity.name ?? entity.id} (${
+											filteredData.length - filteredData.indexOf(entity) - 1
+										} remaining)`,
+										false,
+										entity
 									);
 								} else {
-									errorToast(`failed deletion of ${entity.name ?? entity.id}`);
-									errorToast(res.err ?? 'unknown error occurred');
+									errorToast(`Failed to delete ${type} ${entity.name ?? entity.id} (HTTP ${res.code}): ${res.err ?? 'unknown error'}`);
 									break;
 								}
 							}
 							if (anyDeleted) {
-								infoToast('deletion successfully finished! the list will be refreshed soon.');
+								infoToast('Bulk delete complete; refreshing the list');
 								dispatch('refresh');
 							}
 						}}
@@ -606,6 +618,15 @@
 						labelRight="Load parent"
 					/>
 				</div>
+				{#if nested && Object.values(nested).some((c) => c.length > 0) && expandByDefault}
+					<button
+						class="btn-glass"
+						title="expand/collapse sub-entities of all rows (saved as preference)"
+						on:click={() => expandByDefault.set(!$expandByDefault)}
+					>
+						{$expandByDefault ? 'Collapse all' : 'Expand all'}
+					</button>
+				{/if}
 			</div>
 			{#if filteredData.length > paginationSizeUi}
 				<div class="info py-4 flex flex-row items-center space-x-2 pl-6 mr-5">
@@ -688,16 +709,16 @@
 							if (ok) {
 								await applyBulkUpdate();
 							} else {
-								infoToast('aborted bulk update');
+								infoToast('Bulk update cancelled');
 							}
 						}}>apply</button
 					>
 				</div>
 			</div>
 		{/if}
-		<div class="mx-4 rounded-xl border border-[var(--glass-border)] overflow-hidden">
-		<table class="w-full">
-			<thead class="text-xs uppercase tracking-wider text-[var(--text-tertiary)] h-10 border-b border-[var(--glass-border)] bg-black/[0.02] dark:bg-white/[0.02]">
+		<div class={compact ? '' : 'mx-4 rounded-xl border border-[var(--glass-border)] overflow-hidden'}>
+		<table class="w-full {compact ? 'text-xs' : ''}">
+			<thead class="text-xs uppercase tracking-wider text-[var(--text-tertiary)] h-10 border-b border-[var(--glass-border)] bg-black/[0.02] dark:bg-white/[0.02] {compact ? 'hidden' : ''}">
 				<tr>
 					{#if get(preferences.enumerateEntities)}
 						<th><p class="p-4">No.</p></th>
@@ -715,7 +736,7 @@
 			<tbody>
 				{#each filteredData.slice(arrayStart, arrayEnd) as item, index}
 					<tr
-						class="group border-b border-[var(--glass-border)] transition-colors duration-100
+						class="group {compact ? '' : 'border-b'} border-[var(--glass-border)] transition-colors duration-100
 							{index === highlightedRow ? 'bg-[var(--accent)]/[0.08] dark:bg-[var(--accent)]/[0.12]' : 'hover:bg-[var(--accent)]/[0.03] dark:hover:bg-white/[0.04]'}"
 						on:auxclick={() => {
 							window.open(
@@ -731,8 +752,20 @@
 								</p></td
 							>
 						{/if}
-						<td class="p-2 w-0">
+						<td class="{compact ? 'px-1 py-0' : 'p-2'} w-0">
 							<div class="flex flex-row gap-0.5 opacity-30 group-hover:opacity-100 transition-opacity duration-100">
+								{#if nested?.[item.id]?.length}
+									<button
+										class="btn-icon h-8 w-8"
+										title={isExpanded(item.id) ? 'collapse' : 'expand sub-entities'}
+										aria-expanded={isExpanded(item.id)}
+										on:click|stopPropagation={() => {
+											expandedRows[item.id] = !isExpanded(item.id);
+										}}
+									>
+										<span class="inline-block transition-transform {isExpanded(item.id) ? 'rotate-90' : ''}">▸</span>
+									</button>
+								{/if}
 								<button
 									class="btn-icon h-8 w-8"
 									title={'copy (single click for JSON, double click for YAML)'}
@@ -766,7 +799,7 @@
 
 						{#each displayedFields ?? Object.keys($dataRaw[0] ?? {}) as field}
 							{#if Object.keys(item).includes(field)}
-								<td class="p-2">
+								<td class={compact ? 'px-1 py-0.5' : 'p-2'}>
 									<div class="flex flex-row items-center justify-between">
 										<!-- svelte-ignore a11y-click-events-have-key-events -->
 										<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
@@ -774,7 +807,7 @@
 											class="mr-2 cursor-pointer select-none overflow-hidden max-h-40 {field.includes(
 												'name'
 											)
-												? 'text-[16px] font-extralight'
+												? compact ? 'font-normal' : 'text-[16px] font-extralight'
 												: ''}"
 											title={field == 'name'
 												? `open ${item.name ?? ''} (${item.id})`
@@ -852,6 +885,7 @@
 															</p>
 														</div>
 													</a>
+													<GrandParentRef field={field} id={item[field].id} />
 												</div>
 											{:else if Object.is(item[field], null) || item[field] === undefined}
 												-
@@ -872,6 +906,28 @@
 							{/if}
 						{/each}
 					</tr>
+					{#if isExpanded(item.id) && nested?.[item.id]}
+						<tr class="border-b border-[var(--glass-border)]">
+							<td colspan="999" class="pb-2 pl-12 pr-2">
+								{#each nested[item.id] as child}
+									{#if child.data && get(child.data).length > 0}
+										<p class="pt-1 text-[11px] uppercase tracking-wider text-[var(--text-tertiary)]">
+											{child.name} · {get(child.data).length}
+										</p>
+										<svelte:self
+											dataRaw={child.data}
+											type={child.name}
+											entity={child}
+											pathPrefix={child.pathPrefix}
+											nested={child.children}
+											compact
+											on:refresh
+										/>
+									{/if}
+								{/each}
+							</td>
+						</tr>
+					{/if}
 				{/each}
 			</tbody>
 		</table>

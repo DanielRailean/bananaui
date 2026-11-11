@@ -45,9 +45,9 @@ export const dismissToast = (id: number) => {
 	toasts.update((all) => all.filter((t) => t.id !== id));
 };
 
-export const errorToast = (message: string, dismissible = false, timeout = 3500) =>
-	addToast({ message, dismissible, timeout, type: 'error' });
-export const infoToast = (message: string, dismissible = false) =>
-	addToast({ message, type: 'info', dismissible });
-export const confirmToast = (message: string, dismissible = false) =>
-	addToast({ message, type: 'success', dismissible });
+export const errorToast = (message: string, dismissible = false, timeout = 3500, details?: unknown) =>
+	addToast({ message, dismissible, timeout, type: 'error', details });
+export const infoToast = (message: string, dismissible = false, details?: unknown) =>
+	addToast({ message, type: 'info', dismissible, details });
+export const confirmToast = (message: string, dismissible = false, details?: unknown) =>
+	addToast({ message, type: 'success', dismissible, details });

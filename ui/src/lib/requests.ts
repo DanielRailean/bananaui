@@ -78,6 +78,18 @@ async function requestWithResponseBodyCached<ResType, ErrType = void>(
 	return requestWithResponseBody(url, method, body, headers)
 }
 
+const loginRedirectKey = 'auth401Redirected';
+
+// redirect to login on 401 only once; if still 401 after re-login, stop to avoid a loop
+function redirectToLoginOnce() {
+	if (sessionStorage.getItem(loginRedirectKey)) return;
+	const { pathname, search } = window.location;
+	if (pathname.includes('/login')) return;
+	sessionStorage.setItem(loginRedirectKey, '1');
+	userToken.set(undefined);
+	goto(`${base}/login?auto=true&source=${btoa(pathname + search)}`);
+}
+
 async function requestWithResponseBody<ResType, ErrType = void>(
 	url: string,
 	method: string = 'GET',
@@ -89,6 +101,11 @@ async function requestWithResponseBody<ResType, ErrType = void>(
 		ok: res.ok,
 		code: res.status
 	};
+	if (res.status == 401) {
+		redirectToLoginOnce();
+	} else if (res.ok) {
+		sessionStorage.removeItem(loginRedirectKey);
+	}
 	if (res.ok) {
 		try {
 			result.data = (await res.json()) as ResType;
@@ -205,16 +222,16 @@ class ApiService {
 		if (entity == "services") {
 			const routes = await (await apiService()).findAll("routes", {}, `/services/${id}`);
 			if (!routes.ok) {
-				errorToast(`failed to load routes for service ${id}`);
+				errorToast(`Failed to load routes for service ${id}`);
 				return routes
 			}
 			for (const element of routes.data?.data ?? []) {
 				const routeDelete = await this.deleteRecord("routes", element.id)
 				if (!routeDelete.ok) {
-					errorToast(`failed to delete service route with id ${element.id}. ${routeDelete.err}`)
+					errorToast(`Failed to delete route ${element.id}: ${routeDelete.err}`)
 					clearCache(id)
 				} else {
-					infoToast(`service route ${element.id} deleted!`)
+					infoToast(`Route ${element.name ?? element.id} deleted`, false, element)
 				}
 			}
 			clearCache('routes')
