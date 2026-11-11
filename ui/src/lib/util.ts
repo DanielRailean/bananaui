@@ -55,11 +55,16 @@ async function loadGrandParent(
 	return undefined;
 }
 
+function clipPreview(text: string, max = 60) {
+	const flat = (text ?? '').replace(/\s+/g, ' ').trim();
+	return flat.length > max ? `${flat.slice(0, max)}… (${text.length} chars)` : flat;
+}
+
 export const writeToClipboard = (
 	text: string,
 	extraNotifyText = "",
 	onSuccess: (value: void) => void = () => {
-		confirmToast(`copied${extraNotifyText}`);
+		confirmToast(`copied${extraNotifyText}: ${clipPreview(text)}`);
 	}
 ) => {
 	navigator.clipboard.writeText(text).then(onSuccess, () => {

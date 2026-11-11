@@ -149,7 +149,7 @@
 				result = JSON.stringify(data[0], undefined, 2);
 			}
 		}
-		writeToClipboard(result, ' JSON');
+		writeToClipboard(result, result.trimStart().match(/^[[{]/) ? ' JSON' : '');
 	}
 	let sortByField = entity?.sortBy ?? 'updated_at';
 	let sortAscending = writable(entity?.sortAscending ?? false);

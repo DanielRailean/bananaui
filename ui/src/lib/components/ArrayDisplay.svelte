@@ -15,7 +15,7 @@
 		let value = row;
 		if (field === 'paths' && typeof row === 'string') {
 			if (prefOn('stripRegexCharsOnPathCopy')) {
-				value = value.replace(/[$~]/g, '');
+				value = value.replace(/[$~]/g, '').replace(/\\(.)/g, '$1');
 			}
 			const url = get(config)?.config.gateway_url ?? "https://example.com";
 			if (url && prefOn('prependGatewayUrlOnPathCopy')) {
