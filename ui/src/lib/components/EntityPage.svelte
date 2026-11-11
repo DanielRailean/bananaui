@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ArrayWrap from './ArrayWrap.svelte';
+	import ConfigTree from './ConfigTree.svelte';
 	export let data: any = undefined;
 	import { afterUpdate, onMount, tick } from 'svelte';
 	import TreeWrapper from './treeWrapper.svelte';
@@ -558,7 +559,9 @@
 									/>
 								</div>
 								{#if openedPlugins[plugin.id]}
-									<pre class="language-json m-0 p-4 w-full dark:bg-[#1E2021] bg-white rounded-none" style="font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6;"><code class="language-json dark:bg-[#1E2021] bg-white">{JSON.stringify(plugin.config, null, 2)}</code></pre>
+									<div class="p-4 w-full dark:bg-[#1E2021] bg-white rounded-b-xl">
+										<ConfigTree value={plugin.config} />
+									</div>
 								{/if}
 							</div>
 							{#if relevantPlugins.indexOf(plugin) + 1 != relevantPlugins.length}
