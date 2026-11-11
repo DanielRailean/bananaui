@@ -21,7 +21,7 @@
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import { fieldOrder, sortObjectFieldsByOrder, staticConfig, yamlDumpOptions } from '$lib/config';
-	import type { IKongEntity, IKongPlugin } from '$lib/types';
+	import type { IKongEntity, IKongPlugin, ISubEntitySection } from '$lib/types';
 	import { base } from '$app/paths';
 	import { preferences } from '$lib/stores';
 	import { get, writable, type Writable } from 'svelte/store';
@@ -38,40 +38,58 @@
 	let id: string;
 	let entityType: string;
 	let pathPrefix: string = '';
-	let subEntityPrefix: string = '';
 
 	let currentEntity: IKongEntity | undefined;
 
-	interface IEntities extends IKongEntity {
-		data?: Writable<any[]>;
-		entitySubPath: string;
-	}
-	let subEntities: IEntities[];
+	const maxSubEntityDepth = 3;
+	let subEntities: ISubEntitySection[];
 	let relevantPlugins: IKongPlugin[] = [];
 	let entitySchema: any | undefined;
 	let pluginSchema: any | undefined;
 
 	let prevSearch = '';
 	$: if ($page.url.pathname.endsWith('/entity')) {
-		const params = new URLSearchParams($page.url.search);
-		params.delete('tab');
-		const search = params.toString();
+		const search = $page.url.search;
 		if (search !== prevSearch) {
 			prevSearch = search;
 			load();
 		}
-		activeTab = $page.url.searchParams.get('tab') ?? 'details';
 	}
 
-	function setTab(tab: string) {
-		activeTab = tab;
-		const url = new URL(window.location.toString());
-		if (tab === 'details') {
-			url.searchParams.delete('tab');
-		} else {
-			url.searchParams.set('tab', tab);
+	async function loadSubEntities(
+		parentType: string,
+		parentId: string,
+		depth: number
+	): Promise<ISubEntitySection[]> {
+		const kongEntities = get(preferences.kongEntities);
+		const parent = kongEntities.find((ent) => ent.name == parentType);
+		const result: ISubEntitySection[] = [];
+		for (const name of parent?.subEntities ?? []) {
+			const found = kongEntities.find((ent) => ent.name == name);
+			if (!found) {
+				continue;
+			}
+			const ent: ISubEntitySection = {
+				...found,
+				entitySubPath: `${parentType}/${parentId}/${found.name}`,
+				pathPrefix: parentType == 'upstreams' ? `/upstreams/${parentId}` : '',
+				children: {}
+			};
+			result.push(ent);
+			const res = await (await apiService()).findAll(found.name, {}, `/${parentType}/${parentId}`);
+			if (!res.ok) {
+				errorToast(`failed to load ${found.name}`);
+				continue;
+			}
+			const items = (res.data?.data as any[]) ?? [];
+			ent.data = writable(items);
+			if (depth + 1 < maxSubEntityDepth && (found.subEntities?.length ?? 0) > 0) {
+				for (const item of items) {
+					ent.children[item.id] = await loadSubEntities(found.name, item.id, depth + 1);
+				}
+			}
 		}
-		history.pushState(null, '', url);
+		return result;
 	}
 
 	let isMounted = false;
@@ -111,9 +129,6 @@
 		id = searchParams.get('id') ?? 'none';
 		let edited = searchParams.get('isEdited') ?? '';
 		pathPrefix = searchParams.get('prefix') ?? '';
-		if (entityType == 'upstreams') {
-			subEntityPrefix = `/upstreams/${id}`;
-		}
 		{
 			data = undefined;
 			const res = await (await apiService()).findRecord(entityType, id, pathPrefix);
@@ -127,26 +142,7 @@
 			stateJson = json;
 
 			currentEntity = get(preferences.kongEntities).find((ent) => ent.name == entityType);
-			subEntities = [];
-			for (const entity of currentEntity?.subEntities ?? []) {
-				const found = get(preferences.kongEntities).find((ent) => ent.name == entity);
-				if (!found) {
-					continue;
-				}
-				subEntities.push({
-					...found,
-					entitySubPath: `${entityType}/${id}/${found.name}`
-				});
-			}
-			for (const ent of subEntities) {
-				const res2 = await (await apiService()).findAll(ent.name, {}, `/${entityType}/${id}`);
-				if (!res2.ok) {
-					errorToast(`failed to load ${ent.name}`);
-					continue;
-				}
-				ent.data = writable(res2.data?.data as any[]);
-				subEntities = subEntities;
-			}
+			subEntities = await loadSubEntities(entityType, id, 0);
 		}
 		// load entity schema
 		entitySchema = undefined;
@@ -204,7 +200,6 @@
 	}
 
 	let openedPlugins: any = {};
-	let activeTab = 'details';
 
 	async function deleteEntity(type: string, id: string, name: string) {
 		const conf = await confirm({
@@ -350,10 +345,7 @@
 	}
 </script>
 
-<svelte:window
-	on:keydown={handleEntityKeydown}
-	on:popstate={() => (activeTab = new URL(window.location.href).searchParams.get('tab') ?? 'details')}
-/>
+<svelte:window on:keydown={handleEntityKeydown} />
 
 <svelte:head>
 	<title>{data?.name ?? data?.id ?? staticConfig.name}</title>
@@ -506,30 +498,8 @@
 			/>
 		{/if}
 		<div class={isEdited ? 'hidden' : ''}>
-			<!-- Tab bar -->
-			{#if subEntities && subEntities.length > 0}
-				<div class="flex items-center gap-1 px-5 py-2.5 border-b border-[var(--glass-border)]">
-					<button
-						class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {activeTab === 'details' ? 'text-[var(--text-primary)] bg-[var(--accent)]/10' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}"
-						on:click={() => setTab('details')}
-					>Details</button>
-				{#if relevantPlugins.length > 0}
-					<button
-						class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {activeTab === 'plugin_order' ? 'text-[var(--text-primary)] bg-[var(--accent)]/10' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}"
-						on:click={() => { setTab('plugin_order'); showPluginOrder.set(true); }}
-					>Execution Order ({relevantPlugins.length})</button>
-				{/if}
-					{#each subEntities as subEntity}
-						<button
-							class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {activeTab === subEntity.name ? 'text-[var(--text-primary)] bg-[var(--accent)]/10' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}"
-							on:click={() => setTab(subEntity.name)}
-						>{capitalizeFirstLetter(subEntity.name)} {subEntity.data ? `(${get(subEntity.data).length})` : ''}</button>
-					{/each}
-				</div>
-			{/if}
-
-			<!-- Tab: Details -->
-			<div class={activeTab === 'details' ? 'px-5 pt-4 pb-5' : 'hidden'}>
+			<!-- Details -->
+			<div class="px-5 pt-4 pb-5">
 				<div class="rounded-xl border border-[var(--glass-border)] overflow-hidden">
 					<TreeWrapper
 						{data}
@@ -542,9 +512,12 @@
 				</div>
 			</div>
 
-			<!-- Tab: Plugin Execution Order -->
-			<div class={activeTab === 'plugin_order' ? '' : 'hidden'}>
-				{#if relevantPlugins && relevantPlugins.length > 0}
+			<!-- Plugin Execution Order -->
+			{#if relevantPlugins && relevantPlugins.length > 0}
+			<div class="border-t border-[var(--glass-border)]">
+				<h2 class="px-5 pt-4 text-sm font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+					Execution Order ({relevantPlugins.length})
+				</h2>
 					<div bind:this={pluginConfigContainer} class="flex flex-wrap items-center gap-2 p-5">
 						{#each relevantPlugins as plugin}
 							<div class="glass rounded-xl">
@@ -583,20 +556,21 @@
 							{/if}
 						{/each}
 					</div>
-				{:else}
-					<p class="p-5 text-sm text-[var(--text-tertiary)]">No plugins attached.</p>
-				{/if}
 			</div>
+			{/if}
 
-			<!-- Tab: Sub-entities -->
+			<!-- Sub-entities -->
 			{#if subEntities}
 				{#each subEntities as subEntity}
-					<div class={activeTab === subEntity.name ? '' : 'hidden'}>
-						<div class="flex items-center gap-2 px-5 pt-4">
+					<div class="border-t border-[var(--glass-border)]">
+						<div class="flex items-center gap-3 px-5 pt-4">
+							<h2 class="text-sm font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+								{capitalizeFirstLetter(subEntity.name)} {subEntity.data ? `(${get(subEntity.data).length})` : ''}
+							</h2>
 							<a
 								class="btn-accent"
-								href="{base}/add?type={subEntity.name}&apiPostPath={btoa(subEntity.entitySubPath)}&prefix={subEntityPrefix}"
-								on:click|preventDefault={() => goto(`${base}/add?type=${subEntity.name}&apiPostPath=${btoa(subEntity.entitySubPath)}&prefix=${subEntityPrefix}`)}
+								href="{base}/add?type={subEntity.name}&apiPostPath={btoa(subEntity.entitySubPath)}&prefix={subEntity.pathPrefix}"
+								on:click|preventDefault={() => goto(`${base}/add?type=${subEntity.name}&apiPostPath=${btoa(subEntity.entitySubPath)}&prefix=${subEntity.pathPrefix}`)}
 							>
 								<CirclePlusOutline size="sm" />Add {subEntity.name}
 							</a>
@@ -606,7 +580,8 @@
 								dataRaw={subEntity.data}
 								type={subEntity.name}
 								entity={subEntity}
-								pathPrefix={subEntityPrefix}
+								pathPrefix={subEntity.pathPrefix}
+								nested={subEntity.children}
 								on:refresh={async () => await load()}
 							/>
 						{:else}
@@ -635,12 +610,6 @@
 				<div class="h-10 w-20 rounded-xl bg-black/[0.04] dark:bg-white/[0.04]"></div>
 				<div class="h-10 w-20 rounded-xl bg-black/[0.04] dark:bg-white/[0.04]"></div>
 				<div class="h-10 w-28 rounded-xl bg-black/[0.04] dark:bg-white/[0.04]"></div>
-			</div>
-			<!-- Tab bar -->
-			<div class="flex items-center gap-2 px-5 py-2 border-b border-[var(--glass-border)]">
-				<div class="h-8 w-16 rounded-lg bg-black/[0.06] dark:bg-white/[0.06]"></div>
-				<div class="h-8 w-28 rounded-lg bg-black/[0.04] dark:bg-white/[0.04]"></div>
-				<div class="h-8 w-20 rounded-lg bg-black/[0.03] dark:bg-white/[0.03]"></div>
 			</div>
 			<!-- Key-value table -->
 			<div class="mx-5 mt-4 rounded-xl border border-[var(--glass-border)] divide-y divide-[var(--glass-border)]">

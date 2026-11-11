@@ -89,6 +89,14 @@ export interface IKongEntity {
 	logo?: string
 }
 
+export interface ISubEntitySection extends IKongEntity {
+	data?: import('svelte/store').Writable<any[]>;
+	entitySubPath: string;
+	pathPrefix: string;
+	// nested sections keyed by parent item id
+	children: Record<string, ISubEntitySection[]>;
+}
+
 export interface IKongPlugin extends IEntityBase {
 	service: {
 		id: string

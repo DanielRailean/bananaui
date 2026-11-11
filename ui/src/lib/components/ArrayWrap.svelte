@@ -15,7 +15,7 @@
 	import { addToast, confirmToast, errorToast, infoToast } from '$lib/toastStore';
 	import { confirm } from '$lib/confirmStore';
 	import { createEventDispatcher } from 'svelte';
-	import type { IKongEntity, ITooggleableEntityMaybe } from '$lib/types';
+	import type { IKongEntity, ISubEntitySection, ITooggleableEntityMaybe } from '$lib/types';
 	import { base } from '$app/paths';
 	import Toggle from './Toggle.svelte';
 	import { get, writable, type Writable } from 'svelte/store';
@@ -35,6 +35,10 @@
 	export let type: string;
 	export let entity: IKongEntity | undefined;
 	export let pathPrefix: string | undefined = '';
+	export let nested: Record<string, ISubEntitySection[]> | undefined = undefined;
+	// compact mode for tables rendered inline inside a parent row
+	export let compact = false;
+	let expandedRows: Record<string, boolean> = {};
 	let displayedFields: string[] = [];
 
 	function updateDisplayedFields() {
@@ -408,6 +412,7 @@
 <svelte:window on:keydown={handleGlobalKey} />
 
 <div class="w-full text-sm text-left rtl:text-right text-[var(--text-primary)]">
+	{#if !compact}
 	<div class="px-4 pt-3 pb-2">
 		<p class="text-sm text-[var(--text-secondary)] font-medium">
 			{filteredData ? filteredData.length : '…'} items
@@ -446,9 +451,10 @@
 			/>
 		</div>
 	{/if}
+	{/if}
 	{#if filteredData.length > 0}
-		<div class="flex flex-row w-full pb-2 justify-between items-center">
-			<div class="flex flex-row items-center gap-2 px-4">
+		<div class="flex flex-row w-full justify-between items-center {compact ? '' : 'pb-2'}">
+			<div class="flex flex-row items-center gap-2 px-4 {compact ? 'hidden' : ''}">
 				<select
 					title="chose the field used to sort the items"
 					class="input-field max-w-48 cursor-pointer"
@@ -695,7 +701,7 @@
 				</div>
 			</div>
 		{/if}
-		<div class="mx-4 rounded-xl border border-[var(--glass-border)] overflow-hidden">
+		<div class="{compact ? '' : 'mx-4'} rounded-xl border border-[var(--glass-border)] overflow-hidden">
 		<table class="w-full">
 			<thead class="text-xs uppercase tracking-wider text-[var(--text-tertiary)] h-10 border-b border-[var(--glass-border)] bg-black/[0.02] dark:bg-white/[0.02]">
 				<tr>
@@ -733,6 +739,18 @@
 						{/if}
 						<td class="p-2 w-0">
 							<div class="flex flex-row gap-0.5 opacity-30 group-hover:opacity-100 transition-opacity duration-100">
+								{#if nested?.[item.id]?.length}
+									<button
+										class="btn-icon h-8 w-8"
+										title={expandedRows[item.id] ? 'collapse' : 'expand sub-entities'}
+										aria-expanded={!!expandedRows[item.id]}
+										on:click|stopPropagation={() => {
+											expandedRows[item.id] = !expandedRows[item.id];
+										}}
+									>
+										<span class="inline-block transition-transform {expandedRows[item.id] ? 'rotate-90' : ''}">▸</span>
+									</button>
+								{/if}
 								<button
 									class="btn-icon h-8 w-8"
 									title={'copy (single click for JSON, double click for YAML)'}
@@ -872,6 +890,39 @@
 							{/if}
 						{/each}
 					</tr>
+					{#if expandedRows[item.id] && nested?.[item.id]}
+						<tr class="border-b border-[var(--glass-border)] bg-black/[0.015] dark:bg-white/[0.015]">
+							<td colspan="999" class="pl-6 pr-2 pb-2">
+								{#each nested[item.id] as child}
+									<div class="flex items-center gap-3 py-2">
+										<h3 class="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+											{capitalizeFirstLetter(child.name)} {child.data ? `(${get(child.data).length})` : ''}
+										</h3>
+										<a
+											class="btn-accent"
+											href="{base}/add?type={child.name}&apiPostPath={btoa(child.entitySubPath)}&prefix={child.pathPrefix}"
+											on:click|preventDefault={() => goto(`${base}/add?type=${child.name}&apiPostPath=${btoa(child.entitySubPath)}&prefix=${child.pathPrefix}`)}
+										>
+											Add {child.name}
+										</a>
+									</div>
+									{#if child.data && get(child.data).length > 0}
+										<svelte:self
+											dataRaw={child.data}
+											type={child.name}
+											entity={child}
+											pathPrefix={child.pathPrefix}
+											nested={child.children}
+											compact
+											on:refresh
+										/>
+									{:else}
+										<p class="py-2 text-sm text-[var(--text-tertiary)]">No {child.name} found.</p>
+									{/if}
+								{/each}
+							</td>
+						</tr>
+					{/if}
 				{/each}
 			</tbody>
 		</table>
