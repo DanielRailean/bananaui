@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { toastList, clearToasts } from '$lib/toastStore';
-	import { confirm } from '$lib/confirmStore';
+	import ConfirmButton from '$lib/components/ConfirmButton.svelte';
 	import { onMount } from 'svelte';
 	import { TrashBinOutline } from 'flowbite-svelte-icons';
 	import ConfigTree from '$lib/components/ConfigTree.svelte';
@@ -51,15 +51,9 @@
 			<p class="text-sm text-[var(--text-secondary)]">{localToasts.length} total</p>
 		</div>
 		{#if localToasts.length > 0}
-			<button
-				on:click={async () => {
-					const ok = await confirm({
-						title: 'Clear notifications',
-						message: `Delete all ${localToasts.length} notifications?`,
-						variant: 'danger',
-						confirmText: 'Delete all'
-					});
-					if (!ok) return;
+			<ConfirmButton
+				confirmText="Confirm: delete {localToasts.length}?"
+				on:confirm={() => {
 					clearToasts();
 					loadToasts();
 				}}
@@ -67,7 +61,7 @@
 			>
 				<TrashBinOutline size="sm" />
 				Clear all
-			</button>
+			</ConfirmButton>
 		{/if}
 	</div>
 
